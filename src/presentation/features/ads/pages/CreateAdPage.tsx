@@ -1,0 +1,1590 @@
+import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../../context/LanguageContext';
+import { useNavigation } from '../../../context/NavigationContext';
+import { Sidebar } from '../../../../presentation/layouts/Sidebar';
+import { Header } from '../../../../presentation/layouts/Header';
+import { useDependencies } from '../../../../core/di/DependencyProvider';
+import {
+  ArrowLeft,
+  Upload,
+  Calendar as CalendarIcon,
+  Check,
+  CheckCircle2,
+  FileImage,
+  Globe,
+  Search,
+  Bell
+} from 'lucide-react';
+
+interface City {
+  name: string;
+  selected: boolean;
+  reach: number;
+}
+
+interface Category {
+  name: string;
+  selected: boolean;
+}
+
+interface Placement {
+  id: string;
+  label: string;
+  selected: boolean;
+}
+
+export const CreateAdPage: React.FC = () => {
+  const { navigate } = useNavigation();
+  const { isRtl } = useLanguage();
+  const { dependencies } = useDependencies();
+  const { adRepository } = dependencies;
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileActiveTab, setMobileActiveTab] = useState<'creative' | 'schedule' | 'placement' | 'targeting'>('creative');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Creative States
+  const [adTitle, setAdTitle] = useState('Summer AC Repair Special');
+  const [description, setDescription] = useState('Get 20% off on all AC maintenance and repair services this summer.');
+  const [ctaText, setCtaText] = useState('Book Now');
+  const [destinationUrl, setDestinationUrl] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Schedule States
+  const [startDate, setStartDate] = useState('2026-07-02');
+  const [endDate, setEndDate] = useState('2026-08-02');
+  const [runContinuously, setRunContinuously] = useState(false);
+
+  // Placement States
+  const [placements, setPlacements] = useState<Placement[]>([
+    { id: 'home_banner', label: 'Home Page Banner', selected: true },
+    { id: 'search_results', label: 'Search Results', selected: false },
+    { id: 'category_pages', label: 'Category Pages', selected: false },
+    { id: 'craftsmen_listing', label: 'Craftsmen Listing Pages', selected: false },
+    { id: 'task_details', label: 'Task Details Pages', selected: false },
+    { id: 'notifications', label: 'Notifications Section', selected: false },
+    { id: 'popups', label: 'Promotional Popups', selected: false },
+    { id: 'featured_slots', label: 'Featured Craftsman Slots', selected: false },
+  ]);
+
+  // Targeting States
+  const [userType, setUserType] = useState<'Customers' | 'Craftsmen' | 'Both'>('Customers');
+  
+  const [categories, setCategories] = useState<Category[]>([
+    { name: 'Electricians', selected: false },
+    { name: 'Plumbers', selected: false },
+    { name: 'AC Repair', selected: true },
+    { name: 'Painting', selected: false },
+    { name: 'Cleaning', selected: false },
+    { name: 'Maintenance', selected: false },
+    { name: 'Carpenters', selected: false },
+    { name: 'Movers', selected: false },
+  ]);
+
+  const [locationType, setLocationType] = useState<'All' | 'Cities' | 'Districts'>('Cities');
+
+  const [cities, setCities] = useState<City[]>([
+    { name: 'Riyadh', selected: true, reach: 40000 },
+    { name: 'Jeddah', selected: true, reach: 35000 },
+    { name: 'Dammam', selected: false, reach: 20000 },
+    { name: 'Makkah', selected: false, reach: 15000 },
+    { name: 'Madinah', selected: false, reach: 10000 },
+    { name: 'Khobar', selected: false, reach: 10000 },
+    { name: 'Taif', selected: false, reach: 8000 },
+    { name: 'Abha', selected: false, reach: 7000 },
+    { name: 'Tabuk', selected: false, reach: 5000 },
+  ]);
+
+  // Alert/Notification State on Submit
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // File Upload Handlers
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Toggle handlers
+  const togglePlacement = (id: string) => {
+    setPlacements(prev =>
+      prev.map(p => (p.id === id ? { ...p, selected: !p.selected } : p))
+    );
+  };
+
+  const toggleCategory = (name: string) => {
+    setCategories(prev =>
+      prev.map(c => (c.name === name ? { ...c, selected: !c.selected } : c))
+    );
+  };
+
+  const toggleCity = (name: string) => {
+    setCities(prev =>
+      prev.map(c => (c.name === name ? { ...c, selected: !c.selected } : c))
+    );
+  };
+
+  // Dynamic Reach Calculation
+  const reachMetrics = useMemo(() => {
+    let baseReach = 50000; // base national reach
+
+    if (locationType === 'Cities') {
+      const selectedCities = cities.filter(c => c.selected);
+      if (selectedCities.length === 0) {
+        baseReach = 0;
+      } else {
+        baseReach = selectedCities.reduce((sum, c) => sum + c.reach, 0);
+      }
+    } else if (locationType === 'All') {
+      baseReach = 180000;
+    } else {
+      // Districts
+      baseReach = 45000;
+    }
+
+    // Category multiplier
+    const selectedCats = categories.filter(c => c.selected).length;
+    const catMultiplier = selectedCats === 0 ? 0.2 : 0.8 + selectedCats * 0.1;
+
+    // Placement multiplier
+    const selectedPlacements = placements.filter(p => p.selected).length;
+    const placementMultiplier = selectedPlacements === 0 ? 0.5 : 0.9 + selectedPlacements * 0.1;
+
+    const totalReach = Math.round(baseReach * catMultiplier * placementMultiplier);
+
+    // Format cities list for reach subtext
+    const citiesListStr = locationType === 'All' 
+      ? 'All Saudi Arabia' 
+      : cities.filter(c => c.selected).map(c => c.name).join(' and ') || 'No cities selected';
+
+    // Format categories list
+    const catsListStr = categories.filter(c => c.selected).map(c => c.name).join(', ') || 'No category';
+
+    return {
+      formattedReach: totalReach >= 1000 ? `${Math.round(totalReach / 1000)}K` : totalReach.toString(),
+      summaryText: `Based on your selected targeting: ${catsListStr} category in ${citiesListStr}.`
+    };
+  }, [locationType, cities, categories, placements]);
+
+  // Form Submit Action
+  const handleLaunch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const placementLabel = placements.find(p => p.selected)?.label || 'Home Banner';
+      const result = await adRepository.createAd(adTitle, 5000, placementLabel);
+      if (result.success) {
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          navigate('campaigns');
+        }, 2000);
+      } else {
+        setError(result.error.message || 'Failed to launch campaign.');
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to launch campaign.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate('campaigns');
+  };
+
+  const selectedCities = cities.filter(c => c.selected);
+
+  return (
+    <div className="app-container" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+      
+      <main className="main-content">
+        {/* Banner success overlay */}
+        {showSuccess && (
+          <div className="success-toast">
+            <CheckCircle2 size={20} color="#10B981" />
+            <span>Campaign created and queued for launch successfully!</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="glass-card status-danger animate-fade-in" style={{ padding: 'var(--spacing-md)', margin: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', color: 'var(--color-danger)' }}>
+              <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>{error}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Header */}
+        <div className="mobile-header mobile-only">
+          <div className="mobile-header-left">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="mobile-logo-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                textAlign: 'start',
+                fontFamily: 'inherit'
+              }}
+            >
+              <div className="mobile-logo">S</div>
+              <div className="mobile-logo-text">
+                <strong>Sonaa</strong>
+                <span>Admin</span>
+              </div>
+            </button>
+          </div>
+          <div className="mobile-header-right" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button type="button" className="mobile-action-btn"><Search size={16} /></button>
+            <button type="button" className="mobile-action-btn" style={{ position: 'relative' }}>
+              <Bell size={16} />
+              <span className="mobile-badge" />
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop & Tablet Page Header (Transparent background, no borders) */}
+        <div className="create-ad-header-row desktop-tablet-only">
+          <button 
+            type="button" 
+            onClick={handleCancel} 
+            className="back-circle-btn"
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              border: '1px solid #E5E7EB',
+              background: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#171717',
+              transition: 'background-color 0.2s ease, border-color 0.2s ease',
+              boxShadow: '0px 1px 2px rgba(0,0,0,0.05)',
+              padding: 0,
+              flexShrink: 0
+            }}
+          >
+            <ArrowLeft size={18} />
+          </button>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'start' }}>
+            <h1 className="create-ad-title" style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#171717', lineHeight: '1.2' }}>
+              Create Advertisement
+            </h1>
+            <p className="create-ad-subtitle" style={{ margin: 0, fontSize: '14px', color: '#6B7280' }}>
+              Set up a new ad campaign
+            </p>
+          </div>
+        </div>
+
+        <div className="create-ad-page-body">
+          {/* Mobile Header Row (Transparent background, no borders) */}
+          <div className="create-ad-header-row mobile-only" style={{ margin: '0 0 24px 0', paddingTop: 0, paddingBottom: 0 }}>
+            <button 
+              type="button" 
+              onClick={handleCancel} 
+              className="back-circle-btn"
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                border: '1px solid #E5E7EB',
+                background: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#171717',
+                transition: 'background-color 0.2s ease, border-color 0.2s ease',
+                boxShadow: '0px 1px 2px rgba(0,0,0,0.05)',
+                padding: 0,
+                flexShrink: 0
+              }}
+            >
+              <ArrowLeft size={18} />
+            </button>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'start' }}>
+              <h1 className="create-ad-title" style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#171717', lineHeight: '1.2' }}>
+                Create Advertisement
+              </h1>
+              <p className="create-ad-subtitle" style={{ margin: 0, fontSize: '12px', color: '#6B7280' }}>
+                Set up a new ad campaign
+              </p>
+            </div>
+          </div>
+
+          {/* Two Column Layout matching Figma */}
+          <div className="create-ad-layout">
+          {/* Left Form Column */}
+          <form onSubmit={handleLaunch} className="create-ad-form">
+            
+            {/* Mobile Tabs Switcher Bar */}
+            <div className="mobile-only mobile-tabs-bar">
+              {(['creative', 'schedule', 'placement', 'targeting'] as const).map(tab => (
+                <button
+                  type="button"
+                  key={tab}
+                  className={`mobile-tab-btn ${mobileActiveTab === tab ? 'active' : ''}`}
+                  onClick={() => setMobileActiveTab(tab)}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+            
+            {/* Section 1: Creative */}
+            <div className={`form-card mobile-tab-content ${mobileActiveTab === 'creative' ? 'mobile-tab-active' : ''}`}>
+              <h2 className="form-card-title">Creative</h2>
+              <p className="form-card-subtitle">Upload your ad assets and define the content</p>
+              
+              <div className="form-group">
+                <label className="form-label-styled">Ad Image</label>
+                <div 
+                  className="image-dropzone" 
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                >
+                  <input 
+                    type="file" 
+                    id="ad-image-upload" 
+                    accept="image/*" 
+                    onChange={handleImageChange}
+                    className="hidden-file-input"
+                  />
+                  <label htmlFor="ad-image-upload" className="dropzone-label">
+                    {imagePreview ? (
+                      <div className="dropzone-preview-container">
+                        <img src={imagePreview} alt="Ad Preview" className="dropzone-preview-img" />
+                        <div className="dropzone-preview-overlay">
+                          <Upload size={20} />
+                          <span>Change Image</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload size={32} className="upload-icon" />
+                        <span className="upload-primary-text">Drop image or click to upload</span>
+                        <span className="upload-sub-text">1200×400 recommended · PNG, JPG up to 5MB</span>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label-styled">Ad Title</label>
+                <input 
+                  type="text" 
+                  required
+                  value={adTitle}
+                  onChange={(e) => setAdTitle(e.target.value)}
+                  className="form-text-input"
+                  placeholder="e.g. Summer AC Repair Special"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label-styled">Description</label>
+                <textarea 
+                  required
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="form-textarea-input"
+                  placeholder="Describe your offer..."
+                />
+              </div>
+
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label className="form-label-styled">CTA Button Text</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={ctaText}
+                    onChange={(e) => setCtaText(e.target.value)}
+                    className="form-text-input"
+                    placeholder="e.g. Book Now"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label-styled">Destination URL</label>
+                  <input 
+                    type="text" 
+                    value={destinationUrl}
+                    onChange={(e) => setDestinationUrl(e.target.value)}
+                    className="form-text-input"
+                    placeholder="e.g. https://sonaa.com/promo"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Schedule */}
+            <div className={`form-card mobile-tab-content ${mobileActiveTab === 'schedule' ? 'mobile-tab-active' : ''}`}>
+              <h2 className="form-card-title">Schedule</h2>
+              <p className="form-card-subtitle">Set when your campaign should start and end</p>
+              
+              <div className="form-row-2" style={{ marginBottom: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label-styled">Start Date</label>
+                  <div className="input-with-icon">
+                    <CalendarIcon size={16} className="input-icon" />
+                    <input 
+                      type="date" 
+                      required
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="form-text-input icon-padding"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className={`form-label-styled ${runContinuously ? 'disabled-label' : ''}`}>End Date</label>
+                  <div className="input-with-icon">
+                    <CalendarIcon size={16} className={`input-icon ${runContinuously ? 'disabled-icon' : ''}`} />
+                    <input 
+                      type="date" 
+                      required={!runContinuously}
+                      disabled={runContinuously}
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="form-text-input icon-padding"
+                      style={{ 
+                        backgroundColor: runContinuously ? '#F4F4F5' : '#FFFFFF',
+                        borderColor: runContinuously ? '#E5E7EB' : '#D1D5DB',
+                        color: runContinuously ? '#A1A1AA' : '#171717',
+                        cursor: runContinuously ? 'not-allowed' : 'text'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <label className="checkbox-container">
+                <input 
+                  type="checkbox" 
+                  checked={runContinuously} 
+                  onChange={(e) => setRunContinuously(e.target.checked)}
+                  className="checkbox-input"
+                />
+                <span className="checkbox-label">Run continuously (no end date)</span>
+              </label>
+            </div>
+
+            {/* Section 3: Placement */}
+            <div className={`form-card mobile-tab-content ${mobileActiveTab === 'placement' ? 'mobile-tab-active' : ''}`}>
+              <h2 className="form-card-title">Placement</h2>
+              <p className="form-card-subtitle">Choose where your ad will appear across Sonaa App</p>
+              
+              <div className="placement-grid">
+                {placements.map(p => (
+                  <div 
+                    key={p.id}
+                    onClick={() => togglePlacement(p.id)}
+                    className={`placement-item ${p.selected ? 'selected' : ''}`}
+                  >
+                    <div className={`placement-radio ${p.selected ? 'checked' : ''}`}>
+                      {p.selected && <Check size={10} color="#FFFFFF" strokeWidth={3} />}
+                    </div>
+                    <span className="placement-label-text">{p.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 4: Targeting */}
+            <div className={`form-card mobile-tab-content ${mobileActiveTab === 'targeting' ? 'mobile-tab-active' : ''}`}>
+              <h2 className="form-card-title">Targeting</h2>
+              <p className="form-card-subtitle">Define who should see this advertisement</p>
+
+              {/* User Type */}
+              <div className="form-group-spaced">
+                <label className="form-label-styled">User Type</label>
+                <div className="radio-group">
+                  {(['Customers', 'Craftsmen', 'Both'] as const).map(type => (
+                    <label key={type} className="radio-label">
+                      <input 
+                        type="radio" 
+                        name="userType"
+                        checked={userType === type}
+                        onChange={() => setUserType(type)}
+                        className="radio-input"
+                      />
+                      <span className="radio-text">{type === 'Both' ? 'Both' : `${type} only`}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Categories */}
+              <div className="form-group-spaced">
+                <label className="form-label-styled">Categories</label>
+                <div className="tag-cloud">
+                  {categories.map(c => (
+                    <button
+                      type="button"
+                      key={c.name}
+                      onClick={() => toggleCategory(c.name)}
+                      className={`tag-btn ${c.selected ? 'selected' : ''}`}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Location Type */}
+              <div className="form-group-spaced" style={{ marginBottom: '16px' }}>
+                <label className="form-label-styled">Location</label>
+                <div className="radio-group">
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="locationType"
+                      checked={locationType === 'All'}
+                      onChange={() => setLocationType('All')}
+                      className="radio-input"
+                    />
+                    <span className="radio-text">All Saudi Arabia</span>
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="locationType"
+                      checked={locationType === 'Cities'}
+                      onChange={() => setLocationType('Cities')}
+                      className="radio-input"
+                    />
+                    <span className="radio-text">Specific Cities</span>
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="locationType"
+                      checked={locationType === 'Districts'}
+                      onChange={() => setLocationType('Districts')}
+                      className="radio-input"
+                    />
+                    <span className="radio-text">Specific Districts</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Cities panel - active when locationType is 'Cities' */}
+              {locationType === 'Cities' && (
+                <div className="cities-box">
+                  {/* Selected Cities */}
+                  <div className="selected-cities-row">
+                    {selectedCities.length === 0 ? (
+                      <span className="no-cities-placeholder">Click cities below to add...</span>
+                    ) : (
+                      selectedCities.map(c => (
+                        <div key={c.name} className="city-pill">
+                          <span>{c.name}</span>
+                          <button 
+                            type="button" 
+                            onClick={() => toggleCity(c.name)}
+                            className="city-pill-close"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  {/* Available Cities Grid */}
+                  <div className="available-cities-grid">
+                    {cities.map(c => (
+                      <button
+                        type="button"
+                        key={c.name}
+                        onClick={() => toggleCity(c.name)}
+                        className={`city-select-btn ${c.selected ? 'selected' : ''}`}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="form-actions">
+              <button 
+                type="button" 
+                onClick={handleCancel}
+                className="btn-cancel"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                className="btn-launch"
+              >
+                Launch Campaign
+              </button>
+            </div>
+          </form>
+
+          {/* Right Preview Column */}
+          <div className="create-ad-preview-col">
+            
+            {/* Live Preview Panel */}
+            <div className="preview-sticky">
+              <h3 className="preview-section-title">Live Preview</h3>
+              
+              {/* Mobile Viewport Wrapper */}
+              <div className="mobile-viewport">
+                {/* Mobile screen header mockup */}
+                <div className="mobile-header">
+                  <span className="mobile-header-title">Home</span>
+                </div>
+                
+                {/* Mobile screen body */}
+                <div className="mobile-body">
+                  <div className="preview-card">
+                    {/* Image */}
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="Ad Preview Image" className="preview-card-img" />
+                    ) : (
+                      <div className="preview-card-img-placeholder">
+                        <FileImage size={24} color="#A1A1AA" />
+                      </div>
+                    )}
+                    
+                    {/* Details block */}
+                    <div className="preview-card-details">
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '6px' }}>
+                        <span className="ad-badge">Ad</span>
+                        <h4 className="preview-card-title-text">{adTitle || 'Ad Title'}</h4>
+                      </div>
+                      <p className="preview-card-desc-text">
+                        {description || 'Ad description will display here...'}
+                      </p>
+                      
+                      {/* CTA Button */}
+                      <button type="button" className="preview-card-cta-btn">
+                        {ctaText || 'CTA Text'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dummy content background items */}
+                  <div className="dummy-mobile-item"></div>
+                  <div className="dummy-mobile-item"></div>
+                </div>
+              </div>
+
+              {/* Estimated Reach Panel */}
+              <div className="reach-panel">
+                <div className="reach-header">
+                  <Globe size={16} color="#6B7280" />
+                  <span className="reach-title">Estimated Reach</span>
+                </div>
+                <div className="reach-metric-row">
+                  <span className="reach-number">{reachMetrics.formattedReach}</span>
+                  <span className="reach-label">users / day</span>
+                </div>
+                <p className="reach-description">
+                  {reachMetrics.summaryText}
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Embedded Style Block for CreateAdPage */}
+        <style>{`
+          .mobile-tabs-bar {
+            display: none;
+          }
+          
+          .mobile-tab-content {
+            display: block;
+          }
+
+          .create-ad-header-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding-top: 36px;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            text-align: start;
+            box-sizing: border-box;
+          }
+
+          .create-ad-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #171717;
+            margin: 0 0 4px 0;
+          }
+
+          .create-ad-subtitle {
+            font-size: 14px;
+            color: #6B7280;
+            margin: 0;
+          }
+
+          .back-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            color: #6B7280;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s ease;
+          }
+
+          .back-nav-btn:hover {
+            color: #171717;
+          }
+
+          .create-ad-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 32px;
+            align-items: start;
+            margin-top: 16px;
+          }
+
+          @media (max-width: 991px) {
+            .create-ad-layout {
+              grid-template-columns: 1fr;
+            }
+          }
+
+          /* Cards styling */
+          .form-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-sizing: border-box;
+          }
+
+          .form-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #171717;
+            margin: 0 0 4px 0;
+          }
+
+          .form-card-subtitle {
+            font-size: 13px;
+            color: #6B7280;
+            margin: 0 0 20px 0;
+          }
+
+          /* Form group and fields */
+          .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          .form-group-spaced {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+          }
+
+          .form-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+          }
+
+          @media (max-width: 576px) {
+            .form-row-2 {
+              grid-template-columns: 1fr;
+            }
+          }
+
+          .form-label-styled {
+            font-size: 13px;
+            font-weight: 500;
+            color: #171717;
+          }
+
+          .disabled-label {
+            color: #A1A1AA;
+          }
+
+          .form-text-input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #171717;
+            outline: none;
+            background: #FFFFFF;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          }
+
+          .form-text-input:focus {
+            border-color: #171717;
+            box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.05);
+          }
+
+          .form-textarea-input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #171717;
+            outline: none;
+            resize: vertical;
+            font-family: inherit;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          }
+
+          .form-textarea-input:focus {
+            border-color: #171717;
+            box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.05);
+          }
+
+          .input-with-icon {
+            position: relative;
+            width: 100%;
+          }
+
+          .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            pointer-events: none;
+          }
+
+          .disabled-icon {
+            color: #D1D5DB;
+          }
+
+          .icon-padding {
+            padding-left: 36px;
+          }
+
+          /* Dropzone image styling */
+          .image-dropzone {
+            width: 100%;
+            border: 2px dashed #E5E7EB;
+            border-radius: 12px;
+            background: #FAFAFA;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, background 0.2s ease;
+            cursor: pointer;
+            overflow: hidden;
+          }
+
+          .image-dropzone:hover {
+            border-color: #A1A1AA;
+            background: #F4F4F5;
+          }
+
+          .hidden-file-input {
+            display: none;
+          }
+
+          .dropzone-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+          }
+
+          .upload-icon {
+            color: #9CA3AF;
+            margin-bottom: 12px;
+          }
+
+          .upload-primary-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #171717;
+            margin-bottom: 4px;
+          }
+
+          .upload-sub-text {
+            font-size: 11px;
+            color: #6B7280;
+            text-align: center;
+          }
+
+          .dropzone-preview-container {
+            position: relative;
+            width: 100%;
+            height: 160px;
+            overflow: hidden;
+            border-radius: 8px;
+          }
+
+          .dropzone-preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          .dropzone-preview-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            color: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+          }
+
+          .dropzone-preview-container:hover .dropzone-preview-overlay {
+            opacity: 1;
+          }
+
+          /* Checkbox Container */
+          .checkbox-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+          }
+
+          .checkbox-input {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid #D1D5DB;
+            cursor: pointer;
+            accent-color: #171717;
+          }
+
+          .checkbox-label {
+            font-size: 13px;
+            color: #171717;
+          }
+
+          /* Radio Buttons */
+          .radio-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+          }
+
+          .radio-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+          }
+
+          .radio-input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #171717;
+          }
+
+          .radio-text {
+            font-size: 13px;
+            color: #171717;
+          }
+
+          /* Tag clouds / buttons selection */
+          .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+
+          .tag-btn {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 13px;
+            color: #171717;
+            font-weight: 500;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+          }
+
+          .tag-btn:hover {
+            border-color: #A1A1AA;
+          }
+
+          .tag-btn.selected {
+            background: #F4F4F5;
+            border-color: #171717;
+            color: #171717;
+          }
+
+          /* Cities selection layout */
+          .cities-box {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 16px;
+            background: #FAFAFA;
+            box-sizing: border-box;
+            margin-top: 12px;
+          }
+
+          .selected-cities-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 33px;
+            align-items: center;
+            border-bottom: 1px solid #E5E7EB;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+          }
+
+          .no-cities-placeholder {
+            font-size: 12px;
+            color: #9CA3AF;
+            font-style: italic;
+          }
+
+          .city-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #171717;
+          }
+
+          .city-pill-close {
+            background: none;
+            border: none;
+            font-size: 16px;
+            line-height: 1;
+            color: #9CA3AF;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+          }
+
+          .city-pill-close:hover {
+            color: #DC2626;
+          }
+
+          .available-cities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+          }
+
+          .city-select-btn {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #6B7280;
+            cursor: pointer;
+            box-sizing: border-box;
+            text-align: center;
+            transition: all 0.2s ease;
+          }
+
+          .city-select-btn:hover {
+            border-color: #D1D5DB;
+            color: #171717;
+          }
+
+          .city-select-btn.selected {
+            background: #F4F4F5;
+            border-color: #171717;
+            color: #171717;
+          }
+
+          /* Placement layout */
+          .placement-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+          }
+
+          @media (max-width: 576px) {
+            .placement-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+
+          .placement-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            box-sizing: border-box;
+            background: #FFFFFF;
+            transition: all 0.2s ease;
+          }
+
+          .placement-item:hover {
+            border-color: #D1D5DB;
+          }
+
+          .placement-item.selected {
+            border-color: #171717;
+            background: #FAFAFA;
+          }
+
+          .placement-radio {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #D1D5DB;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+          }
+
+          .placement-radio.checked {
+            background: #171717;
+            border-color: #171717;
+          }
+
+          .placement-label-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #171717;
+          }
+
+          /* Form Actions */
+          .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 0;
+            border-top: 1px solid #E5E7EB;
+          }
+
+          .btn-cancel {
+            background: none;
+            border: none;
+            color: #6B7280;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 16px;
+            transition: color 0.2s ease;
+          }
+
+          .btn-cancel:hover {
+            color: #171717;
+          }
+
+          .btn-launch {
+            background: #171717;
+            border: none;
+            color: #FFFFFF;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+          }
+
+          .btn-launch:hover {
+            background: #000000;
+          }
+
+          /* Success Toast */
+          .success-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: #FFFFFF;
+            border: 1px solid #10B981;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            z-index: 1000;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1F2937;
+            animation: slideInRight 0.3s ease;
+          }
+
+          @keyframes slideInRight {
+            from {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+
+          /* Preview Column sticky */
+          .create-ad-preview-col {
+            position: relative;
+            width: 100%;
+            height: 100%;
+          }
+
+          .preview-sticky {
+            position: sticky;
+            top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .preview-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #171717;
+            margin: 0;
+          }
+
+          /* Mobile Viewport styling */
+          .mobile-viewport {
+            width: 100%;
+            max-width: 320px;
+            height: 520px;
+            border: 12px solid #171717;
+            border-radius: 36px;
+            background: #F4F4F5;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            margin: 0 auto;
+          }
+
+          .mobile-header {
+            background: #FFFFFF;
+            border-bottom: 1px solid #E5E7EB;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          .mobile-header-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #171717;
+          }
+
+          .mobile-body {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          /* Mock ad card in mobile screen */
+          .preview-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          .preview-card-img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            background: #F4F4F5;
+          }
+
+          .preview-card-img-placeholder {
+            width: 100%;
+            height: 110px;
+            background: #F4F4F5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .preview-card-details {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+          }
+
+          .ad-badge {
+            background: #E5E7EB;
+            color: #1F2937;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 2px 4px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+            margin-top: 2px;
+          }
+
+          .preview-card-title-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #171717;
+            margin: 0;
+            line-height: 1.3;
+            word-break: break-word;
+            flex: 1;
+          }
+
+          .preview-card-desc-text {
+            font-size: 11px;
+            color: #6B7280;
+            margin: 0 0 10px 0;
+            line-height: 1.4;
+            word-break: break-word;
+          }
+
+          .preview-card-cta-btn {
+            width: 100%;
+            background: #171717;
+            border: none;
+            color: #FFFFFF;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            box-sizing: border-box;
+          }
+
+          .dummy-mobile-item {
+            height: 72px;
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            opacity: 0.6;
+          }
+
+          /* Reach Panel */
+          .reach-panel {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 18px;
+            box-sizing: border-box;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+          }
+
+          .reach-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+          }
+
+          .reach-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .reach-metric-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 8px;
+          }
+
+          .reach-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #171717;
+            line-height: 1;
+          }
+
+          .reach-label {
+            font-size: 13px;
+            color: #6B7280;
+            font-weight: 500;
+          }
+
+          .reach-description {
+            font-size: 12px;
+            color: #6B7280;
+            margin: 0;
+            line-height: 1.5;
+          }
+
+          /* Responsive adjustments */
+          .create-ad-page-body {
+            padding: 0;
+            box-sizing: border-box;
+          }
+
+          @media (max-width: 1024px) {
+            .main-content {
+              margin-inline-start: var(--sidebar-collapsed-width) !important;
+              padding: 24px var(--spacing-md) !important;
+              width: calc(100% - var(--sidebar-collapsed-width)) !important;
+            }
+          }
+
+          @media (max-width: 768px) {
+            .main-content {
+              margin-inline-start: 0 !important;
+              padding-top: 0 !important;
+              padding-bottom: 84px !important;
+              padding-inline-start: 0 !important;
+              padding-inline-end: 0 !important;
+              width: 100% !important;
+            }
+
+            .create-ad-page-body {
+              padding: 12px 16px 16px !important;
+            }
+
+            .mobile-subheader {
+              height: auto !important;
+              padding: 14px 20px !important;
+            }
+
+            .create-ad-header-row {
+              padding-top: 24px !important;
+              padding-bottom: 8px !important;
+              margin-bottom: 20px !important;
+            }
+
+            .mobile-tabs-bar {
+              display: flex !important;
+              gap: 8px;
+              overflow-x: auto;
+              padding: 4px 0 16px 0;
+              margin-bottom: 8px;
+              scrollbar-width: none;
+            }
+
+            .mobile-tabs-bar::-webkit-scrollbar {
+              display: none;
+            }
+
+            .mobile-tab-btn {
+              flex: 1;
+              min-width: 80px;
+              background: #F4F4F5;
+              border: 1px solid #E5E7EB;
+              border-radius: 8px;
+              padding: 8px 12px;
+              font-size: 13px;
+              font-weight: 500;
+              color: #6B7280;
+              cursor: pointer;
+              white-space: nowrap;
+              transition: all 0.2s ease;
+              text-align: center;
+            }
+
+            .mobile-tab-btn.active {
+              background: #171717;
+              border-color: #171717;
+              color: #FFFFFF;
+              font-weight: 600;
+            }
+
+            .mobile-tab-content {
+              display: none;
+            }
+
+            .mobile-tab-content.mobile-tab-active {
+              display: block;
+            }
+          }
+        `}</style>
+      </div>
+      </main>
+    </div>
+  );
+};
+
+export default CreateAdPage;
