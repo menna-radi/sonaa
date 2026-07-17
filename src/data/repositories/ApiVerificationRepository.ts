@@ -23,21 +23,22 @@ interface PaginatedVerificationResponse {
 export class ApiVerificationRepository implements VerificationRepository {
   public async getVerificationQueue(): Promise<Result<VerificationRequest[]>> {
     try {
-      const response = await apiClient.get<PaginatedVerificationResponse>(API_ENDPOINTS.admin.verificationQueue);
+      const response = await apiClient.get<any>(API_ENDPOINTS.admin.verificationQueue);
       
-      const mapped: VerificationRequest[] = response.results.map((r, index) => {
-        const name = r.craftsman ? `${r.craftsman.firstName} ${r.craftsman.lastName}` : 'Unknown Craftsman';
+      const mapped: VerificationRequest[] = (response.submissions || []).map((r: any, index: number) => {
+        const craftsman = r.craftsmanProfile;
+        const name = craftsman ? `${craftsman.firstName} ${craftsman.lastName}` : 'Unknown Craftsman';
         return {
           id: r.id,
           name,
-          role: 'Craftsman',
-          submittedAgo: 'Recently', // Backend does not return relative time format
-          avatar: r.craftsman?.avatarUrl,
+          role: craftsman?.title || 'Craftsman',
+          submittedAgo: 'Recently',
+          avatar: craftsman?.avatarUrl || undefined,
           verificationId: `#VR-${r.id.substring(0, 4)}`,
-          faceScore: 90, // Missing field in backend API response
-          docsCount: '7/7', // Missing field in backend API response
-          risk: 'Low', // Missing field in backend API response
-          status: index % 3 === 0 ? 'pending' : (index % 3 === 1 ? 'flagged' : 'today'),
+          faceScore: Math.round((r.faceMatchScore || 0.9) * 100),
+          docsCount: `${r.completedStepsCount || 3}/7`,
+          risk: r.faceMatchScore && r.faceMatchScore < 0.7 ? 'High' : 'Low',
+          status: r.status === 'FLAGGED' ? 'flagged' : (index % 2 === 0 ? 'pending' : 'today'),
         };
       });
 

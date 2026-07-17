@@ -76,24 +76,68 @@ export class ApiAuthRepository implements AuthRepository {
       const token = storageService.getToken();
       if (!token) return ok(null);
 
-      // In API mode, /auth/me is missing. We load cached user from storage
-      const cached = storageService.get<User>('cached_user');
-      if (cached) {
-        return ok(cached);
-      }
+      const response = await apiClient.get<any>(API_ENDPOINTS.auth.me);
+      
+      const domainUser: User = {
+        id: response.id,
+        email: response.email || '',
+        name: response.name || `${response.firstName} ${response.lastName}`.trim(),
+        role: response.role,
+        avatarUrl: response.avatarUrl || '',
+      };
 
+      storageService.set<User>('cached_user', domainUser);
+      return ok(domainUser);
+    } catch (error) {
+      storageService.clearToken();
+      storageService.remove('cached_user');
       return ok(null);
+    }
+  }
+
+  public async getAdmins(): Promise<Result<User[]>> {
+    try {
+      const response = await apiClient.get<any[]>('/admin/roles/users');
+      const mapped: User[] = response.map((user) => ({
+        id: user.id,
+        email: user.email || '',
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        role: user.role,
+        avatarUrl: '',
+      }));
+      return ok(mapped);
     } catch (error) {
       return fail(error as AppError);
     }
   }
 
-  public async getAdmins(): Promise<Result<User[]>> {
-    return fail(new UnknownError('Feature not supported by the backend yet'));
-  }
+  public async createAdmin(name: string, email: string, role: string, _avatarUrl?: string): Promise<Result<User>> {
+    try {
+      const nameParts = name.trim().split(/\s+/);
+      const firstName = nameParts[0] || 'Admin';
+      const lastName = nameParts.slice(1).join(' ') || 'User';
+      const username = `admin_${email.split('@')[0]}_${Date.now().toString().slice(-4)}`;
+      
+      const response = await apiClient.post<any>('/admin/roles/users', {
+        username,
+        email,
+        password: 'Password123!',
+        firstName,
+        lastName,
+        role: 'ADMIN',
+      });
 
-  public async createAdmin(_name: string, _email: string, _role: string, _avatarUrl?: string): Promise<Result<User>> {
-    return fail(new UnknownError('Feature not supported by the backend yet'));
+      const domainUser: User = {
+        id: response.id,
+        email: response.email,
+        name: `${response.firstName} ${response.lastName}`.trim(),
+        role: response.role,
+        avatarUrl: '',
+      };
+      return ok(domainUser);
+    } catch (error) {
+      return fail(error as AppError);
+    }
   }
 }
 export default ApiAuthRepository;

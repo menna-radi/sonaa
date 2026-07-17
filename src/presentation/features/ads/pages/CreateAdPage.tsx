@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
 import { Sidebar } from '../../../../presentation/layouts/Sidebar';
@@ -13,7 +13,12 @@ import {
   FileImage,
   Globe,
   Search,
-  Bell
+  Bell,
+  Link as LinkIcon,
+  ChevronDown,
+  X,
+  User,
+  Wrench
 } from 'lucide-react';
 
 interface City {
@@ -50,6 +55,17 @@ export const CreateAdPage: React.FC = () => {
   const [ctaText, setCtaText] = useState('Book Now');
   const [destinationUrl, setDestinationUrl] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // New Creative Fields: URL, Link Type, and Entity Selection
+  const [adUrl, setAdUrl] = useState('');
+  const [linkType, setLinkType] = useState<'task' | 'craftsman'>('task');
+  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
+  const [selectedEntityLabel, setSelectedEntityLabel] = useState<string | null>(null);
+  const [entitySearchQuery, setEntitySearchQuery] = useState('');
+  const [entityDropdownOpen, setEntityDropdownOpen] = useState(false);
+  const [tasksList, setTasksList] = useState<{id: string; label: string}[]>([]);
+  const [craftsmenList, setCraftsmenList] = useState<{id: string; label: string}[]>([]);
+  const entityDropdownRef = useRef<HTMLDivElement>(null);
 
   // Schedule States
   const [startDate, setStartDate] = useState('2026-07-02');
@@ -98,6 +114,59 @@ export const CreateAdPage: React.FC = () => {
 
   // Alert/Notification State on Submit
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Fetch tasks and craftsmen lists for the entity dropdown
+  useEffect(() => {
+    const fetchEntities = async () => {
+      const tasksResult = await dependencies.taskRepository.getTasks();
+      if (tasksResult.success) {
+        setTasksList(tasksResult.data.map(t => ({ id: t.id, label: `${t.jobNumber} — ${t.title}` })));
+      }
+      const craftsmenResult = await dependencies.craftsmanRepository.getCraftsmen();
+      if (craftsmenResult.success) {
+        setCraftsmenList(craftsmenResult.data.map(c => ({ id: c.id, label: `${c.idNumber} — ${c.name} (${c.trade})` })));
+      }
+    };
+    fetchEntities();
+  }, [dependencies.taskRepository, dependencies.craftsmanRepository]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (entityDropdownRef.current && !entityDropdownRef.current.contains(e.target as Node)) {
+        setEntityDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Reset selection when link type changes
+  useEffect(() => {
+    setSelectedEntityId(null);
+    setSelectedEntityLabel(null);
+    setEntitySearchQuery('');
+    setEntityDropdownOpen(false);
+  }, [linkType]);
+
+  // Filtered entity list based on search
+  const filteredEntities = useMemo(() => {
+    const list = linkType === 'task' ? tasksList : craftsmenList;
+    if (!entitySearchQuery.trim()) return list;
+    return list.filter(item => item.label.toLowerCase().includes(entitySearchQuery.toLowerCase()));
+  }, [linkType, tasksList, craftsmenList, entitySearchQuery]);
+
+  const handleSelectEntity = (id: string, label: string) => {
+    setSelectedEntityId(id);
+    setSelectedEntityLabel(label);
+    setEntityDropdownOpen(false);
+    setEntitySearchQuery('');
+  };
+
+  const handleClearEntity = () => {
+    setSelectedEntityId(null);
+    setSelectedEntityLabel(null);
+  };
 
   // File Upload Handlers
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,7 +264,8 @@ export const CreateAdPage: React.FC = () => {
           navigate('campaigns');
         }, 2000);
       } else {
-        setError(result.error.message || 'Failed to launch campaign.');
+        const errResult = result as { success: false; error: { message: string } };
+        setError(errResult.error.message || 'Failed to launch campaign.');
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to launch campaign.');
@@ -443,6 +513,123 @@ export const CreateAdPage: React.FC = () => {
                     className="form-text-input"
                     placeholder="e.g. https://sonaa.com/promo"
                   />
+                </div>
+              </div>
+
+              {/* ── New Fields: Ad URL, Link Type, Entity Selection ── */}
+              <div className="creative-link-section">
+                <div className="link-section-header">
+                  <LinkIcon size={16} color="#6B7280" />
+                  <span className="link-section-title">Ad Link Settings</span>
+                </div>
+
+                {/* Field 1: Ad URL */}
+                <div className="form-group">
+                  <label className="form-label-styled">Ad URL</label>
+                  <div className="input-with-icon">
+                    <LinkIcon size={16} className="input-icon" />
+                    <input 
+                      type="url" 
+                      value={adUrl}
+                      onChange={(e) => setAdUrl(e.target.value)}
+                      className="form-text-input icon-padding"
+                      placeholder="e.g. https://sonaa.com/ad/summer-deal"
+                    />
+                  </div>
+                </div>
+
+                {/* Field 2: Link Type Toggle (Task / Craftsman) */}
+                <div className="form-group">
+                  <label className="form-label-styled">Link To</label>
+                  <div className="link-type-toggle">
+                    <button
+                      type="button"
+                      className={`link-type-btn ${linkType === 'task' ? 'active' : ''}`}
+                      onClick={() => setLinkType('task')}
+                    >
+                      <Wrench size={14} />
+                      <span>Task</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`link-type-btn ${linkType === 'craftsman' ? 'active' : ''}`}
+                      onClick={() => setLinkType('craftsman')}
+                    >
+                      <User size={14} />
+                      <span>Craftsman</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Field 3: Entity Dropdown (Task ID / Craftsman ID) */}
+                <div className="form-group">
+                  <label className="form-label-styled">
+                    {linkType === 'task' ? 'Select Task' : 'Select Craftsman'}
+                  </label>
+                  <div className="entity-dropdown-wrapper" ref={entityDropdownRef}>
+                    {/* Selected entity pill or trigger */}
+                    {selectedEntityId ? (
+                      <div className="entity-selected-pill">
+                        <div className="entity-pill-icon">
+                          {linkType === 'task' ? <Wrench size={14} color="#6B7280" /> : <User size={14} color="#6B7280" />}
+                        </div>
+                        <span className="entity-pill-text">{selectedEntityLabel}</span>
+                        <button type="button" className="entity-pill-clear" onClick={handleClearEntity}>
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="entity-dropdown-trigger"
+                        onClick={() => setEntityDropdownOpen(!entityDropdownOpen)}
+                      >
+                        <span className="entity-trigger-placeholder">
+                          {linkType === 'task' ? 'Choose a task...' : 'Choose a craftsman...'}
+                        </span>
+                        <ChevronDown size={16} className={`entity-chevron ${entityDropdownOpen ? 'open' : ''}`} />
+                      </button>
+                    )}
+
+                    {/* Dropdown panel */}
+                    {entityDropdownOpen && (
+                      <div className="entity-dropdown-panel">
+                        {/* Search input */}
+                        <div className="entity-search-box">
+                          <Search size={14} className="entity-search-icon" />
+                          <input
+                            type="text"
+                            value={entitySearchQuery}
+                            onChange={(e) => setEntitySearchQuery(e.target.value)}
+                            className="entity-search-input"
+                            placeholder={linkType === 'task' ? 'Search tasks...' : 'Search craftsmen...'}
+                            autoFocus
+                          />
+                        </div>
+                        {/* Options list */}
+                        <div className="entity-options-list">
+                          {filteredEntities.length === 0 ? (
+                            <div className="entity-no-results">No results found</div>
+                          ) : (
+                            filteredEntities.map(item => (
+                              <button
+                                type="button"
+                                key={item.id}
+                                className={`entity-option ${selectedEntityId === item.id ? 'selected' : ''}`}
+                                onClick={() => handleSelectEntity(item.id, item.label)}
+                              >
+                                <div className="entity-option-icon">
+                                  {linkType === 'task' ? <Wrench size={14} /> : <User size={14} />}
+                                </div>
+                                <span className="entity-option-label">{item.label}</span>
+                                {selectedEntityId === item.id && <Check size={14} color="#10B981" />}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1495,6 +1682,242 @@ export const CreateAdPage: React.FC = () => {
             color: #6B7280;
             margin: 0;
             line-height: 1.5;
+          }
+
+          /* Creative Link Section Styling */
+          .creative-link-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .link-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            text-align: start;
+          }
+
+          .link-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #171717;
+          }
+
+          .link-type-toggle {
+            display: flex;
+            gap: 8px;
+            background: #F4F4F5;
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+          }
+
+          .link-type-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6B7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+
+          .link-type-btn:hover {
+            color: #171717;
+          }
+
+          .link-type-btn.active {
+            background: #FFFFFF;
+            color: #171717;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+          }
+
+          .entity-dropdown-wrapper {
+            position: relative;
+            width: 100%;
+          }
+
+          .entity-dropdown-trigger {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #FFFFFF;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: start;
+          }
+
+          .entity-dropdown-trigger:focus {
+            border-color: #171717;
+            box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.05);
+            outline: none;
+          }
+
+          .entity-trigger-placeholder {
+            color: #9CA3AF;
+          }
+
+          .entity-chevron {
+            color: #6B7280;
+            transition: transform 0.2s ease;
+          }
+
+          .entity-chevron.open {
+            transform: rotate(180deg);
+          }
+
+          .entity-selected-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #F4F4F5;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: start;
+          }
+
+          .entity-pill-icon {
+            display: flex;
+            align-items: center;
+          }
+
+          .entity-pill-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #171717;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: start;
+          }
+
+          .entity-pill-clear {
+            background: none;
+            border: none;
+            color: #9CA3AF;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+          }
+
+          .entity-pill-clear:hover {
+            background: #E5E7EB;
+            color: #171717;
+          }
+
+          .entity-dropdown-panel {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            z-index: 50;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 250px;
+          }
+
+          .entity-search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #E5E7EB;
+            background: #FAFAFA;
+          }
+
+          .entity-search-icon {
+            color: #9CA3AF;
+          }
+
+          .entity-search-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            color: #171717;
+            outline: none;
+            padding: 4px 0;
+          }
+
+          .entity-options-list {
+            overflow-y: auto;
+            flex: 1;
+            max-height: 200px;
+          }
+
+          .entity-option {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-align: start;
+            transition: background 0.15s ease;
+          }
+
+          .entity-option:hover {
+            background: #F4F4F5;
+          }
+
+          .entity-option.selected {
+            background: #FAFAFA;
+          }
+
+          .entity-option-icon {
+            color: #9CA3AF;
+            display: flex;
+            align-items: center;
+          }
+
+          .entity-option-label {
+            font-size: 13px;
+            color: #171717;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: start;
+          }
+
+          .entity-no-results {
+            padding: 16px;
+            text-align: center;
+            color: #9CA3AF;
+            font-size: 13px;
           }
 
           /* Responsive adjustments */

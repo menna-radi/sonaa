@@ -1,0 +1,77 @@
+# Backend CORS Configuration Issue
+
+## Description of the Issue
+When attempting to connect the Sonaa Admin Dashboard (running locally on `http://localhost:5173`) to the remote backend API at `https://72.62.154.98`, all API requests fail with a `403 Forbidden` response and the following error message:
+`"Not allowed by CORS"`
+
+## Root Cause
+In the backend code [app.ts](file:///E:/sonaa-backend-api-main/sonaa-backend-api-main/src/app.ts), the CORS middleware restricts incoming requests in production mode (`NODE_ENV === "production"`) using a strict origin whitelist:
+
+```typescript
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (env.NODE_ENV === "development" || !origin) {
+      if (env.NODE_ENV === "development") {
+        logger.info("⚠️  CORS: allowing all origins (development mode)");
+      }
+      callback(null, true);
+    } else {
+      // Configuration for whitelist in production
+      const whitelist = env.APP_URL ? [env.APP_URL] : [];
+      if (whitelist.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new AppError("Not allowed by CORS", 403, "CORS_NOT_ALLOWED"));
+      }
+    }
+  },
+};
+```
+
+Since the dashboard's origin (`http://localhost:5173`) is not listed in `env.APP_URL` on the production server, the request is rejected.
+
+---
+
+## Suggested Solutions
+
+### Solution 1: Add Environment Variable for CORS Origins (Recommended)
+Add a new environment variable `CORS_ALLOWED_ORIGINS` (comma-separated list of permitted origins) to allow multiple domains (mobile clients, admin dashboard, local development, etc.).
+
+1. **Update `src/config/env.ts`**:
+   Add the schema definition for the new variable:
+   ```typescript
+   CORS_ALLOWED_ORIGINS: z.string().default(""),
+   ```
+
+2. **Update `src/app.ts`**:
+   Modify the `corsOptions` whitelist matching:
+   ```typescript
+   const corsOptions: cors.CorsOptions = {
+     origin: (origin, callback) => {
+       if (env.NODE_ENV === "development" || !origin) {
+         callback(null, true);
+       } else {
+         const allowedOrigins = env.CORS_ALLOWED_ORIGINS
+           ? env.CORS_ALLOWED_ORIGINS.split(",")
+           : [];
+         
+         const whitelist = [
+           env.APP_URL,
+           "http://localhost:5173", // Allow local admin dashboard
+           ...allowedOrigins
+         ].filter(Boolean);
+
+         if (whitelist.includes(origin)) {
+           callback(null, true);
+         } else {
+           callback(new AppError("Not allowed by CORS", 403, "CORS_NOT_ALLOWED"));
+         }
+       }
+     },
+   };
+   ```
+
+3. **Update `.env` on production server**:
+   ```env
+   CORS_ALLOWED_ORIGINS=http://localhost:5173,https://your-admin-dashboard-domain.com
+   ```

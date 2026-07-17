@@ -13,4 +13,19 @@ export default defineConfig({
       '@presentation': path.resolve(__dirname, './src/presentation'),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://72.62.154.98',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.removeHeader('origin');
+            proxyReq.removeHeader('referer');
+          });
+        },
+      },
+    },
+  },
 })

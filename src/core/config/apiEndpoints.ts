@@ -18,8 +18,8 @@ export const API_ENDPOINTS = {
   },
   tasks: {
     list: '/admin/tasks',
-    freeze: (id: string) => `/tasks/${id}/freeze`,
-    unfreeze: (id: string) => `/tasks/${id}/unfreeze`,
+    freeze: (id: string) => `/admin/tasks/${id}/freeze`,
+    unfreeze: (id: string) => `/admin/tasks/${id}/unfreeze`,
   },
   categories: {
     list: '/admin/categories',
@@ -27,19 +27,27 @@ export const API_ENDPOINTS = {
     update: (id: string) => `/admin/categories/${id}`,
     subcategories: (catId: string) => `/admin/categories/${catId}/subcategories`,
     createSubcategory: (catId: string) => `/admin/categories/${catId}/subcategories`,
+    updateVisibility: (id: string) => `/admin/categories/${id}/visibility`,
+    subcategoryVisibility: (subId: string) => `/admin/categories/subcategories/${subId}/visibility`,
+    fields: (id: string) => `/admin/categories/${id}/fields`,
+    createField: (id: string) => `/admin/categories/${id}/fields`,
+    toggleFieldRequired: (id: string) => `/admin/fields/${id}/toggle-required`,
+    deleteField: (id: string) => `/admin/fields/${id}`,
+    moveSubcategory: (id: string) => `/admin/categories/subcategories/${id}/move`,
   },
   craftsmen: {
     list: '/admin/craftsmen',
-    suspend: (id: string) => `/craftsmen/${id}/suspend`,
-    approve: (id: string) => `/craftsmen/${id}/approve`,
+    suspend: (id: string) => `/admin/craftsmen/${id}/suspend`,
+    ban: (id: string) => `/admin/craftsmen/${id}/ban`,
+    toggleVerificationItem: (id: string) => `/admin/craftsmen/${id}/verify/item`,
   },
   payments: {
-    summary: '/payments/summary',
-    plans: '/payments/plans',
-    failedTransactions: '/payments/failed-transactions',
-    retryTransaction: (id: string) => `/payments/failed-transactions/${id}/retry`,
-    withdrawalRequests: '/payments/withdrawal-requests',
-    updateWithdrawalStatus: (id: string) => `/payments/withdrawal-requests/${id}/status`,
+    summary: '/admin/payments/summary',
+    plans: '/admin/payments/plans',
+    failedTransactions: '/admin/payments',
+    retryTransaction: (id: string) => `/admin/payments/failed-transactions/${id}/retry`,
+    withdrawalRequests: '/admin/payments/withdrawal-requests',
+    updateWithdrawalStatus: (id: string) => `/admin/payments/withdrawal-requests/${id}/status`,
   },
   systemSettings: '/settings',
   admin: {
@@ -62,6 +70,7 @@ export const API_ENDPOINTS = {
     createSubcategory: (id: string) => `/admin/categories/${id}/subcategories`,
     deleteSubcategory: (subId: string) => `/admin/categories/subcategories/${subId}`,
     auditLogs: '/admin/audit-logs',
+    reports: '/admin/reports',
   }
 };
 export default API_ENDPOINTS;

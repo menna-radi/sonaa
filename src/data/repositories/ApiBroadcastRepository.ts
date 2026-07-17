@@ -17,11 +17,11 @@ interface ApiBroadcastDTO {
 export class ApiBroadcastRepository implements BroadcastRepository {
   public async getBroadcasts(): Promise<Result<CampaignRecord[]>> {
     try {
-      const response = await apiClient.get<ApiBroadcastDTO[]>(API_ENDPOINTS.admin.broadcasts);
+      const response = await apiClient.get<any[]>(API_ENDPOINTS.admin.broadcasts);
       
       const mapped: CampaignRecord[] = response.map((b, index) => {
         let status: CampaignRecord['status'] = 'Sent';
-        if (b.status === 'scheduled' || b.scheduleTime) {
+        if (b.status === 'scheduled') {
           status = 'Scheduled';
         } else if (b.status === 'draft') {
           status = 'Draft';
@@ -29,16 +29,20 @@ export class ApiBroadcastRepository implements BroadcastRepository {
           status = 'Failed';
         }
 
+        const audienceMap: Record<string, 'ALL' | 'CUSTOMER' | 'CRAFTSMAN'> = {
+          'ALL': 'ALL',
+          'CUSTOMERS': 'CUSTOMER',
+          'CRAFTSMEN': 'CRAFTSMAN',
+        };
+
         return {
-          id: parseInt(b.id) || (index + 1),
+          id: index + 1,
           title: b.title,
-          audience: b.targetAudience,
+          audience: audienceMap[b.audience] || 'ALL',
           status,
-          sendDate: b.scheduleTime 
-            ? new Date(b.scheduleTime).toLocaleString() 
-            : new Date(b.createdAt).toLocaleString(),
-          recipients: '—', // Missing field in backend API response
-          openRate: '—', // Missing field in backend API response
+          sendDate: b.sentAt ? new Date(b.sentAt).toLocaleString() : '—',
+          recipients: b.reach !== undefined ? String(b.reach) : '—',
+          openRate: '—',
         };
       });
 
@@ -55,27 +59,26 @@ export class ApiBroadcastRepository implements BroadcastRepository {
     scheduleTime?: string
   ): Promise<Result<CampaignRecord>> {
     try {
-      const response = await apiClient.post<ApiBroadcastDTO>(API_ENDPOINTS.admin.sendBroadcast, {
+      const audienceMap: Record<string, string> = {
+        'ALL': 'ALL',
+        'CUSTOMER': 'CUSTOMERS',
+        'CRAFTSMAN': 'CRAFTSMEN',
+      };
+
+      const response = await apiClient.post<any>(API_ENDPOINTS.admin.sendBroadcast, {
         title,
         body,
-        targetAudience,
+        audience: audienceMap[targetAudience] || 'ALL',
         scheduleTime,
       });
 
-      let status: CampaignRecord['status'] = 'Sent';
-      if (response.status === 'scheduled' || response.scheduleTime) {
-        status = 'Scheduled';
-      }
-
       const record: CampaignRecord = {
-        id: parseInt(response.id) || Date.now(),
+        id: Date.now(),
         title: response.title,
-        audience: response.targetAudience,
-        status,
-        sendDate: response.scheduleTime 
-          ? new Date(response.scheduleTime).toLocaleString() 
-          : new Date(response.createdAt).toLocaleString(),
-        recipients: '—',
+        audience: targetAudience,
+        status: 'Sent',
+        sendDate: response.sentAt ? new Date(response.sentAt).toLocaleString() : new Date().toLocaleString(),
+        recipients: response.reach !== undefined ? String(response.reach) : '—',
         openRate: '—',
       };
 

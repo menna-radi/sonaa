@@ -24,48 +24,85 @@ interface PaginatedCraftsmenResponse {
   totalPages: number;
 }
 
+interface PaginatedCraftsmenResponse {
+  total: number;
+  page: number;
+  limit: number;
+  items: any[];
+}
+
 export class ApiCraftsmanRepository implements CraftsmanRepository {
+  private mapBackendCraftsmanToDomain(c: any): Craftsman {
+    let status: Craftsman['status'] = 'offline';
+    if (c.user?.status === 'SUSPENDED' || c.user?.status === 'BLOCKED') {
+      status = 'suspended';
+    } else {
+      status = c.isAvailable ? 'online' : 'offline';
+    }
+
+    return {
+      id: c.id,
+      name: `${c.firstName} ${c.lastName}`,
+      trade: c.title || 'Craftsman',
+      avatarUrl: c.avatarUrl || undefined,
+      rating: Number(c.rating || 5),
+      reviewsCount: c.completedTasksCount || 0,
+      jobsCount: c.completedTasksCount || 0,
+      trustScore: Math.round((c.trustScore || 1.0) * 100),
+      status,
+      joinedDate: c.user?.createdAt ? new Date(c.user.createdAt).toLocaleDateString() : '—',
+      idNumber: c.user?.phoneNumber || '—',
+      responseTimeMin: c.responseTimeMinutes || 15,
+      verifications: {
+        nationalId: !!c.isVerifiedId,
+        selfieMatch: !!c.isVerifiedSelfie,
+        tradeLicense: !!c.isVerifiedCert,
+        bankIban: !!c.isVerifiedBankIban,
+        backgroundCheck: !!c.isVerifiedBackground,
+        insurance: !!c.isInsured,
+      },
+      earnings30Days: 0,
+      earningsChangePct: 0,
+      earningsSparkline: [],
+    };
+  }
+
   public async getCraftsmen(): Promise<Result<Craftsman[]>> {
     try {
       const response = await apiClient.get<PaginatedCraftsmenResponse>(API_ENDPOINTS.craftsmen.list);
-      
-      const mapped: Craftsman[] = response.results.map((c) => ({
-        id: c.id,
-        name: `${c.firstName} ${c.lastName}`,
-        trade: c.title,
-        rating: c.rating,
-        reviewsCount: c.totalReviews,
-        jobsCount: 0, // Missing field in backend API response
-        trustScore: 100, // Missing field in backend API response
-        status: c.isAvailable ? 'online' : 'offline', // status mapping based on availability
-        joinedDate: '—', // Missing field in backend API response
-        idNumber: '—', // Missing field in backend API response
-        responseTimeMin: 0, // Missing field in backend API response
-        verifications: {
-          nationalId: false, // Missing field in backend API response
-          selfieMatch: false, // Missing field in backend API response
-          tradeLicense: false, // Missing field in backend API response
-          bankIban: false, // Missing field in backend API response
-          backgroundCheck: false, // Missing field in backend API response
-          insurance: false, // Missing field in backend API response
-        },
-        earnings30Days: 0, // Missing field in backend API response
-        earningsChangePct: 0, // Missing field in backend API response
-        earningsSparkline: [], // Missing field in backend API response
-      }));
-
-      return ok(mapped);
+      const domainCraftsmen = (response.items || []).map(item => this.mapBackendCraftsmanToDomain(item));
+      return ok(domainCraftsmen);
     } catch (error) {
       return fail(error as AppError);
     }
   }
 
-  public async suspendCraftsman(_id: string): Promise<Result<Craftsman>> {
-    return fail(new UnknownError('Feature not supported by the backend yet'));
+  public async suspendCraftsman(id: string): Promise<Result<Craftsman>> {
+    try {
+      await apiClient.put<any>(API_ENDPOINTS.craftsmen.suspend(id));
+      const listResult = await this.getCraftsmen();
+      if (listResult.success) {
+        const found = listResult.data.find(c => c.id === id);
+        if (found) return ok(found);
+      }
+      return fail(new UnknownError('Failed to retrieve updated craftsman profile after suspension.'));
+    } catch (error) {
+      return fail(error as AppError);
+    }
   }
 
-  public async banCraftsman(_id: string): Promise<Result<Craftsman>> {
-    return fail(new UnknownError('Feature not supported by the backend yet'));
+  public async banCraftsman(id: string): Promise<Result<Craftsman>> {
+    try {
+      await apiClient.put<any>(API_ENDPOINTS.craftsmen.ban(id));
+      const listResult = await this.getCraftsmen();
+      if (listResult.success) {
+        const found = listResult.data.find(c => c.id === id);
+        if (found) return ok(found);
+      }
+      return fail(new UnknownError('Failed to retrieve updated craftsman profile after banning.'));
+    } catch (error) {
+      return fail(error as AppError);
+    }
   }
 }
 export default ApiCraftsmanRepository;

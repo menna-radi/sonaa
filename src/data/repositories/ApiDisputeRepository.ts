@@ -33,9 +33,9 @@ interface PaginatedDisputesResponse {
 export class ApiDisputeRepository implements DisputeRepository {
   public async getDisputes(): Promise<Result<Dispute[]>> {
     try {
-      const response = await apiClient.get<PaginatedDisputesResponse>(API_ENDPOINTS.admin.disputes);
+      const response = await apiClient.get<any>(API_ENDPOINTS.admin.disputes);
       
-      const mapped: Dispute[] = response.results.map((d) => {
+      const mapped: Dispute[] = (response.items || []).map((d: any) => {
         const customerName = d.task?.customer 
           ? `${d.task.customer.firstName} ${d.task.customer.lastName}`
           : 'Customer';
