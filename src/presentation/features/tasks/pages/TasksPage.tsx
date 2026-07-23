@@ -661,7 +661,9 @@ export const TasksPage: React.FC = () => {
                         <span className="emergency-badge">SOS</span>
                       </div>
                       <span className="emergency-text">
-                        {t('bathroom_pipe_burst_sos_text') || 'Bathroom pipe burst · Hittin · Lina Al-Qahtani triggered SOS 4 min ago. Nearest craftsman: Yousef H. (1.4 km).'}
+                        {tasks.find(t => t.status === 'emergency') 
+                          ? `${tasks.find(t => t.status === 'emergency')?.title} · ${tasks.find(t => t.status === 'emergency')?.zone} · Customer: ${tasks.find(t => t.status === 'emergency')?.customer} · Craftsman: ${tasks.find(t => t.status === 'emergency')?.craftsman}`
+                          : 'Emergency in progress'}
                       </span>
                     </div>
                   </div>
