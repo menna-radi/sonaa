@@ -91,6 +91,20 @@ export class ApiCraftsmanRepository implements CraftsmanRepository {
     }
   }
 
+  public async unsuspendCraftsman(id: string): Promise<Result<Craftsman>> {
+    try {
+      await apiClient.put<any>(API_ENDPOINTS.craftsmen.unsuspend(id));
+      const listResult = await this.getCraftsmen();
+      if (listResult.success) {
+        const found = listResult.data.find(c => c.id === id);
+        if (found) return ok(found);
+      }
+      return fail(new UnknownError('Failed to retrieve updated craftsman profile after unsuspension.'));
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
   public async banCraftsman(id: string): Promise<Result<Craftsman>> {
     try {
       await apiClient.put<any>(API_ENDPOINTS.craftsmen.ban(id));

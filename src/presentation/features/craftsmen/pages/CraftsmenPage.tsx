@@ -35,6 +35,7 @@ export const CraftsmenPage: React.FC = () => {
     selectedCraftsman,
     tabCounts,
     suspendCraftsman,
+    unsuspendCraftsman,
     banCraftsman,
     flagCraftsman,
     unflagCraftsman,
@@ -687,8 +688,10 @@ export const CraftsmenPage: React.FC = () => {
                           {[
                             { label: 'Flag Account', action: () => { flagCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } },
                             { label: 'Unflag Account', action: () => { unflagCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } },
-                            { label: 'Suspend Account', action: () => { suspendCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } },
-                            { label: 'Activate Account', action: () => { unflagCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } }
+                            selectedCraftsman.status === 'suspended'
+                              ? { label: 'Unsuspend Account', action: () => { unsuspendCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } }
+                              : { label: 'Suspend Account', action: () => { suspendCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } },
+                            { label: 'Ban Account', action: () => { banCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } }
                           ].map((act, index) => (
                             <button
                               key={index}
@@ -905,27 +908,51 @@ export const CraftsmenPage: React.FC = () => {
                   <Eye size={12} />
                   <span>View</span>
                 </button>
-                <button 
-                  onClick={() => suspendCraftsman(selectedCraftsman.id)}
-                  disabled={selectedCraftsman.status === 'suspended'}
-                  style={{ 
-                    flex: 1.2, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: '4px',
-                    padding: '8px 12px', 
-                    background: selectedCraftsman.status === 'suspended' ? '#f4f4f5' : '#fffbeb', 
-                    borderRadius: '8px',
-                    fontSize: '0.78rem',
-                    fontWeight: 600,
-                    color: selectedCraftsman.status === 'suspended' ? '#a3a3a3' : '#b45309',
-                    cursor: selectedCraftsman.status === 'suspended' ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  <AlertTriangle size={12} />
-                  <span>Suspend</span>
-                </button>
+                {selectedCraftsman.status === 'suspended' ? (
+                  <button 
+                    onClick={() => unsuspendCraftsman(selectedCraftsman.id)}
+                    style={{ 
+                      flex: 1.2, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: '4px',
+                      padding: '8px 12px', 
+                      background: '#f0fdf4', 
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      color: '#15803d',
+                      border: '1px solid #bbf7d0',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Check size={12} />
+                    <span>Unsuspend</span>
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => suspendCraftsman(selectedCraftsman.id)}
+                    style={{ 
+                      flex: 1.2, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: '4px',
+                      padding: '8px 12px', 
+                      background: '#fffbeb', 
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      color: '#b45309',
+                      border: '1px solid #fde68a',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <AlertTriangle size={12} />
+                    <span>Suspend</span>
+                  </button>
+                )}
                 <button 
                   onClick={() => banCraftsman(selectedCraftsman.id)}
                   disabled={selectedCraftsman.status === 'suspended'}

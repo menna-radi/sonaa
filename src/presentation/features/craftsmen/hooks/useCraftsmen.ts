@@ -351,6 +351,22 @@ export const useCraftsmen = () => {
     }
   }, [craftsmanRepository]);
 
+  const unsuspendCraftsman = useCallback(async (id: string) => {
+    setError(null);
+    try {
+      const result = await craftsmanRepository.unsuspendCraftsman(id);
+      if (result.success) {
+        setCraftsmen(prev =>
+          prev.map(c => (c.id === id ? result.data : c))
+        );
+      } else {
+        setError(result.error.message || 'Failed to unsuspend craftsman.');
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to unsuspend craftsman.');
+    }
+  }, [craftsmanRepository]);
+
   const banCraftsman = useCallback(async (id: string) => {
     setError(null);
     try {
@@ -408,6 +424,7 @@ export const useCraftsmen = () => {
     selectedCraftsman,
     tabCounts,
     suspendCraftsman,
+    unsuspendCraftsman,
     banCraftsman,
     flagCraftsman,
     unflagCraftsman,

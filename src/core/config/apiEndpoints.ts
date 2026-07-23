@@ -38,6 +38,7 @@ export const API_ENDPOINTS = {
   craftsmen: {
     list: '/admin/craftsmen',
     suspend: (id: string) => `/admin/craftsmen/${id}/suspend`,
+    unsuspend: (id: string) => `/admin/craftsmen/${id}/unsuspend`,
     ban: (id: string) => `/admin/craftsmen/${id}/ban`,
     toggleVerificationItem: (id: string) => `/admin/craftsmen/${id}/verify/item`,
   },

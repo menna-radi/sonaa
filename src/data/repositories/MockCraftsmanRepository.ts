@@ -121,6 +121,19 @@ export class MockCraftsmanRepository implements CraftsmanRepository {
     return ok(this.craftsmen[idx]);
   }
 
+  public async unsuspendCraftsman(id: string): Promise<Result<Craftsman>> {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const idx = this.craftsmen.findIndex((c) => c.id === id);
+    if (idx === -1) {
+      return fail(new NotFoundError(`Craftsman with ID ${id} not found`));
+    }
+    this.craftsmen[idx] = {
+      ...this.craftsmen[idx],
+      status: 'online',
+    };
+    return ok(this.craftsmen[idx]);
+  }
+
   public async banCraftsman(id: string): Promise<Result<Craftsman>> {
     await new Promise((resolve) => setTimeout(resolve, 150));
     const idx = this.craftsmen.findIndex((c) => c.id === id);
