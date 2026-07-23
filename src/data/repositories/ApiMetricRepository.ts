@@ -83,22 +83,10 @@ export class ApiMetricRepository implements MetricRepository {
   public async getCohortData(): Promise<Result<CohortData[]>> {
     try {
       const response = await apiClient.get<CohortData[]>('/admin/metrics/cohort');
-      if (Array.isArray(response) && response.length > 0) {
-        return ok(response);
-      }
-    } catch (_err) {
-      // Fallback to mock cohort data on failure
+      return ok(response);
+    } catch (error) {
+      return fail(error as AppError);
     }
-    const mockCohort: CohortData[] = [
-      { week: 'W1', users: 40, craftsmen: 20, tasks: 30 },
-      { week: 'W2', users: 45, craftsmen: 22, tasks: 35 },
-      { week: 'W3', users: 50, craftsmen: 24, tasks: 42 },
-      { week: 'W4', users: 55, craftsmen: 28, tasks: 48 },
-      { week: 'W5', users: 60, craftsmen: 30, tasks: 52 },
-      { week: 'W6', users: 70, craftsmen: 35, tasks: 60 },
-      { week: 'W7', users: 80, craftsmen: 42, tasks: 75 }
-    ];
-    return ok(mockCohort);
   }
 }
 export default ApiMetricRepository;

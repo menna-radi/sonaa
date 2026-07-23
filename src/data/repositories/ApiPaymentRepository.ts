@@ -42,17 +42,11 @@ export class ApiPaymentRepository implements PaymentRepository {
         id: `p-${idx}`,
         name: p.plan || 'Starter',
         price: Number(p.priceMonthly || 0),
-        subscribersCount: 0,
+        subscribersCount: Number(p.subscribersCount || 0),
       }));
       return ok(plans);
     } catch (error) {
-      // Fallback to mock plans to avoid UI crash if plans endpoint is customer-only
-      const fallbackPlans: SubscriptionPlan[] = [
-        { id: 'p1', name: 'Starter', price: 0, subscribersCount: 50 },
-        { id: 'p2', name: 'Pro', price: 99, subscribersCount: 15 },
-        { id: 'p3', name: 'Pro+', price: 249, subscribersCount: 5 }
-      ];
-      return ok(fallbackPlans);
+      return fail(error as AppError);
     }
   }
 
