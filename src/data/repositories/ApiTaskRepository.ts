@@ -23,7 +23,7 @@ export class ApiTaskRepository implements TaskRepository {
       status = 'disputed';
     } else if (item.status === 'FROZEN' || item.status === 'CANCELLED') {
       status = 'frozen';
-    } else if (item.emergencyRequest) {
+    } else if (item.emergencyRequest || item.serviceType === 'EMERGENCY' || (item.title && item.title.toLowerCase().includes('emergency'))) {
       status = 'emergency';
     }
 

@@ -70,13 +70,12 @@ export const useTasks = () => {
   const frozenCount = tasks.filter((t) => t.status === 'frozen').length;
   const completedCount = tasks.filter((t) => t.status === 'completed').length;
   const activeCount = tasks.filter((t) => t.status !== 'completed').length;
-
   const metrics = {
-    activeTasks: 1232 + activeCount,       // Baseline 1238 (when mock activeCount is 6)
-    emergency: 46 + emergencyCount,       // Baseline 47 (when mock emergencyCount is 1)
-    disputed: 11 + disputedCount,         // Baseline 12 (when mock disputedCount is 1)
-    frozen: 2 + frozenCount,             // Baseline 3 (when mock frozenCount is 1)
-    completedToday: 891 + completedCount // Baseline 892 (when mock completedCount is 1)
+    activeTasks: activeCount,
+    emergency: emergencyCount,
+    disputed: disputedCount,
+    frozen: frozenCount,
+    completedToday: completedCount
   };
 
   // Filter & Search logic
