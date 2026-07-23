@@ -8,10 +8,12 @@ import { TaskDTO } from '../dto/TaskDTO';
 import { AppError, UnknownError } from '../../core/errors/AppError';
 
 interface PaginatedTasksResponse {
-  total: number;
-  page: number;
-  limit: number;
-  items: any[];
+  tasks?: any[];
+  items?: any[];
+  pagination?: any;
+  total?: number;
+  page?: number;
+  limit?: number;
 }
 
 export class ApiTaskRepository implements TaskRepository {
@@ -54,7 +56,8 @@ export class ApiTaskRepository implements TaskRepository {
   public async getTasks(): Promise<Result<Task[]>> {
     try {
       const response = await apiClient.get<PaginatedTasksResponse>(API_ENDPOINTS.tasks.list);
-      const domainTasks = (response.items || []).map(item => this.mapBackendTaskToDomain(item));
+      const rawList = response.tasks || response.items || (Array.isArray(response) ? response : []);
+      const domainTasks = rawList.map(item => this.mapBackendTaskToDomain(item));
       return ok(domainTasks);
     } catch (error) {
       return fail(error as AppError);
