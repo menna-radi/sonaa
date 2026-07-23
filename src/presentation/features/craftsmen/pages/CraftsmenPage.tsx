@@ -48,6 +48,7 @@ export const CraftsmenPage: React.FC = () => {
   const [showActionsPopover, setShowActionsPopover] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [selectedTrade, setSelectedTrade] = useState<string>('All');
+  const [showViewModal, setShowViewModal] = useState<boolean>(false);
 
   const handleSelectCraftsman = (id: string) => {
     setSelectedId(id);
@@ -890,6 +891,7 @@ export const CraftsmenPage: React.FC = () => {
                 }}
               >
                 <button 
+                  onClick={() => setShowViewModal(true)}
                   style={{ 
                     flex: 1, 
                     display: 'flex', 
@@ -984,6 +986,146 @@ export const CraftsmenPage: React.FC = () => {
         </div>
         )}
       </div>
+
+      {/* Craftsman Profile Details Modal */}
+      {showViewModal && selectedCraftsman && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px'
+          }}
+          onClick={() => setShowViewModal(false)}
+        >
+          <div 
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              maxWidth: '560px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '24px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                {selectedCraftsman.avatarUrl ? (
+                  <img src={selectedCraftsman.avatarUrl} alt={selectedCraftsman.name} style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#d1d6db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.2rem', color: '#525252' }}>
+                    {selectedCraftsman.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                )}
+                <div style={{ textAlign: 'start' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedCraftsman.name}</h3>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{selectedCraftsman.trade} · ID #{selectedCraftsman.idNumber}</span>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: getStatusColor(selectedCraftsman.status).bg, color: getStatusColor(selectedCraftsman.status).text, textTransform: 'uppercase' }}>
+                      {selectedCraftsman.status}
+                    </span>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(59,130,246,0.1)', color: '#2563eb' }}>
+                      Trust Score {selectedCraftsman.trustScore}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setShowViewModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Performance Stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', background: '#F8FAFC', borderRadius: '12px', padding: '12px', marginBottom: '20px', textAlign: 'center' }}>
+              <div>
+                <span style={{ fontSize: '0.65rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Rating</span>
+                <strong style={{ display: 'block', fontSize: '1rem', color: '#0F172A', marginTop: '2px' }}>⭐ {selectedCraftsman.rating}</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.65rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Jobs</span>
+                <strong style={{ display: 'block', fontSize: '1rem', color: '#0F172A', marginTop: '2px' }}>{selectedCraftsman.jobsCount}</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.65rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Response</span>
+                <strong style={{ display: 'block', fontSize: '1rem', color: '#0F172A', marginTop: '2px' }}>{selectedCraftsman.responseTimeMin}m</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.65rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Joined</span>
+                <strong style={{ display: 'block', fontSize: '0.82rem', color: '#0F172A', marginTop: '4px' }}>{selectedCraftsman.joinedDate}</strong>
+              </div>
+            </div>
+
+            {/* Verification Documents */}
+            <div style={{ marginBottom: '20px', textAlign: 'start' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verification Status</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {[
+                  { key: 'nationalId', label: 'National ID' },
+                  { key: 'selfieMatch', label: 'Selfie Match' },
+                  { key: 'tradeLicense', label: 'Trade License' },
+                  { key: 'bankIban', label: 'Bank IBAN' },
+                  { key: 'backgroundCheck', label: 'Background Check' },
+                  { key: 'insurance', label: 'Insurance' },
+                ].map(item => {
+                  const isVer = selectedCraftsman.verifications[item.key as keyof Craftsman['verifications']];
+                  return (
+                    <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: isVer ? '#F0FDF4' : '#FEF2F2', border: `1px solid ${isVer ? '#DCFCE7' : '#FEE2E2'}`, borderRadius: '8px', fontSize: '0.78rem', fontWeight: 600, color: isVer ? '#15803D' : '#991B1B' }}>
+                      {isVer ? <Check size={14} /> : <X size={14} />}
+                      <span>{item.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 30-Day Earnings */}
+            <div style={{ background: '#171717', color: '#FFFFFF', borderRadius: '12px', padding: '16px', marginBottom: '20px', textAlign: 'start' }}>
+              <span style={{ fontSize: '0.68rem', color: '#A3A3A3', fontWeight: 700, textTransform: 'uppercase' }}>30-Day Platform Earnings</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 700, marginTop: '4px' }}>
+                SAR {selectedCraftsman.earnings30Days.toLocaleString()}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {selectedCraftsman.status === 'suspended' ? (
+                <button 
+                  onClick={() => { unsuspendCraftsman(selectedCraftsman.id); setShowViewModal(false); }} 
+                  style={{ flex: 1, padding: '10px', background: '#22C55E', color: '#FFFFFF', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                >
+                  Unsuspend Account
+                </button>
+              ) : (
+                <button 
+                  onClick={() => { suspendCraftsman(selectedCraftsman.id); setShowViewModal(false); }} 
+                  style={{ flex: 1, padding: '10px', background: '#F59E0B', color: '#FFFFFF', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                >
+                  Suspend Account
+                </button>
+              )}
+              <button 
+                onClick={() => setShowViewModal(false)} 
+                style={{ padding: '10px 20px', background: 'var(--bg-surface-hover)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </main>
 
       <MobileBottomTabs />
