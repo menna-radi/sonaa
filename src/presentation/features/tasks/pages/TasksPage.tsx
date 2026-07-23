@@ -47,6 +47,10 @@ export const TasksPage: React.FC = () => {
   const [showFilterPopover, setShowFilterPopover] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
+  const [emergencyIndex, setEmergencyIndex] = useState(0);
+
+  const emergencyTasksList = useMemo(() => tasks.filter(t => t.status === 'emergency'), [tasks]);
+  const activeEmergency = emergencyTasksList[emergencyIndex % (emergencyTasksList.length || 1)];
   const displayedTasks = useMemo(() => {
     return tasks.filter(t => {
       if (selectedCategory !== 'All') {
@@ -649,27 +653,46 @@ export const TasksPage: React.FC = () => {
               </div>
 
               {/* Emergency Alert SOS Banner */}
-              {tasks.some(task => task.status === 'emergency') && (
+              {emergencyTasksList.length > 0 && activeEmergency && (
                 <div className="emergency-alert-banner">
                   <div className="emergency-alert-left">
                     <div className="emergency-icon-wrapper">
                       <AlertTriangle size={18} />
                     </div>
                     <div className="emergency-details">
-                      <div className="emergency-title-row">
-                        <span className="emergency-title">{t('emergency_in_progress') || 'Emergency in progress'}</span>
+                      <div className="emergency-title-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="emergency-title">
+                          Emergency in progress ({emergencyTasksList.length} Active SOS)
+                        </span>
                         <span className="emergency-badge">SOS</span>
+                        {emergencyTasksList.length > 1 && (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '8px' }}>
+                            <button 
+                              onClick={() => setEmergencyIndex(prev => (prev > 0 ? prev - 1 : emergencyTasksList.length - 1))}
+                              style={{ background: '#fee2e2', border: 'none', borderRadius: '4px', color: '#dc2626', cursor: 'pointer', padding: '2px 6px', fontSize: '0.7rem', fontWeight: 700 }}
+                            >
+                              ◀
+                            </button>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#991b1b' }}>
+                              {emergencyIndex + 1} of {emergencyTasksList.length}
+                            </span>
+                            <button 
+                              onClick={() => setEmergencyIndex(prev => (prev + 1) % emergencyTasksList.length)}
+                              style={{ background: '#fee2e2', border: 'none', borderRadius: '4px', color: '#dc2626', cursor: 'pointer', padding: '2px 6px', fontSize: '0.7rem', fontWeight: 700 }}
+                            >
+                              ▶
+                            </button>
+                          </div>
+                        )}
                       </div>
                       <span className="emergency-text">
-                        {tasks.find(t => t.status === 'emergency') 
-                          ? `${tasks.find(t => t.status === 'emergency')?.title} · ${tasks.find(t => t.status === 'emergency')?.zone} · Customer: ${tasks.find(t => t.status === 'emergency')?.customer} · Craftsman: ${tasks.find(t => t.status === 'emergency')?.craftsman}`
-                          : 'Emergency in progress'}
+                        {activeEmergency.title} · {activeEmergency.zone} · Customer: {activeEmergency.customer} · Craftsman: {activeEmergency.craftsman}
                       </span>
                     </div>
                   </div>
                   <div className="emergency-actions">
-                    <button className="emergency-btn emergency-btn-secondary">
-                      {t('view_on_map') || 'View on map'}
+                    <button className="emergency-btn emergency-btn-secondary" onClick={() => setSelectedDetailTask(activeEmergency)}>
+                      View Details
                     </button>
                     <button className="emergency-btn emergency-btn-primary" onClick={() => setShowDispatchConfirm(true)}>
                       {t('dispatch_backup') || 'Dispatch backup'}
