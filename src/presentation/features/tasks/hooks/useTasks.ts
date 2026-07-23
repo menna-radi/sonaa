@@ -34,8 +34,11 @@ export const useTasks = () => {
   }, [taskRepository]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTasks();
+    const interval = setInterval(() => {
+      fetchTasks();
+    }, 5000);
+    return () => clearInterval(interval);
   }, [fetchTasks]);
 
   const handleFreeze = useCallback(async (id: string) => {
