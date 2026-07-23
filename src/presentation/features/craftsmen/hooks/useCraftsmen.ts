@@ -379,9 +379,21 @@ export const useCraftsmen = () => {
     );
   }, []);
 
-  const approveVerification = useCallback((_id: string, _key: keyof Craftsman['verifications']) => {
-    setError('Feature not supported by the backend yet');
-  }, []);
+  const approveVerification = useCallback(async (id: string, key: keyof Craftsman['verifications'], approved: boolean = true) => {
+    setError(null);
+    try {
+      const result = await craftsmanRepository.toggleVerificationItem(id, key, approved);
+      if (result.success) {
+        setCraftsmen(prev =>
+          prev.map(c => (c.id === id ? result.data : c))
+        );
+      } else {
+        setError(result.error.message || 'Failed to update verification item.');
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update verification item.');
+    }
+  }, [craftsmanRepository]);
 
   return {
     craftsmen: filteredCraftsmen,

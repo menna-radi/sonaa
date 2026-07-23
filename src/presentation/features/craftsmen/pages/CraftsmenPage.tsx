@@ -38,6 +38,7 @@ export const CraftsmenPage: React.FC = () => {
     banCraftsman,
     flagCraftsman,
     unflagCraftsman,
+    approveVerification,
   } = useCraftsmen();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -799,16 +800,22 @@ export const CraftsmenPage: React.FC = () => {
                   ].map((chk) => {
                     const verified = selectedCraftsman.verifications[chk.key as keyof Craftsman['verifications']];
                     return (
-                      <div 
+                      <button 
                         key={chk.key} 
+                        onClick={() => approveVerification(selectedCraftsman.id, chk.key as keyof Craftsman['verifications'], !verified)}
+                        title={`Click to ${verified ? 'unverify' : 'verify'} ${chk.label}`}
                         style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
                           gap: '8px', 
-                          background: 'var(--bg-surface-hover)', 
+                          background: verified ? 'rgba(22,163,74,0.06)' : 'var(--bg-surface-hover)', 
                           padding: '8px 12px', 
                           borderRadius: '8px',
-                          border: '1px solid var(--border-color)' 
+                          border: `1px solid ${verified ? 'rgba(22,163,74,0.3)' : 'var(--border-color)'}`,
+                          cursor: 'pointer',
+                          textAlign: 'start',
+                          fontFamily: 'inherit',
+                          transition: 'all 0.2s ease'
                         }}
                       >
                         {verified ? (
@@ -816,10 +823,10 @@ export const CraftsmenPage: React.FC = () => {
                         ) : (
                           <X size={14} color="#dc2626" style={{ flexShrink: 0 }} />
                         )}
-                        <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: verified ? 600 : 500, color: verified ? '#15803D' : 'var(--text-secondary)' }}>
                           {chk.label}
                         </span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>

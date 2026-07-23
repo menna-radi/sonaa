@@ -104,5 +104,19 @@ export class ApiCraftsmanRepository implements CraftsmanRepository {
       return fail(error as AppError);
     }
   }
+
+  public async toggleVerificationItem(id: string, itemKey: string, approved: boolean): Promise<Result<Craftsman>> {
+    try {
+      await apiClient.post<any>(API_ENDPOINTS.craftsmen.toggleVerificationItem(id), { itemKey, approved });
+      const listResult = await this.getCraftsmen();
+      if (listResult.success) {
+        const found = listResult.data.find(c => c.id === id);
+        if (found) return ok(found);
+      }
+      return fail(new UnknownError('Failed to retrieve updated craftsman profile after verification update.'));
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
 }
 export default ApiCraftsmanRepository;

@@ -133,5 +133,21 @@ export class MockCraftsmanRepository implements CraftsmanRepository {
     };
     return ok(this.craftsmen[idx]);
   }
+
+  public async toggleVerificationItem(id: string, itemKey: string, approved: boolean): Promise<Result<Craftsman>> {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const idx = this.craftsmen.findIndex((c) => c.id === id);
+    if (idx === -1) {
+      return fail(new NotFoundError(`Craftsman with ID ${id} not found`));
+    }
+    this.craftsmen[idx] = {
+      ...this.craftsmen[idx],
+      verifications: {
+        ...this.craftsmen[idx].verifications,
+        [itemKey]: approved,
+      },
+    };
+    return ok(this.craftsmen[idx]);
+  }
 }
 export default MockCraftsmanRepository;
