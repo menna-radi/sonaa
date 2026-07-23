@@ -90,7 +90,23 @@ export const TasksPage: React.FC = () => {
         );
       case 'emergency':
         return (
-          <span className="badge badge-emergency animate-pulse">
+          <span 
+            className="badge badge-emergency animate-pulse" 
+            style={{ 
+              backgroundColor: '#fee2e2', 
+              color: '#dc2626', 
+              border: '1px solid #fca5a5', 
+              fontWeight: 800, 
+              padding: '4px 12px', 
+              borderRadius: '9999px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.78rem',
+              boxShadow: '0 0 10px rgba(220, 38, 38, 0.25)'
+            }}
+          >
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#dc2626', display: 'inline-block' }} />
             {t('status_emergency') || 'Emergency'}
           </span>
         );

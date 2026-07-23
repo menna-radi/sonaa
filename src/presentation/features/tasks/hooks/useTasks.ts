@@ -16,28 +16,28 @@ export const useTasks = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<TaskFilterType>('all');
 
-  const fetchTasks = useCallback(async () => {
-    setLoading(true);
+  const fetchTasks = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     setError(null);
     try {
       const result = await taskRepository.getTasks();
       if (result.success) {
         setTasks(result.data);
       } else {
-        setError(result.error.message || 'Failed to fetch tasks.');
+        if (!isSilent) setError(result.error.message || 'Failed to fetch tasks.');
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch tasks.');
+      if (!isSilent) setError(err instanceof Error ? err.message : 'Failed to fetch tasks.');
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   }, [taskRepository]);
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasks(false);
     const interval = setInterval(() => {
-      fetchTasks();
-    }, 5000);
+      fetchTasks(true);
+    }, 10000);
     return () => clearInterval(interval);
   }, [fetchTasks]);
 
@@ -130,6 +130,6 @@ export const useTasks = () => {
     filterCounts,
     handleFreeze,
     handleUnfreeze,
-    refresh: fetchTasks,
+    refresh: useCallback(() => { fetchTasks(false); }, [fetchTasks]),
   };
 };
