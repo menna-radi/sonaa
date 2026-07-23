@@ -77,9 +77,9 @@ export class ApiCraftsmanRepository implements CraftsmanRepository {
     }
   }
 
-  public async suspendCraftsman(id: string): Promise<Result<Craftsman>> {
+  public async suspendCraftsman(id: string, reason?: string): Promise<Result<Craftsman>> {
     try {
-      await apiClient.put<any>(API_ENDPOINTS.craftsmen.suspend(id));
+      await apiClient.put<any>(API_ENDPOINTS.craftsmen.suspend(id), { reason });
       const listResult = await this.getCraftsmen();
       if (listResult.success) {
         const found = listResult.data.find(c => c.id === id);

@@ -108,7 +108,7 @@ export class MockCraftsmanRepository implements CraftsmanRepository {
     return ok([...this.craftsmen]);
   }
 
-  public async suspendCraftsman(id: string): Promise<Result<Craftsman>> {
+  public async suspendCraftsman(id: string, _reason?: string): Promise<Result<Craftsman>> {
     await new Promise((resolve) => setTimeout(resolve, 150));
     const idx = this.craftsmen.findIndex((c) => c.id === id);
     if (idx === -1) {

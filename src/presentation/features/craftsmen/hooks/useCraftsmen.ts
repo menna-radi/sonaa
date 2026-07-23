@@ -335,10 +335,10 @@ export const useCraftsmen = () => {
   }, [craftsmen, selectedId]);
 
   // Actions
-  const suspendCraftsman = useCallback(async (id: string) => {
+  const suspendCraftsman = useCallback(async (id: string, reason?: string) => {
     setError(null);
     try {
-      const result = await craftsmanRepository.suspendCraftsman(id);
+      const result = await craftsmanRepository.suspendCraftsman(id, reason);
       if (result.success) {
         setCraftsmen(prev =>
           prev.map(c => (c.id === id ? result.data : c))

@@ -49,6 +49,8 @@ export const CraftsmenPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [selectedTrade, setSelectedTrade] = useState<string>('All');
   const [showViewModal, setShowViewModal] = useState<boolean>(false);
+  const [showSuspendModal, setShowSuspendModal] = useState<boolean>(false);
+  const [suspendReason, setSuspendReason] = useState<string>('');
 
   const handleSelectCraftsman = (id: string) => {
     setSelectedId(id);
@@ -691,7 +693,7 @@ export const CraftsmenPage: React.FC = () => {
                             { label: 'Unflag Account', action: () => { unflagCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } },
                             selectedCraftsman.status === 'suspended'
                               ? { label: 'Unsuspend Account', action: () => { unsuspendCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } }
-                              : { label: 'Suspend Account', action: () => { suspendCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } },
+                              : { label: 'Suspend Account', action: () => { setSuspendReason(''); setShowSuspendModal(true); setShowActionsPopover(false); } },
                             { label: 'Ban Account', action: () => { banCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } }
                           ].map((act, index) => (
                             <button
@@ -934,7 +936,7 @@ export const CraftsmenPage: React.FC = () => {
                   </button>
                 ) : (
                   <button 
-                    onClick={() => suspendCraftsman(selectedCraftsman.id)}
+                    onClick={() => { setSuspendReason(''); setShowSuspendModal(true); }}
                     style={{ 
                       flex: 1.2, 
                       display: 'flex', 
@@ -1121,6 +1123,154 @@ export const CraftsmenPage: React.FC = () => {
                 style={{ padding: '10px 20px', background: 'var(--bg-surface-hover)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Suspend Craftsman Modal */}
+      {showSuspendModal && selectedCraftsman && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px'
+          }}
+          onClick={() => setShowSuspendModal(false)}
+        >
+          <div 
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              maxWidth: '500px',
+              width: '100%',
+              padding: '24px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              position: 'relative',
+              textAlign: 'start'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626' }}>
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Suspend Account</h3>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{selectedCraftsman.name} ({selectedCraftsman.trade})</span>
+                </div>
+              </div>
+              <button onClick={() => setShowSuspendModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.82rem', color: '#4b5563', margin: '0 0 14px 0', lineHeight: 1.5 }}>
+              Specify the reason for suspending this craftsman. This message will be sent directly to the craftsman as a push & system notification.
+            </p>
+
+            {/* Quick Reason Preset Chips */}
+            <div style={{ marginBottom: '14px' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Quick Reasons</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {[
+                  'Unverified trade license documents',
+                  'Multiple safety or quality dispute reports',
+                  'Violation of platform terms of service',
+                  'Incomplete profile verification requirements',
+                ].map((reasonText, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSuspendReason(reasonText)}
+                    style={{
+                      background: suspendReason === reasonText ? '#FEF2F2' : '#F4F4F5',
+                      border: `1px solid ${suspendReason === reasonText ? '#FCA5A5' : '#E4E4E7'}`,
+                      color: suspendReason === reasonText ? '#991B1B' : '#52525B',
+                      borderRadius: '6px',
+                      padding: '4px 10px',
+                      fontSize: '0.72rem',
+                      fontWeight: 500,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {reasonText}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Reason Textarea */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>Notification Message to Craftsman</label>
+              <textarea
+                rows={3}
+                placeholder="Enter custom message or explanation..."
+                value={suspendReason}
+                onChange={(e) => setSuspendReason(e.target.value)}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border-color)',
+                  padding: '10px 12px',
+                  fontSize: '0.82rem',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  await suspendCraftsman(selectedCraftsman.id, suspendReason);
+                  setShowSuspendModal(false);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  background: '#DC2626',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Confirm Suspend & Send Notification
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSuspendModal(false)}
+                style={{
+                  padding: '10px 16px',
+                  background: 'var(--bg-surface-hover)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
               </button>
             </div>
           </div>
