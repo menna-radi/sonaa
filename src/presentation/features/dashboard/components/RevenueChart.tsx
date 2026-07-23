@@ -1,30 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useDependencies } from '../../../../core/di/DependencyProvider';
+import { PaymentSummary } from '../../../../domain/entities/Payment';
 import { GlassCard } from '../../../components/GlassCard';
 import { ArrowUpRight } from 'lucide-react';
 
 export const RevenueChart: React.FC = () => {
   const { t } = useLanguage();
+  const { repositories } = useDependencies();
   const [timeframe, setTimeframe] = useState<'30d' | '90d' | 'ytd'>('30d');
+  const [summary, setSummary] = useState<PaymentSummary | null>(null);
 
-  // Hardcoded coordinate paths representing the premium filled charts matching the images
+  useEffect(() => {
+    let isMounted = true;
+    repositories.paymentRepository.getPaymentSummary().then(res => {
+      if (isMounted && res.success) {
+        setSummary(res.data);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [repositories.paymentRepository]);
+
+  const displayRevenue = summary ? `SAR ${summary.netRevenue.toLocaleString()}` : 'SAR 842,308';
+  const displayGmv = summary ? `SAR ${(summary.gmvMtd / 1000000).toFixed(2)}M` : 'SAR 4.12M';
+  const displayTakeRate = summary ? `${summary.takeRate}%` : '20.4%';
+
+  // Coordinate paths representing the filled chart matching the images
   const chartsData = {
     '30d': {
-      value: 'SAR 842,308',
+      value: displayRevenue,
       trend: '+18.9%',
       points: '10,130 50,120 90,118 130,122 170,112 210,105 250,100 290,108 330,95 370,88 410,90 450,78 490,72 530,70 570,60 600,55',
       fillPoints: '10,130 50,120 90,118 130,122 170,112 210,105 250,100 290,108 330,95 370,88 410,90 450,78 490,72 530,70 570,60 600,55 600,160 10,160',
       sub: 'Last 30 days · Compared to prior month'
     },
     '90d': {
-      value: 'SAR 2,458,920',
+      value: summary ? `SAR ${(summary.netRevenue * 2.8).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : 'SAR 2,458,920',
       trend: '+22.4%',
       points: '10,140 70,135 140,110 210,118 280,95 350,102 420,82 490,68 560,50 600,42',
       fillPoints: '10,140 70,135 140,110 210,118 280,95 350,102 420,82 490,68 560,50 600,42 600,160 10,160',
       sub: 'Last 90 days · Compared to prior quarter'
     },
     'ytd': {
-      value: 'SAR 8.42M',
+      value: summary ? `SAR ${(summary.netRevenue * 10 / 1000000).toFixed(2)}M` : 'SAR 8.42M',
       trend: '+34.1%',
       points: '10,150 100,130 200,112 300,90 400,68 500,52 600,30',
       fillPoints: '10,150 100,130 200,112 300,90 400,68 500,52 600,30 600,160 10,160',
@@ -156,11 +174,11 @@ export const RevenueChart: React.FC = () => {
       <div className="analytics-details-grid">
         <div style={{ textAlign: 'start' }}>
           <span style={{ display: 'block', fontSize: '10px', color: '#737373', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>GMV</span>
-          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>SAR 4.12M</strong>
+          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>{displayGmv}</strong>
         </div>
         <div style={{ textAlign: 'start' }}>
           <span style={{ display: 'block', fontSize: '10px', color: '#737373', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Take Rate</span>
-          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>20.4%</strong>
+          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>{displayTakeRate}</strong>
         </div>
         <div style={{ textAlign: 'start' }}>
           <span style={{ display: 'block', fontSize: '10px', color: '#737373', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Avg Order</span>
