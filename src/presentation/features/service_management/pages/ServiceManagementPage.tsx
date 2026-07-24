@@ -38,11 +38,16 @@ export const ServiceManagementPage: React.FC = () => {
     metrics,
     selectedSubCatCategoryId,
     setSelectedSubCatCategoryId,
+    selectedFieldCategoryId,
+    setSelectedFieldCategoryId,
     createCategory,
     toggleCategoryVisibility,
     createSubcategory,
     toggleSubcategoryVisibility,
-    moveSubcategory
+    moveSubcategory,
+    createField,
+    deleteField,
+    toggleFieldRequired
   } = useServiceManagement();
 
   // 1. KPI Stats Data (100% Dynamic from live DB)
@@ -80,6 +85,13 @@ export const ServiceManagementPage: React.FC = () => {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDesc, setNewCategoryDesc] = useState('');
   const [newSubcatName, setNewSubcatName] = useState('');
+
+  // Form Field Builder State
+  const [newFieldName, setNewFieldName] = useState('');
+  const [newFieldType, setNewFieldType] = useState<string>('text');
+  const [newFieldOptions, setNewFieldOptions] = useState<string>('');
+  const [newFieldRequired, setNewFieldRequired] = useState<boolean>(false);
+  const [isAddFieldModalOpen, setIsAddFieldModalOpen] = useState<boolean>(false);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -439,6 +451,168 @@ export const ServiceManagementPage: React.FC = () => {
 
 
 
+        {/* 5. Custom Form Fields Schema Builder Section */}
+        <div className="sm-stacked-card">
+          <div className="sm-card-header" style={{ borderBottom: '1px solid #e5e5e5', paddingBottom: '16px' }}>
+            <div>
+              <h3>{isRtl ? 'بناء حقول نموذج طلب الخدمة' : 'Custom Task Order Form Builder'}</h3>
+              <p>{isRtl ? 'تخصيص الحقول المدخلة التي يملؤها العميل عند طلب خدمة في القدس' : 'Configure custom input fields shown to customers on the Android app'}</p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px', padding: '20px 0' }}>
+            {/* Left: Category Selector & Fields Table */}
+            <div>
+              {/* Category Selector Bar */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    {isRtl ? 'اختر الفئة الرئيسية:' : 'Select Main Category:'}
+                  </label>
+                  <select
+                    value={selectedFieldCategoryId}
+                    onChange={(e) => setSelectedFieldCategoryId(e.target.value)}
+                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontWeight: 600 }}
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {isRtl ? c.nameAr : c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  className="sm-btn-primary"
+                  onClick={() => setIsAddFieldModalOpen(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={16} />
+                  <span>{isRtl ? 'إضافة حقل جديد' : 'Add Custom Field'}</span>
+                </button>
+              </div>
+
+              {/* Form Fields Table */}
+              <div className="sm-table-container">
+                <table className="sm-table">
+                  <thead>
+                    <tr>
+                      <th>{isRtl ? 'اسم الحقل' : 'Field Label'}</th>
+                      <th>{isRtl ? 'نوع المدخل' : 'Input Type'}</th>
+                      <th>{isRtl ? 'إجباري' : 'Required'}</th>
+                      <th style={{ width: '80px', textAlign: 'center' }}>{isRtl ? 'إجراءات' : 'Actions'}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fields.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-disabled)' }}>
+                          {isRtl ? 'لا توجد حقول مخصصة لهذه الفئة حتى الآن.' : 'No custom fields configured for this category yet.'}
+                        </td>
+                      </tr>
+                    ) : (
+                      fields.map((field) => (
+                        <tr key={field.id}>
+                          <td>
+                            <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{field.name}</strong>
+                          </td>
+                          <td>
+                            <span className="sm-subcat-badge" style={{ textTransform: 'uppercase', fontSize: '11px' }}>
+                              {field.type}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className={`sm-toggle-switch${field.required ? ' on' : ''}`}
+                              onClick={() => toggleFieldRequired(field.id, selectedFieldCategoryId)}
+                            />
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <button
+                              className="sm-action-menu-btn"
+                              style={{ color: '#dc2626' }}
+                              onClick={() => deleteField(field.id, selectedFieldCategoryId)}
+                              title={isRtl ? 'حذف الحقل' : 'Delete field'}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Right: Live Android Mobile Task Form Preview */}
+            <div style={{ background: '#0f172a', borderRadius: '24px', padding: '20px', color: '#ffffff', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', border: '4px solid #334155' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8' }}>Android App Screen</span>
+                </div>
+                <span style={{ fontSize: '11px', color: '#64748b' }}>Jerusalem • القدس</span>
+              </div>
+
+              <div style={{ textAlign: 'start' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 4px 0', color: '#f8fafc' }}>
+                  {isRtl ? 'نموذج تفاصيل الطلب' : 'Task Details Form'}
+                </h4>
+                <p style={{ fontSize: '11px', color: '#94a3b8', margin: '0 0 16px 0' }}>
+                  {categories.find(c => c.id === selectedFieldCategoryId)?.name || 'Service Order'}
+                </p>
+              </div>
+
+              {/* Form Render Preview */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {fields.length === 0 ? (
+                  <div style={{ padding: '20px', textAlign: 'center', border: '1px dashed #334155', borderRadius: '12px', color: '#64748b', fontSize: '12px' }}>
+                    Default task description & photo upload only.
+                  </div>
+                ) : (
+                  fields.map((f) => (
+                    <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'start' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: '#cbd5e1' }}>
+                        {f.name} {f.required && <span style={{ color: '#ef4444' }}>*</span>}
+                      </label>
+                      {f.type === 'number' ? (
+                        <input
+                          type="number"
+                          readOnly
+                          placeholder="1"
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#ffffff', fontSize: '12px' }}
+                        />
+                      ) : f.type === 'select' ? (
+                        <select
+                          disabled
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#ffffff', fontSize: '12px' }}
+                        >
+                          <option>Select Option...</option>
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          readOnly
+                          placeholder={`Enter ${f.name.toLowerCase()}...`}
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#ffffff', fontSize: '12px' }}
+                        />
+                      )}
+                    </div>
+                  ))
+                )}
+
+                <button
+                  disabled
+                  style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '10px', background: '#3b82f6', color: '#ffffff', fontWeight: 700, fontSize: '12px', border: 'none' }}
+                >
+                  Continue to Craftsman Match ↗
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* 6. Recent Activity Log (Audit Trail) */}
         <div className="sm-stacked-card">
           <div style={{ marginBottom: '20px' }}>
@@ -658,6 +832,94 @@ export const ServiceManagementPage: React.FC = () => {
       )}
 
 
+
+      {/* ── Add Custom Field Modal ── */}
+      {isAddFieldModalOpen && (
+        <div className="sm-modal-overlay">
+          <div className="sm-modal-container">
+            {/* Header */}
+            <div className="sm-modal-header">
+              <h2>{isRtl ? 'إضافة حقل مدخل مخصص' : 'Add Custom Input Field'}</h2>
+              <button className="sm-modal-close-btn" onClick={() => setIsAddFieldModalOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="sm-modal-body">
+              <div className="sm-modal-field-group">
+                <label>{isRtl ? 'اسم الحقل / السؤال' : 'Field Label / Question'}</label>
+                <input
+                  type="text"
+                  placeholder={isRtl ? 'مثال: عدد وحدات التكييف' : 'e.g. Number of AC Units'}
+                  value={newFieldName}
+                  onChange={(e) => setNewFieldName(e.target.value)}
+                />
+              </div>
+
+              <div className="sm-modal-field-group">
+                <label>{isRtl ? 'نوع المدخل' : 'Input Field Type'}</label>
+                <select
+                  className="form-input-field"
+                  value={newFieldType}
+                  onChange={(e) => setNewFieldType(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff', color: '#0f172a' }}
+                >
+                  <option value="text">Text Box (نص عادي)</option>
+                  <option value="number">Numeric Quantity (عدد / كمية)</option>
+                  <option value="select">Dropdown Options (خيارات قائمة)</option>
+                  <option value="textarea">Multi-line Notes (ملاحظات مطولة)</option>
+                  <option value="image">Photo Attachment (إرفاق صورة)</option>
+                </select>
+              </div>
+
+              {newFieldType === 'select' && (
+                <div className="sm-modal-field-group">
+                  <label>{isRtl ? 'خيارات القائمة (مفصولة بفواصل)' : 'Dropdown Options (Comma-separated)'}</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Split AC, Window AC, Central AC"
+                    value={newFieldOptions}
+                    onChange={(e) => setNewFieldOptions(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className="sm-modal-toggle-row">
+                <div>
+                  <label className="toggle-label">{isRtl ? 'حقل إجباري' : 'Required Field'}</label>
+                  <p className="toggle-desc">{isRtl ? 'العميل ملزم بملء هذا الحقل لإتمام الطلب' : 'Customer must complete this field to submit order'}</p>
+                </div>
+                <button
+                  className={`sm-toggle-switch${newFieldRequired ? ' on' : ''}`}
+                  onClick={() => setNewFieldRequired(!newFieldRequired)}
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sm-modal-footer">
+              <button className="sm-modal-cancel-btn" onClick={() => setIsAddFieldModalOpen(false)}>
+                {isRtl ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button
+                className="sm-btn-primary"
+                onClick={async () => {
+                  if (!newFieldName.trim()) return;
+                  const opts = newFieldType === 'select' ? newFieldOptions.split(',').map(s => s.trim()).filter(Boolean) : undefined;
+                  await createField(selectedFieldCategoryId, newFieldName, newFieldType, { options: opts });
+                  setNewFieldName('');
+                  setNewFieldOptions('');
+                  setNewFieldRequired(false);
+                  setIsAddFieldModalOpen(false);
+                }}
+              >
+                {isRtl ? 'إضافة الحقل' : 'Add Field'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <MobileBottomTabs />
 
