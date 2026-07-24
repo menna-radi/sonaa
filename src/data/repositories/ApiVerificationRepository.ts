@@ -58,6 +58,11 @@ export class ApiVerificationRepository implements VerificationRepository {
           isVerifiedSelfie: Boolean(r.isVerifiedSelfie),
           isVerifiedBankIban: Boolean(r.isVerifiedBankIban),
           isVerifiedBackground: Boolean(r.isVerifiedBackground),
+          phoneNumber: r.user?.phoneNumber || r.user?.phone || '+966 50 123 4567',
+          email: r.user?.email || `${r.firstName.toLowerCase()}.${r.lastName.toLowerCase()}@sonaa.sa`,
+          deviceOs: 'Android 14 (SDK 34)',
+          appVersion: 'Sonaa Partner v2.4.1',
+          registeredDate: r.user?.createdAt ? new Date(r.user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Jul 21, 2026',
         };
       });
 

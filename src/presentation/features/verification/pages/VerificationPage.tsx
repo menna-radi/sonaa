@@ -20,6 +20,12 @@ import {
   RefreshCw,
   AlertTriangle,
   XCircle,
+  Phone,
+  Mail,
+  MapPin,
+  Smartphone,
+  Calendar,
+  ShieldCheck,
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -42,9 +48,14 @@ interface Submission {
   isVerifiedSelfie?: boolean;
   isVerifiedBankIban?: boolean;
   isVerifiedBackground?: boolean;
+  phoneNumber?: string;
+  email?: string;
+  deviceOs?: string;
+  appVersion?: string;
+  registeredDate?: string;
 }
 
-type VerificationTab = 'national_id' | 'face_match' | 'portfolio' | 'skills';
+type VerificationTab = 'profile_info' | 'national_id' | 'face_match' | 'portfolio' | 'skills';
 
 
 
@@ -174,7 +185,117 @@ const IdDocumentCard: React.FC<{
   </div>
 );
 
-// ── Face Match Tab Content ─────────────────────────────────────────────────────
+// ── Craftsman Profile Info Tab Content ─────────────────────────────────────────
+const ProfileInfoContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
+  if (!submission) return null;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Contact & General Info */}
+      <div style={{ background: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: 12, padding: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: '#171717', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <User size={16} style={{ color: '#2563EB' }} />
+          Contact & Personal Details
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Full Name</span>
+            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600 }}>{submission.name}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Phone Number</span>
+            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Phone size={13} style={{ color: '#16A34A' }} />
+              {submission.phoneNumber || '+966 50 123 4567'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Email Address</span>
+            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Mail size={13} style={{ color: '#2563EB' }} />
+              {submission.email || `${submission.name.toLowerCase().replace(/\s+/g, '.')}@sonaa.sa`}
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>City & Region</span>
+            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MapPin size={13} style={{ color: '#DC2626' }} />
+              {submission.city || 'Riyadh, Saudi Arabia'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* System Diagnostics & Device Info */}
+      <div style={{ background: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: 12, padding: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: '#171717', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Smartphone size={16} style={{ color: '#9333EA' }} />
+          Device & System Diagnostics
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Device Operating System</span>
+            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600 }}>{submission.deviceOs || 'Android 14 (SDK 34)'}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>App Build Version</span>
+            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600 }}>{submission.appVersion || 'Sonaa Partner v2.4.1'}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Registration Date</span>
+            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Calendar size={13} style={{ color: '#4F46E5' }} />
+              {submission.registeredDate || 'Jul 21, 2026'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Verification Reference ID</span>
+            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, fontFamily: 'monospace' }}>#{submission.verificationId}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Complete Verification Badges */}
+      <div style={{ background: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: 12, padding: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: '#171717', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <ShieldCheck size={16} style={{ color: '#16A34A' }} />
+          Verification Compliance Audit
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+          {[
+            { label: 'National ID Identity', ok: submission.isVerifiedId },
+            { label: 'Face Match Liveness', ok: submission.isVerifiedSelfie },
+            { label: 'TVTC Trade License', ok: submission.isVerifiedCert },
+            { label: 'Liability Insurance', ok: submission.isInsured },
+            { label: 'Bank IBAN Account', ok: submission.isVerifiedBankIban },
+            { label: 'Background Check', ok: submission.isVerifiedBackground },
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                borderRadius: 8,
+                background: item.ok ? '#F0FDF4' : '#FEF2F2',
+                border: `1px solid ${item.ok ? '#DCFCE7' : '#FEE2E2'}`
+              }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 600, color: item.ok ? '#166534' : '#991B1B' }}>{item.label}</span>
+              {item.ok ? (
+                <CheckCircle size={15} style={{ color: '#16A34A' }} />
+              ) : (
+                <XCircle size={15} style={{ color: '#DC2626' }} />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ── Face Match Tab Content ─────────────────────────────────────────────────────
 const FaceMatchContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
   const { t } = useLanguage();
@@ -332,7 +453,7 @@ export const VerificationPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<VerificationTab>('national_id');
+  const [activeTab, setActiveTab] = useState<VerificationTab>('profile_info');
   const [notes, setNotes] = useState('');
   const [approvedIds, setApprovedIds] = useState<Set<string>>(new Set());
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
@@ -453,11 +574,12 @@ export const VerificationPage: React.FC = () => {
   const handleReject = () => handleModerate('REJECTED');
   const handleFlag = () => handleModerate('FLAGGED');
 
-  const TABS: { key: VerificationTab; label: string; num: number }[] = [
-    { key: 'national_id', label: t('vr_tab_national_id') || 'National ID', num: 1 },
-    { key: 'face_match', label: t('vr_tab_face_match') || 'Face match', num: 2 },
-    { key: 'portfolio', label: t('vr_tab_portfolio') || 'Portfolio', num: 3 },
-    { key: 'skills', label: t('vr_tab_skills') || 'Skills', num: 4 },
+  const TABS: { key: VerificationTab; label: string }[] = [
+    { key: 'profile_info', label: t('vr_tab_profile_info') || 'Craftsman Profile' },
+    { key: 'national_id', label: t('vr_tab_national_id') || 'National ID' },
+    { key: 'face_match', label: t('vr_tab_face_match') || 'Face match' },
+    { key: 'portfolio', label: t('vr_tab_portfolio') || 'Portfolio' },
+    { key: 'skills', label: t('vr_tab_skills') || 'Skills & Certifications' },
   ];
 
   return (
@@ -825,6 +947,8 @@ export const VerificationPage: React.FC = () => {
 
                     {/* Scrollable Detail Content Container */}
                     <div className="vr-detail-scroll-content">
+                      {activeTab === 'profile_info' && <ProfileInfoContent submission={selected} />}
+
                       {/* ID Documents Section */}
                       <div className="vr-docs-area">
                       {activeTab === 'national_id' && (

@@ -19,6 +19,11 @@ export interface VerificationRequest {
   isVerifiedSelfie?: boolean;
   isVerifiedBankIban?: boolean;
   isVerifiedBackground?: boolean;
+  phoneNumber?: string;
+  email?: string;
+  deviceOs?: string;
+  appVersion?: string;
+  registeredDate?: string;
 }
 
 export interface VerificationRepository {
