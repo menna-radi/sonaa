@@ -30,5 +30,16 @@ export class MockVerificationRepository implements VerificationRepository {
     );
     return ok(true);
   }
+
+  private autoVerifyEnabled = true;
+
+  public async getAutoVerification(): Promise<Result<{ enabled: boolean }>> {
+    return ok({ enabled: this.autoVerifyEnabled });
+  }
+
+  public async toggleAutoVerification(enabled: boolean): Promise<Result<{ enabled: boolean }>> {
+    this.autoVerifyEnabled = enabled;
+    return ok({ enabled: this.autoVerifyEnabled });
+  }
 }
 export default MockVerificationRepository;

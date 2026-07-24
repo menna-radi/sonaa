@@ -20,4 +20,6 @@ export interface VerificationRepository {
     decision: 'APPROVED' | 'REJECTED' | 'FLAGGED',
     moderatorNotes: string
   ): Promise<Result<boolean>>;
+  getAutoVerification(): Promise<Result<{ enabled: boolean }>>;
+  toggleAutoVerification(enabled: boolean): Promise<Result<{ enabled: boolean }>>;
 }

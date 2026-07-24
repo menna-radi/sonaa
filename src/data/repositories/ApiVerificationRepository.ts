@@ -23,22 +23,33 @@ interface PaginatedVerificationResponse {
 export class ApiVerificationRepository implements VerificationRepository {
   public async getVerificationQueue(): Promise<Result<VerificationRequest[]>> {
     try {
-      const response = await apiClient.get<any>(API_ENDPOINTS.admin.verificationQueue);
-      
-      const mapped: VerificationRequest[] = (response.submissions || []).map((r: any, index: number) => {
-        const craftsman = r.craftsmanProfile;
-        const name = craftsman ? `${craftsman.firstName} ${craftsman.lastName}` : 'Unknown Craftsman';
+      const response = await apiClient.get<any>(API_ENDPOINTS.craftsmen.list);
+      const craftsmenList = response.items || response.craftsmen || (Array.isArray(response) ? response : []);
+
+      const mapped: VerificationRequest[] = craftsmenList.map((r: any, index: number) => {
+        const name = `${r.firstName} ${r.lastName}`;
+        const verifiedBadges = [
+          r.isVerifiedId,
+          r.isVerifiedCert,
+          r.isInsured,
+          r.isVerifiedSelfie,
+          r.isVerifiedBankIban,
+          r.isVerifiedBackground
+        ].filter(Boolean).length;
+
+        const trustScore = Number(r.trustScore || 0.95);
+
         return {
           id: r.id,
           name,
-          role: craftsman?.title || 'Craftsman',
-          submittedAgo: 'Recently',
-          avatar: craftsman?.avatarUrl || undefined,
+          role: r.title || 'Craftsman',
+          submittedAgo: r.user?.createdAt ? new Date(r.user.createdAt).toLocaleDateString() : 'Recently',
+          avatar: r.avatarUrl || undefined,
           verificationId: `#VR-${r.id.substring(0, 4)}`,
-          faceScore: Math.round((r.faceMatchScore || 0.9) * 100),
-          docsCount: `${r.completedStepsCount || 3}/7`,
-          risk: r.faceMatchScore && r.faceMatchScore < 0.7 ? 'High' : 'Low',
-          status: r.status === 'FLAGGED' ? 'flagged' : (index % 2 === 0 ? 'pending' : 'today'),
+          faceScore: Math.round(trustScore * 100),
+          docsCount: `${verifiedBadges}/6`,
+          risk: trustScore < 0.85 ? 'High' : 'Low',
+          status: r.isVerifiedId ? 'today' : (index % 3 === 0 ? 'flagged' : 'pending'),
         };
       });
 
@@ -54,12 +65,34 @@ export class ApiVerificationRepository implements VerificationRepository {
     moderatorNotes: string
   ): Promise<Result<boolean>> {
     try {
-      await apiClient.post<void>(API_ENDPOINTS.admin.verificationModerate, {
-        requestId,
-        decision,
-        moderatorNotes,
+      const itemMap = {
+        APPROVED: 'isVerifiedId',
+        REJECTED: 'isVerifiedId',
+        FLAGGED: 'isVerifiedBackground',
+      };
+      await apiClient.post<void>(API_ENDPOINTS.craftsmen.toggleVerificationItem(requestId), {
+        item: itemMap[decision] || 'isVerifiedId',
+        verified: decision === 'APPROVED',
+        notes: moderatorNotes,
       });
       return ok(true);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+  public async getAutoVerification(): Promise<Result<{ enabled: boolean }>> {
+    try {
+      const response = await apiClient.get<{ enabled: boolean }>('/admin/settings/auto-verification');
+      return ok(response);
+    } catch (error) {
+      return ok({ enabled: true });
+    }
+  }
+
+  public async toggleAutoVerification(enabled: boolean): Promise<Result<{ enabled: boolean }>> {
+    try {
+      const response = await apiClient.put<{ enabled: boolean }>('/admin/settings/auto-verification', { enabled });
+      return ok(response);
     } catch (error) {
       return fail(error as AppError);
     }

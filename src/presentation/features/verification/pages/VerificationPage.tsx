@@ -38,15 +38,7 @@ interface Submission {
 
 type VerificationTab = 'national_id' | 'face_match' | 'portfolio' | 'skills';
 
-// ── Mock Data ─────────────────────────────────────────────────────────────────
-const SUBMISSIONS: Submission[] = [
-  { id: 's1', name: 'Yousef Al-Harbi', role: 'Plumber', submittedAgo: '8 min ago', verificationId: '#VR-2841', faceScore: 96, docsCount: '7/7', risk: 'Low', status: 'pending' },
-  { id: 's2', name: 'Bandar Al-Omari', role: 'Carpenter', submittedAgo: '21m ago', avatar: 'https://randomuser.me/api/portraits/men/32.jpg', verificationId: '#VR-2840', faceScore: 91, docsCount: '6/7', risk: 'Low', status: 'pending' },
-  { id: 's3', name: 'Hassan Al-Mutairi', role: 'Painter', submittedAgo: '34m ago', avatar: 'https://randomuser.me/api/portraits/men/45.jpg', verificationId: '#VR-2839', faceScore: 88, docsCount: '7/7', risk: 'Low', status: 'pending' },
-  { id: 's4', name: 'Khalid Al-Subaie', role: 'AC Tech', submittedAgo: '52m ago', verificationId: '#VR-2838', faceScore: 94, docsCount: '7/7', risk: 'Low', status: 'pending' },
-  { id: 's5', name: 'Faisal Al-Anzi', role: 'Electrician', submittedAgo: '1h ago', verificationId: '#VR-2837', faceScore: 97, docsCount: '7/7', risk: 'Low', status: 'flagged' },
-  { id: 's6', name: 'Tariq Al-Hazmi', role: 'Plumber', submittedAgo: '1h 14m ago', avatar: 'https://randomuser.me/api/portraits/men/12.jpg', verificationId: '#VR-2836', faceScore: 89, docsCount: '6/7', risk: 'Low', status: 'today' },
-];
+
 
 // ── Avatar Component ──────────────────────────────────────────────────────────
 const AvatarCircle: React.FC<{ name: string; src?: string; size?: number; borderRadius?: string | number }> = ({ name, src, size = 36, borderRadius = '50%' }) => {
@@ -276,6 +268,29 @@ export const VerificationPage: React.FC = () => {
   } | null>(null);
   const [mobileView, setMobileView] = useState<'queue' | 'detail'>('queue');
   const [queueFilter, setQueueFilter] = useState<'pending' | 'flagged' | 'today'>('pending');
+  const [autoVerifyEnabled, setAutoVerifyEnabled] = useState<boolean>(true);
+  const [togglingAutoVerify, setTogglingAutoVerify] = useState<boolean>(false);
+
+  useEffect(() => {
+    verificationRepository.getAutoVerification().then(res => {
+      if (res.success) {
+        setAutoVerifyEnabled(res.data.enabled);
+      }
+    });
+  }, [verificationRepository]);
+
+  const handleToggleAutoVerify = async () => {
+    const nextState = !autoVerifyEnabled;
+    setTogglingAutoVerify(true);
+    try {
+      const res = await verificationRepository.toggleAutoVerification(nextState);
+      if (res.success) {
+        setAutoVerifyEnabled(res.data.enabled);
+      }
+    } finally {
+      setTogglingAutoVerify(false);
+    }
+  };
 
   const fetchQueue = useCallback(async () => {
     setLoading(true);
@@ -425,15 +440,59 @@ export const VerificationPage: React.FC = () => {
 
         <div className="vr-page-body">
           {/* Desktop/Tablet Header */}
-          <div className="desktop-tablet-page-header desktop-tablet-only">
+          <div className="desktop-tablet-page-header desktop-tablet-only" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
             <div className="vr-page-header-left">
               <h1 className="vr-page-title" style={{ margin: 0 }}>{t('vr_title') || 'Verification Review'}</h1>
               <p className="vr-page-subtitle" style={{ margin: '4px 0 0 0' }}>{t('vr_subtitle') || 'Moderate craftsman verification submissions'}</p>
             </div>
-            <div className="vr-page-header-meta">
-              <span className="vr-queue-count"><strong>{submissions.length}</strong></span>
-              <span className="vr-queue-meta">{t('vr_in_queue') || 'in queue'} · {t('vr_avg_sla') || 'Avg SLA'}</span>
-              <span className="vr-queue-count"><strong>3h 12m</strong></span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              {/* Big Auto Verification Button */}
+              <button
+                onClick={handleToggleAutoVerify}
+                disabled={togglingAutoVerify}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '10px 20px',
+                  borderRadius: '14px',
+                  border: autoVerifyEnabled ? '1.5px solid #86efac' : '1.5px solid #fde68a',
+                  background: autoVerifyEnabled
+                    ? 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)'
+                    : 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                  color: autoVerifyEnabled ? '#15803d' : '#b45309',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  transition: 'all 0.2s ease',
+                  opacity: togglingAutoVerify ? 0.7 : 1,
+                  fontFamily: 'inherit'
+                }}
+              >
+                <div
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    background: autoVerifyEnabled ? '#22c55e' : '#f59e0b',
+                    boxShadow: autoVerifyEnabled ? '0 0 8px #22c55e' : '0 0 8px #f59e0b'
+                  }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <span>{autoVerifyEnabled ? '⚡ Auto Verification: ENABLED' : '🔒 Auto Verification: DISABLED'}</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, opacity: 0.85 }}>
+                    {autoVerifyEnabled ? 'Craftsmen auto-approved on submit' : 'Requires manual admin approval'}
+                  </span>
+                </div>
+              </button>
+
+              <div className="vr-page-header-meta">
+                <span className="vr-queue-count"><strong>{submissions.length}</strong></span>
+                <span className="vr-queue-meta">{t('vr_in_queue') || 'in queue'} · {t('vr_avg_sla') || 'Avg SLA'}</span>
+                <span className="vr-queue-count"><strong>3h 12m</strong></span>
+              </div>
             </div>
           </div>
 
