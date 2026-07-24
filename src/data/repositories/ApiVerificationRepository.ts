@@ -50,6 +50,14 @@ export class ApiVerificationRepository implements VerificationRepository {
           docsCount: `${verifiedBadges}/6`,
           risk: trustScore < 0.85 ? 'High' : 'Low',
           status: r.isVerifiedId ? 'today' : (index % 3 === 0 ? 'flagged' : 'pending'),
+          city: r.locationCity || 'Riyadh',
+          skills: (r.skills || []).map((s: any) => s.name || s),
+          isVerifiedId: Boolean(r.isVerifiedId),
+          isVerifiedCert: Boolean(r.isVerifiedCert),
+          isInsured: Boolean(r.isInsured),
+          isVerifiedSelfie: Boolean(r.isVerifiedSelfie),
+          isVerifiedBankIban: Boolean(r.isVerifiedBankIban),
+          isVerifiedBackground: Boolean(r.isVerifiedBackground),
         };
       });
 

@@ -11,6 +11,14 @@ export interface VerificationRequest {
   docsCount: string;
   risk: 'Low' | 'Medium' | 'High';
   status: 'pending' | 'flagged' | 'today';
+  city?: string;
+  skills?: string[];
+  isVerifiedId?: boolean;
+  isVerifiedCert?: boolean;
+  isInsured?: boolean;
+  isVerifiedSelfie?: boolean;
+  isVerifiedBankIban?: boolean;
+  isVerifiedBackground?: boolean;
 }
 
 export interface VerificationRepository {

@@ -34,6 +34,14 @@ interface Submission {
   docsCount: string;
   risk: 'Low' | 'Medium' | 'High';
   status: 'pending' | 'flagged' | 'today';
+  city?: string;
+  skills?: string[];
+  isVerifiedId?: boolean;
+  isVerifiedCert?: boolean;
+  isInsured?: boolean;
+  isVerifiedSelfie?: boolean;
+  isVerifiedBankIban?: boolean;
+  isVerifiedBackground?: boolean;
 }
 
 type VerificationTab = 'national_id' | 'face_match' | 'portfolio' | 'skills';
@@ -111,47 +119,52 @@ const IdDocumentCard: React.FC<{
 );
 
 // ── Face Match Tab Content ─────────────────────────────────────────────────────
-const FaceMatchContent: React.FC = () => {
+// ── Face Match Tab Content ─────────────────────────────────────────────────────
+const FaceMatchContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
   const { t } = useLanguage();
+  const score = submission ? submission.faceScore : 95;
   return (
     <div className="vr-fm-grid">
       <div className="vr-fm-card">
         <span className="vr-fm-card-title">{t('vr_id_photo') || 'ID photo'}</span>
         <div className="vr-fm-photo-container">
-          <div className="vr-id-mockup">
-            <div className="vr-id-photo-badge">ID</div>
-            <div className="vr-id-photo-avatar">
-              <User size={56} style={{ color: '#A3A3A3' }} />
+          {submission?.avatar ? (
+            <img src={submission.avatar} alt={submission.name} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 8 }} />
+          ) : (
+            <div className="vr-id-mockup">
+              <div className="vr-id-photo-badge">ID</div>
+              <div className="vr-id-photo-avatar">
+                <User size={56} style={{ color: '#A3A3A3' }} />
+              </div>
             </div>
-            <div className="vr-id-photo-lines">
-              <div className="vr-id-line-short" />
-              <div className="vr-id-line-long" />
-              <div className="vr-id-line-medium" />
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
       <div className="vr-fm-card">
         <span className="vr-fm-card-title">{t('vr_selfie_liveness') || 'Selfie · liveness check'}</span>
         <div className="vr-fm-photo-container">
-          <div className="vr-selfie-mockup">
-            <div className="vr-selfie-photo-avatar">
-              <User size={56} style={{ color: '#171717' }} />
+          {submission?.avatar ? (
+            <img src={submission.avatar} alt="Selfie" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 8 }} />
+          ) : (
+            <div className="vr-selfie-mockup">
+              <div className="vr-selfie-photo-avatar">
+                <User size={56} style={{ color: '#171717' }} />
+              </div>
             </div>
-            <div className="vr-selfie-liveness-indicator">
-              <span className="vr-liveness-dot" /> LIVENESS OK
-            </div>
+          )}
+          <div className="vr-selfie-liveness-indicator" style={{ position: 'absolute', bottom: 12, left: 12 }}>
+            <span className="vr-liveness-dot" /> LIVENESS OK
           </div>
         </div>
         {/* Match Score overlay */}
         <div className="vr-score-overlay">
           <div className="vr-score-info">
             <span className="vr-score-label">{t('vr_face_match_score') || 'Face match score'}</span>
-            <span className="vr-score-value">96.2%</span>
+            <span className="vr-score-value">{score}%</span>
           </div>
           <div className="vr-score-progress-track">
-            <div className="vr-score-progress-bar" style={{ width: '96.2%' }} />
+            <div className="vr-score-progress-bar" style={{ width: `${score}%` }} />
           </div>
         </div>
       </div>
@@ -160,65 +173,55 @@ const FaceMatchContent: React.FC = () => {
 };
 
 // ── Portfolio Tab Content ──────────────────────────────────────────────────────
-const PortfolioContent: React.FC = () => {
+const PortfolioContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
   const { t } = useLanguage();
   return (
     <div className="vr-portfolio-card">
       <span className="vr-portfolio-title">
-        {t('vr_portfolio_subtitle') || 'Portfolio submissions · 6 photos'}
+        {submission ? `${submission.name}'s Portfolio Submissions` : (t('vr_portfolio_subtitle') || 'Portfolio submissions')}
       </span>
       <div className="vr-portfolio-grid">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="vr-portfolio-item">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#D4D4D4' }}>
-              <path d="M5.83333 3.5H22.1667C23.4553 3.5 24.5 4.54467 24.5 5.83333V22.1667C24.5 23.4553 23.4553 24.5 22.1667 24.5H5.83333C4.54467 24.5 3.5 23.4553 3.5 22.1667V5.83333C3.5 4.54467 4.54467 3.5 5.83333 3.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M8.16 10.495C8.16 9.20542 9.20542 8.16 10.495 8.16C11.7846 8.16 12.83 9.20542 12.83 10.495C12.83 11.7846 11.7846 12.83 10.495 12.83C9.20542 12.83 8.16 11.7846 8.16 10.495Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M24.5 17.0412L20.8997 13.21C19.9885 12.2407 18.5115 12.2407 17.6003 13.21L7 24.49" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <div className="vr-portfolio-overlay">
-              <ZoomIn size={20} />
-            </div>
+        {submission?.avatar ? (
+          <div className="vr-portfolio-item" style={{ overflow: 'hidden' }}>
+            <img src={submission.avatar} alt="Portfolio" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
-        ))}
+        ) : (
+          [1, 2, 3].map((i) => (
+            <div key={i} className="vr-portfolio-item">
+              <User size={28} style={{ color: '#D4D4D4' }} />
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
 };
 
 // ── Skills Tab Content ─────────────────────────────────────────────────────────
-const SkillsContent: React.FC = () => {
+const SkillsContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
   const { t } = useLanguage();
 
-  const SKILLS_ITEMS = [
-    {
-      key: 'plumbing_cert',
-      label: t('vr_skill_plumbing_cert') || 'TVTC Plumbing Certificate · 2021',
-      status: 'verified'
-    },
-    {
-      key: 'sce_license',
-      label: t('vr_skill_sce_license') || 'Saudi Council of Engineers · License',
-      status: 'verified'
-    },
-    {
-      key: 'experience',
-      label: t('vr_skill_experience') || 'Pipe burst emergency · 12 years experience',
-      status: 'verified'
-    },
-    {
-      key: 'insurance',
-      label: t('vr_skill_insurance') || 'Insurance coverage · SAR 500K liability',
-      status: 'missing'
-    }
+  const items = [
+    { key: 'role', label: `Trade Role: ${submission?.role || 'Craftsman'}`, status: 'verified' },
+    { key: 'city', label: `Location: ${submission?.city || 'Riyadh'}`, status: 'verified' },
+    { key: 'id', label: 'National ID & Identity Verification', status: submission?.isVerifiedId ? 'verified' : 'missing' },
+    { key: 'cert', label: 'TVTC Certification & License', status: submission?.isVerifiedCert ? 'verified' : 'missing' },
+    { key: 'insurance', label: 'Liability Insurance Coverage', status: submission?.isInsured ? 'verified' : 'missing' },
   ];
+
+  if (submission?.skills && submission.skills.length > 0) {
+    submission.skills.forEach((s, idx) => {
+      items.push({ key: `skill_${idx}`, label: `Specialized Skill: ${s}`, status: 'verified' });
+    });
+  }
 
   return (
     <div className="vr-skills-card">
       <span className="vr-skills-title">
-        {t('vr_skills_certifications') || 'Skills & certifications'}
+        {submission ? `${submission.name} — ` : ''}{t('vr_skills_certifications') || 'Skills & certifications'}
       </span>
       <div className="vr-skills-list">
-        {SKILLS_ITEMS.map((item) => (
+        {items.map((item) => (
           <div key={item.key} className="vr-skills-item">
             <div className="vr-skills-item-left">
               <Award size={16} className="vr-skill-icon" />
@@ -233,7 +236,7 @@ const SkillsContent: React.FC = () => {
               ) : (
                 <>
                   <AlertCircle size={10} style={{ marginInlineEnd: 4 }} />
-                  <span>{t('vr_badge_missing') || 'Missing'}</span>
+                  <span>{t('vr_badge_missing') || 'Pending'}</span>
                 </>
               )}
             </div>
@@ -755,9 +758,9 @@ export const VerificationPage: React.FC = () => {
                           />
                         </div>
                       )}
-                {activeTab === 'face_match' && <FaceMatchContent />}
-                {activeTab === 'portfolio' && <PortfolioContent />}
-                {activeTab === 'skills' && <SkillsContent />}
+                {activeTab === 'face_match' && <FaceMatchContent submission={selected} />}
+                {activeTab === 'portfolio' && <PortfolioContent submission={selected} />}
+                {activeTab === 'skills' && <SkillsContent submission={selected} />}
               </div>
 
                 {/* Moderator Notes */}
