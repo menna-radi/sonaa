@@ -27,22 +27,22 @@ const TRENDS_DATA = {
 
 const CHART_LABELS = ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4'];
 
-// Mock Campaigns Comparison Table data (matching Figma values exactly)
+// Mock Campaigns Comparison Table data
 const INITIAL_CAMPAIGNS = [
-  { id: '1', name: 'Summer AC Repair Promo', impressions: '124K', clicks: '5,218', ctr: '4.2%', conversions: '842', revenue: 'SAR 28K', rawImp: 124000, rawClicks: 5218, rawCtr: 4.2, rawConv: 842, rawRevenue: 28000 },
-  { id: '2', name: 'Riyadh Deep Cleaning', impressions: '210K', clicks: '8,190', ctr: '3.9%', conversions: '1,204', revenue: 'SAR 42K', rawImp: 210000, rawClicks: 8190, rawCtr: 3.9, rawConv: 1204, rawRevenue: 42000 },
-  { id: '3', name: 'Plumbing Emergency Boost', impressions: '89K', clicks: '4,539', ctr: '5.1%', conversions: '612', revenue: 'SAR 18K', rawImp: 89000, rawClicks: 4539, rawCtr: 5.1, rawConv: 612, rawRevenue: 18000 },
-  { id: '4', name: 'Electricians Featured Slots', impressions: '152K', clicks: '9,728', ctr: '6.4%', conversions: '980', revenue: 'SAR 34K', rawImp: 152000, rawClicks: 9728, rawCtr: 6.4, rawConv: 980, rawRevenue: 34000 },
-  { id: '5', name: 'Jeddah Movers Special', impressions: '65K', clicks: '2,015', ctr: '3.1%', conversions: '340', revenue: 'SAR 14K', rawImp: 65000, rawClicks: 2015, rawCtr: 3.1, rawConv: 340, rawRevenue: 14000 }
+  { id: '1', name: 'Summer AC Repair Promo', impressions: '124K', clicks: '5,218', ctr: '4.2%', conversions: '842', revenue: '₪ 28K', rawImp: 124000, rawClicks: 5218, rawCtr: 4.2, rawConv: 842, rawRevenue: 28000 },
+  { id: '2', name: 'Jerusalem Deep Cleaning', impressions: '210K', clicks: '8,190', ctr: '3.9%', conversions: '1,204', revenue: '₪ 42K', rawImp: 210000, rawClicks: 8190, rawCtr: 3.9, rawConv: 1204, rawRevenue: 42000 },
+  { id: '3', name: 'Plumbing Emergency Boost', impressions: '89K', clicks: '4,539', ctr: '5.1%', conversions: '612', revenue: '₪ 18K', rawImp: 89000, rawClicks: 4539, rawCtr: 5.1, rawConv: 612, rawRevenue: 18000 },
+  { id: '4', name: 'Electricians Featured Slots', impressions: '152K', clicks: '9,728', ctr: '6.4%', conversions: '980', revenue: '₪ 34K', rawImp: 152000, rawClicks: 9728, rawCtr: 6.4, rawConv: 980, rawRevenue: 34000 },
+  { id: '5', name: 'Ramallah Movers Special', impressions: '65K', clicks: '2,015', ctr: '3.1%', conversions: '340', revenue: '₪ 14K', rawImp: 65000, rawClicks: 2015, rawCtr: 3.1, rawConv: 340, rawRevenue: 14000 }
 ];
 
-// Mock Top lists (matching Figma progress values)
+// Mock Top lists
 const TOP_ADS = [
   { name: 'Electricians Featured Slots', value: '6.4%', width: '100%', active: true },
   { name: 'Plumbing Emergency Boost', value: '5.1%', width: '80%', active: false },
   { name: 'Summer AC Repair Promo', value: '4.2%', width: '65%', active: false },
-  { name: 'Riyadh Deep Cleaning', value: '3.9%', width: '60%', active: false },
-  { name: 'Painting Pros — Dammam', value: '3.7%', width: '57%', active: false }
+  { name: 'Jerusalem Deep Cleaning', value: '3.9%', width: '60%', active: false },
+  { name: 'Painting Pros — Old City', value: '3.7%', width: '57%', active: false }
 ];
 
 const TOP_CATEGORIES = [
@@ -54,10 +54,11 @@ const TOP_CATEGORIES = [
 ];
 
 const TOP_CITIES = [
-  { name: 'Riyadh', value: '1,842 conv', width: '100%', active: true },
-  { name: 'Jeddah', value: '1,124 conv', width: '61%', active: false },
-  { name: 'Dammam', value: '624 conv', width: '34%', active: false },
-  { name: 'Makkah', value: '380 conv', width: '21%', active: false },
+  { name: 'Jerusalem (القدس)', value: '1,842 conv', width: '100%', active: true },
+  { name: 'Ramallah (رام الله)', value: '1,124 conv', width: '61%', active: false },
+  { name: 'Bethlehem (بيت لحم)', value: '624 conv', width: '34%', active: false },
+  { name: 'Hebron (الخليل)', value: '380 conv', width: '21%', active: false },
+];
   { name: 'Madinah', value: '158 conv', width: '9%', active: false }
 ];
 

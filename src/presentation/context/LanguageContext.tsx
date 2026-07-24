@@ -410,9 +410,9 @@ export const translations: TranslationDict = {
     he: 'אזורי ביקוש גבוה'
   },
   analytics_riyadh_districts: {
-    en: 'Riyadh districts · Last 7 days',
-    ar: 'أحياء الرياض · آخر 7 أيام',
-    he: 'שכונות ריאד · 7 ימים אחרונים'
+    en: 'Jerusalem districts · Last 7 days',
+    ar: 'أحياء القدس · آخر 7 أيام',
+    he: 'שכונות ירושלים · 7 ימים אחרונים'
   },
   analytics_platform_health: {
     en: 'Platform Health',
@@ -716,9 +716,9 @@ export const translations: TranslationDict = {
     he: 'סקירה כללית'
   },
   overview_subtitle: {
-    en: 'Marketplace performance - Riyadh region',
-    ar: 'أداء السوق - منطقة الرياض',
-    he: 'ביצועי שוק - אזור ריאד'
+    en: 'Marketplace performance - Jerusalem region',
+    ar: 'أداء السوق - منطقة القدس الشريف',
+    he: 'ביצועי שוק - אזור ירושלים'
   },
   btn_export: {
     en: 'Export',
@@ -1447,9 +1447,9 @@ export const translations: TranslationDict = {
     he: 'תעודת אינסטלציה TVTC · 2021'
   },
   vr_skill_sce_license: {
-    en: 'Saudi Council of Engineers · License',
-    ar: 'الهيئة السعودية للمهندسين · ترخيص',
-    he: 'המועצה הסעודית למהנדסים · רישיון'
+    en: 'Engineers Association - Jerusalem · License',
+    ar: 'نقابة المهندسين - القدس · ترخيص',
+    he: 'איגוד המהנדסים - ירושלים · רישיון'
   },
   vr_skill_experience: {
     en: 'Pipe burst emergency · 12 years experience',
@@ -1457,9 +1457,9 @@ export const translations: TranslationDict = {
     he: 'חירום פיצוץ צינור · 12 שנות ניסיון'
   },
   vr_skill_insurance: {
-    en: 'Insurance coverage · SAR 500K liability',
-    ar: 'التغطية التأمينية · مسؤولية 500 ألف ريال',
-    he: 'כיסוי ביטוחי · אחריות של 500 אלף ריאל'
+    en: 'Insurance coverage · ₪ 500K liability',
+    ar: 'التغطية التأمينية · مسؤولية 500 ألف شيكل',
+    he: 'כיסוי ביטוחי · אחריות של 500 אלף ש"ח'
   },
   vr_pending: {
     en: 'Pending',

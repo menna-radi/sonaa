@@ -14,7 +14,7 @@ export class ApiMetricRepository implements MetricRepository {
         { id: 'users', nameKey: 'metrics_total_users', value: m.totalUsers || 0, unit: '', status: 'normal', history: [] },
         { id: 'craftsmen', nameKey: 'metrics_active_craftsmen', value: m.activeCraftsmen || 0, unit: '', status: 'normal', history: [] },
         { id: 'tasks', nameKey: 'metrics_active_tasks', value: m.activeTasks || 0, unit: '', status: 'normal', history: [] },
-        { id: 'revenue', nameKey: 'metrics_revenue_mtd', value: m.revenueMtd || 0, unit: 'SAR', status: 'normal', history: [] },
+        { id: 'revenue', nameKey: 'metrics_revenue_mtd', value: m.revenueMtd || 0, unit: '₪', status: 'normal', history: [] },
         { id: 'emergency', nameKey: 'metrics_emergency_reqs', value: m.emergencyReqs || 0, unit: '', status: 'normal', history: [] },
         { id: 'verification', nameKey: 'metrics_verification_reqs', value: m.verificationReqs || 0, unit: '', status: 'normal', history: [] }
       ];
