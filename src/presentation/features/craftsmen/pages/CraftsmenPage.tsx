@@ -88,6 +88,69 @@ export const CraftsmenPage: React.FC = () => {
     }
   };
 
+  const getCraftsmanTier = (c: Craftsman) => {
+    if (c.rating >= 4.8 && c.jobsCount >= 50 && c.verifications.nationalId) {
+      return { label: 'GOLD PRO', bg: 'linear-gradient(135deg, #f59e0b, #d97706)', text: '#ffffff', icon: '🏆' };
+    }
+    if (c.rating >= 4.5 && c.jobsCount >= 20) {
+      return { label: 'SILVER', bg: 'linear-gradient(135deg, #94a3b8, #64748b)', text: '#ffffff', icon: '🥈' };
+    }
+    return { label: 'BRONZE', bg: 'linear-gradient(135deg, #d97706, #b45309)', text: '#ffffff', icon: '🥉' };
+  };
+
+  const handleExportDossier = (c?: Craftsman) => {
+    const target = c || selectedCraftsman;
+    if (!target) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Craftsman Verification Dossier - ${target.name}</title>
+          <style>
+            body { font-family: system-ui, sans-serif; padding: 40px; color: #0f172a; }
+            .header { display: flex; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
+            .badge { display: inline-block; padding: 6px 14px; background: #0f172a; color: #fff; border-radius: 6px; font-weight: bold; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+            .card { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <h1 style="margin:0">${target.name}</h1>
+              <p style="margin:4px 0; color:#64748b">${target.trade} • Jerusalem, Palestine (القدس، فلسطين)</p>
+            </div>
+            <div>
+              <span class="badge">TRUST SCORE: ${target.trustScore}/100</span>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h3>Verification Checklist</h3>
+              <p>National ID: ${target.verifications.nationalId ? '✅ VERIFIED' : '❌ PENDING'}</p>
+              <p>Trade License: ${target.verifications.tradeLicense ? '✅ VERIFIED' : '❌ PENDING'}</p>
+              <p>Selfie Face Match: ${target.verifications.selfieMatch ? '✅ VERIFIED' : '❌ PENDING'}</p>
+              <p>Bank IBAN: ${target.verifications.bankIban ? '✅ VERIFIED' : '❌ PENDING'}</p>
+              <p>Background Check: ${target.verifications.backgroundCheck ? '✅ VERIFIED' : '❌ PENDING'}</p>
+              <p>Insurance: ${target.verifications.insurance ? '✅ VERIFIED' : '❌ PENDING'}</p>
+            </div>
+            <div class="card">
+              <h3>Performance Metrics</h3>
+              <p>Rating: ⭐ ${target.rating} / 5.0 (${target.reviewsCount} reviews)</p>
+              <p>Jobs Completed: ${target.jobsCount} tasks</p>
+              <p>Response Time: ${target.responseTimeMin} mins</p>
+              <p>Account Status: ${target.status.toUpperCase()}</p>
+            </div>
+          </div>
+          <p style="margin-top:40px; font-size:12px; color:#94a3b8">Official Sonaa Admin Verification Dossier Export • Printed on ${new Date().toLocaleDateString()}</p>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   // Sparkline Generator for Earnings Chart
   const generateSparklinePoints = (data: number[], width: number, height: number) => {
     if (data.length === 0) return '';
@@ -239,6 +302,7 @@ export const CraftsmenPage: React.FC = () => {
               )}
 
               <button 
+                onClick={() => handleExportDossier()}
                 style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -443,6 +507,9 @@ export const CraftsmenPage: React.FC = () => {
                             <div style={{ textAlign: 'start' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>{c.name}</span>
+                                <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', background: getCraftsmanTier(c).bg, color: '#fff' }}>
+                                  {getCraftsmanTier(c).icon} {getCraftsmanTier(c).label}
+                                </span>
                                 {c.trustScore >= 95 && (
                                   <ShieldCheck size={12} color="#3b82f6" fill="rgba(59,130,246,0.1)" />
                                 )}
@@ -787,7 +854,16 @@ export const CraftsmenPage: React.FC = () => {
 
               {/* Verification Checklist */}
               <div style={{ marginTop: '16px', textAlign: 'start' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>Verification</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>Verification Checklist</span>
+                  <button
+                    onClick={() => handleExportDossier(selectedCraftsman)}
+                    style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Download size={12} />
+                    <span>Print Dossier</span>
+                  </button>
+                </div>
                 <div 
                   style={{ 
                     display: 'grid', 
