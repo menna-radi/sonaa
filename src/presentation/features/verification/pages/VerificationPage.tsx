@@ -69,42 +69,98 @@ const AvatarCircle: React.FC<{ name: string; src?: string; size?: number; border
 };
 
 // ── ID Card Preview ────────────────────────────────────────────────────────────
-const IdCardPreview: React.FC = () => (
-  <div style={{
-    background: '#F5F5F5', borderRadius: 12, padding: 12, overflow: 'hidden'
-  }}>
-    <div style={{
-      background: '#FFFFFF', borderRadius: 8, padding: 12,
-      boxShadow: '0px 1px 1px rgba(0,0,0,0.05)'
-    }}>
-      <div style={{ display: 'flex', gap: 12 }}>
-        {/* Photo placeholder */}
-        <div style={{ width: 71, height: 116, background: '#E5E5E5', borderRadius: 4, flexShrink: 0 }} />
-        {/* Text lines */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 0, flex: 1 }}>
-          <div style={{ height: 6, background: '#D4D4D4', borderRadius: 4, width: '75%', marginTop: 8 }} />
-          <div style={{ height: 6, background: '#E5E5E5', borderRadius: 4, width: '50%', marginTop: 14 }} />
-          <div style={{ height: 6, background: '#E5E5E5', borderRadius: 4, width: '67%', marginTop: 14 }} />
-          <div style={{ height: 6, background: '#D4D4D4', borderRadius: 4, width: '50%', marginTop: 14 }} />
+const IdCardPreview: React.FC<{
+  imageUrl?: string;
+  hasUploadedDoc?: boolean;
+  craftsmanName?: string;
+  docType?: string;
+}> = ({ imageUrl, hasUploadedDoc = false, craftsmanName, docType = 'National ID' }) => {
+  if (imageUrl) {
+    return (
+      <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 12, overflow: 'hidden' }}>
+        <img
+          src={imageUrl}
+          alt={docType}
+          style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 8 }}
+        />
+      </div>
+    );
+  }
+
+  if (!hasUploadedDoc) {
+    return (
+      <div style={{
+        background: '#FFFBEB',
+        border: '1px dashed #F59E0B',
+        borderRadius: 12,
+        padding: '20px 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        minHeight: 140
+      }}>
+        <AlertCircle size={28} style={{ color: '#D97706' }} />
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#92400E' }}>No Document Uploaded</span>
+        <span style={{ fontSize: 11, color: '#B45309', textAlign: 'center', lineHeight: 1.4 }}>
+          {craftsmanName ? `${craftsmanName} has not submitted their ${docType} document yet.` : `Document has not been uploaded yet.`}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 12, overflow: 'hidden' }}>
+      <div style={{
+        background: '#FFFFFF',
+        borderRadius: 8,
+        padding: 16,
+        border: '1px solid #E5E5E5',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', letterSpacing: '0.5px' }}>
+            Saudi Arabia — {docType}
+          </span>
+          <span style={{ fontSize: 10, background: '#DCFCE7', color: '#166534', padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>
+            Submitted
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+          <div style={{ width: 52, height: 64, background: '#E5E7EB', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <User size={30} style={{ color: '#9CA3AF' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{craftsmanName || 'Craftsman Name'}</span>
+            <span style={{ fontSize: 11, color: '#6B7280' }}>Document Status: Verification Pending</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ── ID Document Card ──────────────────────────────────────────────────────────
 const IdDocumentCard: React.FC<{
   title: string;
+  hasUploadedDoc?: boolean;
+  craftsmanName?: string;
+  imageUrl?: string;
   fields: { label: string; value: string; valueColor?: string }[];
-}> = ({ title, fields }) => (
+}> = ({ title, hasUploadedDoc, craftsmanName, imageUrl, fields }) => (
   <div className="vr-doc-card">
     <div className="vr-doc-card-header">
       <span className="vr-doc-card-title">{title}</span>
-      <button className="vr-zoom-btn" title="Zoom in">
-        <ZoomIn size={14} />
-      </button>
+      {hasUploadedDoc && (
+        <button className="vr-zoom-btn" title="Zoom in">
+          <ZoomIn size={14} />
+        </button>
+      )}
     </div>
-    <IdCardPreview />
+    <IdCardPreview imageUrl={imageUrl} hasUploadedDoc={hasUploadedDoc} craftsmanName={craftsmanName} docType={title} />
     <div className="vr-doc-fields">
       {fields.map((f, i) => (
         <div key={i} className="vr-doc-field-row">
@@ -775,19 +831,24 @@ export const VerificationPage: React.FC = () => {
                         <div className="vr-docs-grid">
                           <IdDocumentCard
                             title={t('vr_front_side') || 'Front side'}
+                            hasUploadedDoc={selected.isVerifiedId}
+                            craftsmanName={selected.name}
                             fields={[
                               { label: t('vr_doc_type') || 'Document type', value: 'Saudi National ID' },
-                              { label: t('vr_detected_name') || 'Detected name', value: selected.name },
-                              { label: t('vr_ocr_confidence') || 'OCR confidence', value: '98.4%', valueColor: '#16A34A' },
+                              { label: 'Craftsman Full Name', value: selected.name },
+                              { label: 'Verification Status', value: selected.isVerifiedId ? 'Verified' : 'Pending Upload / Review', valueColor: selected.isVerifiedId ? '#16A34A' : '#D97706' },
+                              { label: t('vr_ocr_confidence') || 'OCR confidence', value: selected.isVerifiedId ? '98.4%' : 'N/A', valueColor: selected.isVerifiedId ? '#16A34A' : '#6B7280' },
                             ]}
                           />
                           <IdDocumentCard
                             title={t('vr_back_side') || 'Back side'}
+                            hasUploadedDoc={selected.isVerifiedId}
+                            craftsmanName={selected.name}
                             fields={[
                               { label: t('vr_doc_type') || 'Document type', value: 'Saudi National ID' },
-                              { label: t('vr_detected_name') || 'Detected name', value: selected.name },
-                              { label: t('vr_ocr_confidence') || 'OCR confidence', value: '98.4%', valueColor: '#16A34A' },
-                              { label: t('vr_expiry') || 'Expiry', value: 'Mar 2031' },
+                              { label: 'Craftsman Full Name', value: selected.name },
+                              { label: 'Verification Status', value: selected.isVerifiedId ? 'Verified' : 'Pending Upload / Review', valueColor: selected.isVerifiedId ? '#16A34A' : '#D97706' },
+                              { label: t('vr_expiry') || 'Expiry', value: selected.isVerifiedId ? 'Mar 2031' : 'N/A' },
                             ]}
                           />
                         </div>
