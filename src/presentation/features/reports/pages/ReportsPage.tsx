@@ -283,7 +283,7 @@ export const ReportsPage: React.FC = () => {
                 </div>
               </div>
               <div className="rp-metric-title">{t('reports_open_reports')}</div>
-              <div className="rp-metric-value">{activeReports.length + 35}</div>
+              <div className="rp-metric-value">{activeReports.length}</div>
               <div className="rp-metric-subtext">{t('reports_high_severity_sub')}</div>
             </div>
 
@@ -295,7 +295,7 @@ export const ReportsPage: React.FC = () => {
                 </div>
               </div>
               <div className="rp-metric-title">{t('reports_fraud_signals')}</div>
-              <div className="rp-metric-value">18</div>
+              <div className="rp-metric-value">{reports.filter(r => r.category === 'fraud' || r.title?.toLowerCase().includes('fraud')).length}</div>
               <div className="rp-metric-subtext">{t('reports_ai_detected_sub')}</div>
             </div>
 
@@ -307,7 +307,7 @@ export const ReportsPage: React.FC = () => {
                 </div>
               </div>
               <div className="rp-metric-title">{t('reports_fake_accounts')}</div>
-              <div className="rp-metric-value">9</div>
+              <div className="rp-metric-value">{reports.filter(r => r.category === 'fake_accounts').length}</div>
               <div className="rp-metric-subtext">{t('reports_pending_review_sub')}</div>
             </div>
 
@@ -319,7 +319,11 @@ export const ReportsPage: React.FC = () => {
                 </div>
               </div>
               <div className="rp-metric-title">{t('reports_risk_score_avg')}</div>
-              <div className="rp-metric-value">24/100</div>
+              <div className="rp-metric-value">
+                {reports.length > 0 
+                  ? `${Math.round(reports.reduce((acc, r) => acc + (r.riskScore || 50), 0) / reports.length)}/100` 
+                  : '0/100'}
+              </div>
               <div className="rp-metric-subtext">{t('reports_platform_wide_sub')}</div>
             </div>
           </div>
