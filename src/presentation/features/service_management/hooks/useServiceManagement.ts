@@ -22,8 +22,8 @@ export const useServiceManagement = () => {
 
   const queryClient = useQueryClient();
   const { language } = useLanguage();
-  const [selectedSubCatCategoryId, setSelectedSubCatCategoryId] = useState<string>('1');
-  const [selectedFieldCategoryId, setSelectedFieldCategoryId] = useState<string>('1');
+  const [selectedSubCatCategoryId, setSelectedSubCatCategoryId] = useState<string>('');
+  const [selectedFieldCategoryId, setSelectedFieldCategoryId] = useState<string>('');
 
   // ── Queries ──
 
@@ -35,7 +35,12 @@ export const useServiceManagement = () => {
       if (!res.success) {
         throw new Error(ErrorToastMapper.toMessage(res.error, language));
       }
-      return res.data;
+      const data = res.data || [];
+      if (data.length > 0) {
+        if (!selectedSubCatCategoryId) setSelectedSubCatCategoryId(data[0].id);
+        if (!selectedFieldCategoryId) setSelectedFieldCategoryId(data[0].id);
+      }
+      return data;
     }
   });
 

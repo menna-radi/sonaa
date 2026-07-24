@@ -10,8 +10,9 @@ import { AppError, UnknownError } from '../../core/errors/AppError';
 export class ApiCategoryRepository implements CategoryRepository {
   public async getCategories(): Promise<Result<Category[]>> {
     try {
-      const response = await apiClient.get<any>(API_ENDPOINTS.admin.categories);
-      const domainCategories = (response || []).map((dto: any) => CategoryMapper.toDomain(dto));
+      const response = await apiClient.get<any>(API_ENDPOINTS.categories.list);
+      const rawList = Array.isArray(response) ? response : (response.categories || response.items || []);
+      const domainCategories = rawList.map((dto: any) => CategoryMapper.toDomain(dto));
       return ok(domainCategories);
     } catch (error) {
       return fail(error as AppError);
@@ -21,7 +22,7 @@ export class ApiCategoryRepository implements CategoryRepository {
   public async createCategory(name: string, description: string): Promise<Result<Category>> {
     try {
       const key = name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-      const response = await apiClient.post<any>(API_ENDPOINTS.admin.categories, {
+      const response = await apiClient.post<any>(API_ENDPOINTS.categories.create, {
         key,
         nameEn: name,
         nameAr: name,
@@ -66,9 +67,10 @@ export class ApiCategoryRepository implements CategoryRepository {
   public async getSubcategories(categoryId: string): Promise<Result<Subcategory[]>> {
     try {
       const response = await apiClient.get<any>(
-        API_ENDPOINTS.admin.subcategories(categoryId)
+        API_ENDPOINTS.categories.subcategories(categoryId)
       );
-      const domainSubs = (response.items || []).map((dto: any) => CategoryMapper.subToDomain(dto));
+      const rawSubs = Array.isArray(response) ? response : (response.items || response.subcategories || []);
+      const domainSubs = rawSubs.map((dto: any) => CategoryMapper.subToDomain(dto));
       return ok(domainSubs);
     } catch (error) {
       return fail(error as AppError);
@@ -78,7 +80,7 @@ export class ApiCategoryRepository implements CategoryRepository {
   public async createSubcategory(categoryId: string, name: string): Promise<Result<Subcategory>> {
     try {
       const response = await apiClient.post<any>(
-        API_ENDPOINTS.admin.createSubcategory(categoryId),
+        API_ENDPOINTS.categories.createSubcategory(categoryId),
         {
           nameEn: name,
           nameAr: name,

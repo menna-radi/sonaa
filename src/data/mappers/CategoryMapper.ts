@@ -2,18 +2,18 @@ import { CategoryDTO, SubcategoryDTO, FormFieldDTO } from '../dto/CategoryDTO';
 import { Category, Subcategory, FormField } from '../../domain/entities/Category';
 
 export class CategoryMapper {
-  public static toDomain(dto: CategoryDTO): Category {
+  public static toDomain(dto: any): Category {
     return {
       id: dto.id,
-      name: dto.nameEn,
-      nameAr: dto.nameAr,
-      description: dto.key,
+      name: dto.nameEn || dto.name,
+      nameAr: dto.nameAr || '',
+      description: dto.key || '',
       descriptionAr: '',
-      subcategoriesCount: 0, // Not returned by backend category object
-      status: 'Active',
-      requestVolume: 'Medium',
-      iconName: dto.nameEn,
-      visible: true,
+      subcategoriesCount: dto._count?.subCategories || dto.subCategories?.length || 0,
+      status: dto.isActive === false ? 'Hidden' : 'Active',
+      requestVolume: (dto.taskVolume && dto.taskVolume > 5) ? 'High' : ((dto.taskVolume && dto.taskVolume > 0) ? 'Medium' : 'Low'),
+      iconName: dto.nameEn || 'Wrench',
+      visible: dto.isActive !== false,
       hasStar: false,
     };
   }
@@ -27,15 +27,15 @@ export class CategoryMapper {
     };
   }
 
-  public static subToDomain(dto: SubcategoryDTO): Subcategory {
+  public static subToDomain(dto: any): Subcategory {
     return {
       id: dto.id,
       categoryId: dto.categoryId,
-      name: dto.nameEn,
-      nameAr: dto.nameAr,
-      status: 'Active',
-      requestCount: '0',
-      visible: true,
+      name: dto.nameEn || dto.name,
+      nameAr: dto.nameAr || '',
+      status: dto.isActive === false ? 'Hidden' : 'Active',
+      requestCount: String(dto.tasksCount || 0),
+      visible: dto.isActive !== false,
     };
   }
 
