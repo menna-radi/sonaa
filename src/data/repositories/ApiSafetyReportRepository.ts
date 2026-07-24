@@ -25,7 +25,6 @@ export class ApiSafetyReportRepository implements SafetyReportRepository {
           id: item.id,
           title: item.category ? item.category.replace(/_/g, ' ') : 'Safety Alert',
           severity: item.category === 'SAFETY_VIOLATION' || item.category === 'FRAUD' ? 'high' : 'medium',
-          ai: !!item.category && item.category.includes('AI'),
           reporter: reporterName,
           reporterId: item.reporter?.id,
           reporterPhone: item.reporter?.phoneNumber || '+966 55 123 9988',
@@ -36,16 +35,10 @@ export class ApiSafetyReportRepository implements SafetyReportRepository {
           subjectType: 'Craftsman / User',
           category,
           time: item.createdAt ? new Date(item.createdAt).toLocaleString() : 'Recent',
-          riskScore: item.category === 'FRAUD' ? 88 : 62,
           desc: item.description || 'Discreet safety report initiated via customer emergency or chat flag.',
           taskId: item.task?.id,
           taskDisplayId: item.task?.displayId || `#TSK-${item.id.slice(0, 4)}`,
           taskTitle: item.task?.title || 'Emergency Home Maintenance Request',
-          aiTriggers: [
-            'Automated keyword match: payment requested off-platform',
-            'Location divergence during active order',
-            'Pattern alert: 2 prior cancellations reported'
-          ]
         };
       });
       return ok(reports);

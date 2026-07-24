@@ -34,7 +34,6 @@ interface ReportItem {
   id: string;
   title: string;
   severity: 'high' | 'medium' | 'low';
-  ai: boolean;
   reporter: string;
   reporterId?: string;
   reporterPhone?: string;
@@ -43,17 +42,15 @@ interface ReportItem {
   suspectPhone?: string;
   suspectStatus?: string;
   subjectType: string;
-  category: 'fraud' | 'fake_accounts' | 'chats' | 'ai_alerts' | 'spam';
+  category: 'fraud' | 'fake_accounts' | 'chats' | 'spam';
   time: string;
-  riskScore: number;
   desc: string;
   taskId?: string;
   taskDisplayId?: string;
   taskTitle?: string;
-  aiTriggers?: string[];
 }
 
-type ReportFilter = 'All' | 'Fraud' | 'Fake accounts' | 'Chats' | 'AI Alerts' | 'Spam';
+type ReportFilter = 'All' | 'Fraud' | 'Fake accounts' | 'Chats' | 'Spam';
 
 
 import { useDependencies } from '../../../../core/di/DependencyProvider';
@@ -70,7 +67,6 @@ export const ReportsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string>('');
   const [filter, setFilter] = useState<ReportFilter>('All');
-  const [aiDetectionOn, setAiDetectionOn] = useState(true);
   const [notes, setNotes] = useState<{ [id: string]: string }>({});
   const [mobileView, setMobileView] = useState<'queue' | 'detail'>('queue');
 
@@ -169,7 +165,6 @@ export const ReportsPage: React.FC = () => {
     if (filter === 'Fraud') return report.category === 'fraud';
     if (filter === 'Fake accounts') return report.category === 'fake_accounts';
     if (filter === 'Chats') return report.category === 'chats';
-    if (filter === 'AI Alerts') return report.ai === true;
     if (filter === 'Spam') return report.category === 'spam';
     return true;
   });
@@ -193,7 +188,6 @@ export const ReportsPage: React.FC = () => {
       if (newFilter === 'Fraud') return report.category === 'fraud';
       if (newFilter === 'Fake accounts') return report.category === 'fake_accounts';
       if (newFilter === 'Chats') return report.category === 'chats';
-      if (newFilter === 'AI Alerts') return report.ai === true;
       if (newFilter === 'Spam') return report.category === 'spam';
       return true;
     });
@@ -305,25 +299,6 @@ export const ReportsPage: React.FC = () => {
               {activeReports.length} {t('vr_in_queue')}
             </span>
           </div>
-          <button
-            className="mobile-ai-toggle-btn"
-            onClick={() => setAiDetectionOn(!aiDetectionOn)}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '8px',
-              background: '#f5f5f5',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '11px',
-              fontWeight: 700
-            }}
-          >
-            <Sparkles size={12} style={{ color: aiDetectionOn ? 'var(--color-primary)' : '#737373' }} />
-            <span>{aiDetectionOn ? t('reports_ai_detection_on') : t('reports_ai_detection_off')}</span>
-          </button>
         </div>
 
         <div className="rp-page-body">
@@ -332,17 +307,6 @@ export const ReportsPage: React.FC = () => {
             <div className="rp-page-header-left">
               <h1 className="rp-page-title" style={{ margin: 0 }}>{t('reports_title')}</h1>
               <p className="rp-page-subtitle" style={{ margin: '4px 0 0 0' }}>{t('reports_subtitle')}</p>
-            </div>
-            <div className="rp-page-header-right">
-              <button
-                className={`rp-ai-toggle-button ${aiDetectionOn ? 'active' : ''}`}
-                onClick={() => setAiDetectionOn(!aiDetectionOn)}
-              >
-                <Sparkles size={14} style={{ marginInlineEnd: 6 }} />
-                <span>
-                  {aiDetectionOn ? t('reports_ai_detection_on') : t('reports_ai_detection_off')}
-                </span>
-              </button>
             </div>
           </div>
 
@@ -376,7 +340,7 @@ export const ReportsPage: React.FC = () => {
               </div>
               <div className="rp-metric-title">{t('reports_open_reports')}</div>
               <div className="rp-metric-value">{activeReports.length}</div>
-              <div className="rp-metric-subtext">{t('reports_high_severity_sub')}</div>
+              <div className="rp-metric-subtext">Active Pending Cases</div>
             </div>
 
             {/* Metric 2 */}
@@ -388,7 +352,7 @@ export const ReportsPage: React.FC = () => {
               </div>
               <div className="rp-metric-title">{t('reports_fraud_signals')}</div>
               <div className="rp-metric-value">{reports.filter(r => r.category === 'fraud' || r.title?.toLowerCase().includes('fraud')).length}</div>
-              <div className="rp-metric-subtext">{t('reports_ai_detected_sub')}</div>
+              <div className="rp-metric-subtext">Direct User Submissions</div>
             </div>
 
             {/* Metric 3 */}
@@ -400,7 +364,7 @@ export const ReportsPage: React.FC = () => {
               </div>
               <div className="rp-metric-title">{t('reports_fake_accounts')}</div>
               <div className="rp-metric-value">{reports.filter(r => r.category === 'fake_accounts').length}</div>
-              <div className="rp-metric-subtext">{t('reports_pending_review_sub')}</div>
+              <div className="rp-metric-subtext">Pending Review</div>
             </div>
 
             {/* Metric 4 */}
@@ -410,13 +374,9 @@ export const ReportsPage: React.FC = () => {
                   <Activity size={16} style={{ color: '#737373' }} />
                 </div>
               </div>
-              <div className="rp-metric-title">{t('reports_risk_score_avg')}</div>
-              <div className="rp-metric-value">
-                {reports.length > 0 
-                  ? `${Math.round(reports.reduce((acc, r) => acc + (r.riskScore || 50), 0) / reports.length)}/100` 
-                  : '0/100'}
-              </div>
-              <div className="rp-metric-subtext">{t('reports_platform_wide_sub')}</div>
+              <div className="rp-metric-title">Chat & Communication Reports</div>
+              <div className="rp-metric-value">{reports.filter(r => r.category === 'chats').length}</div>
+              <div className="rp-metric-subtext">Platform Messages</div>
             </div>
           </div>
 
@@ -428,13 +388,12 @@ export const ReportsPage: React.FC = () => {
                 {/* Filter Pills */}
                 <div className="rp-filter-tabs-row">
                   <div className="rp-filter-tabs-track">
-                    {(['All', 'Fraud', 'Fake accounts', 'Chats', 'AI Alerts', 'Spam'] as ReportFilter[]).map((f) => {
+                    {(['All', 'Fraud', 'Fake accounts', 'Chats', 'Spam'] as ReportFilter[]).map((f) => {
                       const isActive = filter === f;
                       let filterLabel = t('reports_filter_all');
                       if (f === 'Fraud') filterLabel = t('reports_filter_fraud');
                       else if (f === 'Fake accounts') filterLabel = t('reports_filter_fake_accounts');
                       else if (f === 'Chats') filterLabel = t('reports_filter_chats');
-                      else if (f === 'AI Alerts') filterLabel = t('reports_filter_ai_alerts');
                       else if (f === 'Spam') filterLabel = t('reports_filter_spam');
 
                       return (
@@ -485,21 +444,14 @@ export const ReportsPage: React.FC = () => {
                                 <div className={`rp-report-item-badge ${severityClass}`}>
                                   {getSeverityLabel(report.severity)}
                                 </div>
-                                {report.ai && (
-                                  <div className="rp-report-item-ai-badge">
-                                    <Sparkles size={8} style={{ color: '#ffffff' }} />
-                                    <span>{t('reports_ai')}</span>
-                                  </div>
-                                )}
                               </div>
                               <span className="rp-report-item-metadata">
-                                {report.reporter} · {t('reports_chat')} #{report.id}
+                                {report.reporter} · Report #{report.id}
                               </span>
                             </div>
                           </div>
                           <div className="rp-report-item-right">
                             <span className="rp-report-item-time">{report.time}</span>
-                            <span className="rp-report-item-risk">Risk {report.riskScore}</span>
                           </div>
                         </button>
                       );
@@ -554,38 +506,7 @@ export const ReportsPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* AI Risk & Safety Assessment Card */}
-                  <div className="rp-risk-banner-card">
-                    <div className="rp-risk-banner-title-row">
-                      <div className="rp-risk-banner-label">
-                        <Sparkles size={14} style={{ marginInlineEnd: 6, color: '#eab308' }} />
-                        <strong>AI Safety Risk Score</strong>
-                      </div>
-                      <span className="rp-risk-banner-score" style={{ color: selectedReport.riskScore > 75 ? '#dc2626' : selectedReport.riskScore > 40 ? '#d97706' : '#16a34a' }}>
-                        {selectedReport.riskScore}/100
-                      </span>
-                    </div>
-                    <div className="rp-risk-banner-progress-track" style={{ marginTop: '8px' }}>
-                      <div
-                        className="rp-risk-banner-progress-fill"
-                        style={{
-                          width: `${selectedReport.riskScore}%`,
-                          background: selectedReport.riskScore > 75 ? '#dc2626' : selectedReport.riskScore > 40 ? '#d97706' : '#16a34a'
-                        }}
-                      />
-                    </div>
-                    {selectedReport.aiTriggers && selectedReport.aiTriggers.length > 0 && (
-                      <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#737373' }}>Automated Signals Detected:</span>
-                        {selectedReport.aiTriggers.map((trig, idx) => (
-                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#525252' }}>
-                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#737373' }} />
-                            <span>{trig}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+
 
                   {/* Parties Contact Grid */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', margin: '16px 0' }}>
