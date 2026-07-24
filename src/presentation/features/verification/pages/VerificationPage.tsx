@@ -201,17 +201,25 @@ const PortfolioContent: React.FC<{ submission?: Submission }> = ({ submission })
 const SkillsContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
   const { t } = useLanguage();
 
+  const isFullyVerified = Boolean(submission?.isVerifiedCert || submission?.isVerifiedId);
+
   const items = [
-    { key: 'role', label: `Trade Role: ${submission?.role || 'Craftsman'}`, status: 'verified' },
-    { key: 'city', label: `Location: ${submission?.city || 'Riyadh'}`, status: 'verified' },
+    { key: 'role', label: `Trade Role: ${submission?.role || 'Craftsman'}`, status: isFullyVerified ? 'verified' : 'missing' },
+    { key: 'city', label: `Location: ${submission?.city || 'Riyadh'}`, status: isFullyVerified ? 'verified' : 'missing' },
     { key: 'id', label: 'National ID & Identity Verification', status: submission?.isVerifiedId ? 'verified' : 'missing' },
-    { key: 'cert', label: 'TVTC Certification & License', status: submission?.isVerifiedCert ? 'verified' : 'missing' },
+    { key: 'cert', label: 'TVTC Certification & Trade License', status: submission?.isVerifiedCert ? 'verified' : 'missing' },
     { key: 'insurance', label: 'Liability Insurance Coverage', status: submission?.isInsured ? 'verified' : 'missing' },
+    { key: 'selfie', label: 'Selfie & Liveness Verification', status: submission?.isVerifiedSelfie ? 'verified' : 'missing' },
+    { key: 'bg', label: 'Background Check Verification', status: submission?.isVerifiedBackground ? 'verified' : 'missing' },
   ];
 
   if (submission?.skills && submission.skills.length > 0) {
     submission.skills.forEach((s, idx) => {
-      items.push({ key: `skill_${idx}`, label: `Specialized Skill: ${s}`, status: 'verified' });
+      items.push({
+        key: `skill_${idx}`,
+        label: `Specialized Skill: ${s}`,
+        status: submission?.isVerifiedCert ? 'verified' : 'missing'
+      });
     });
   }
 
