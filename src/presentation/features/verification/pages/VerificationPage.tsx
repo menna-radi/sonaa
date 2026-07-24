@@ -255,6 +255,19 @@ const SkillsContent: React.FC<{ submission?: Submission }> = ({ submission }) =>
   );
 };
 
+const formatRole = (role?: string): string => {
+  if (!role) return 'Craftsman';
+  let str = role;
+  if (str.startsWith('role_')) {
+    str = str.substring(5);
+  }
+  return str
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+};
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export const VerificationPage: React.FC = () => {
   const { t } = useLanguage();
@@ -542,7 +555,7 @@ export const VerificationPage: React.FC = () => {
                     const isApproved = approvedIds.has(sub.id);
                     const isRejected = rejectedIds.has(sub.id);
                     const isSelected = sub.id === selectedId;
-                    const roleText = t(`role_${sub.role.toLowerCase().replace(' ', '_')}`) || sub.role;
+                    const roleText = formatRole(sub.role);
                     return (
                       <button
                         key={sub.id}
@@ -609,7 +622,7 @@ export const VerificationPage: React.FC = () => {
                             <AvatarCircle name={sub.name} src={sub.avatar} size={44} borderRadius={12} />
                             <div className="mobile-card-name-info">
                               <span className="mobile-card-name">{sub.name}</span>
-                              <span className="mobile-card-role">{t(`role_${sub.role.toLowerCase().replace(' ', '_')}`) || sub.role} · {sub.submittedAgo}</span>
+                              <span className="mobile-card-role">{formatRole(sub.role)} · {sub.submittedAgo}</span>
                             </div>
                           </div>
                           <button 
@@ -706,7 +719,7 @@ export const VerificationPage: React.FC = () => {
                           <div className="vr-profile-info">
                             <span className="vr-profile-name">{selected.name}</span>
                             <span className="vr-profile-meta">
-                              {t(`role_${selected.role.toLowerCase().replace(' ', '_')}`) || selected.role} · {t('vr_submitted') || 'Submitted'} {selected.submittedAgo} · ID {selected.verificationId}
+                              {formatRole(selected.role)} · {t('vr_submitted') || 'Submitted'} {selected.submittedAgo} · ID {selected.verificationId}
                             </span>
                           </div>
                         </div>
@@ -726,18 +739,34 @@ export const VerificationPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Tabs */}
-                      <div className="vr-tabs-row">
-                        {TABS.map(tab => (
-                          <button
-                            key={tab.key}
-                            className={`vr-tab ${activeTab === tab.key ? 'active' : ''}`}
-                            onClick={() => setActiveTab(tab.key)}
-                          >
-                            <span className={`vr-tab-num ${activeTab === tab.key ? 'active' : ''}`}>{tab.num}</span>
-                            {tab.label}
-                          </button>
-                        ))}
+                      {/* Modern Clean Tabs */}
+                      <div className="vr-tabs-row" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #E5E5E5', paddingBottom: '10px', marginBottom: '16px' }}>
+                        {TABS.map(tab => {
+                          const isActive = activeTab === tab.key;
+                          return (
+                            <button
+                              key={tab.key}
+                              onClick={() => setActiveTab(tab.key)}
+                              style={{
+                                padding: '8px 18px',
+                                borderRadius: '10px',
+                                border: 'none',
+                                background: isActive ? '#171717' : '#F5F5F5',
+                                color: isActive ? '#FFFFFF' : '#525252',
+                                fontWeight: isActive ? 600 : 500,
+                                fontSize: '13px',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontFamily: 'inherit'
+                              }}
+                            >
+                              {tab.label}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
