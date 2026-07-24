@@ -101,15 +101,15 @@ export const CreateAdPage: React.FC = () => {
   const [locationType, setLocationType] = useState<'All' | 'Cities' | 'Districts'>('Cities');
 
   const [cities, setCities] = useState<City[]>([
-    { name: 'Riyadh', selected: true, reach: 40000 },
-    { name: 'Jeddah', selected: true, reach: 35000 },
-    { name: 'Dammam', selected: false, reach: 20000 },
-    { name: 'Makkah', selected: false, reach: 15000 },
-    { name: 'Madinah', selected: false, reach: 10000 },
-    { name: 'Khobar', selected: false, reach: 10000 },
-    { name: 'Taif', selected: false, reach: 8000 },
-    { name: 'Abha', selected: false, reach: 7000 },
-    { name: 'Tabuk', selected: false, reach: 5000 },
+    { name: 'Jerusalem (القدس)', selected: true, reach: 45000 },
+    { name: 'Old City (البلدة القديمة)', selected: true, reach: 15000 },
+    { name: 'Beit Hanina (بيت حنينا)', selected: true, reach: 12000 },
+    { name: 'Shuafat (شعفاط)', selected: false, reach: 10000 },
+    { name: 'Sheikh Jarrah (الشيخ جراح)', selected: false, reach: 8000 },
+    { name: 'Silwan (سلوان)', selected: false, reach: 9000 },
+    { name: 'Ramallah (رام الله)', selected: false, reach: 25000 },
+    { name: 'Bethlehem (بيت لحم)', selected: false, reach: 18000 },
+    { name: 'Hebron (الخليل)', selected: false, reach: 20000 },
   ]);
 
   // Alert/Notification State on Submit

@@ -45,7 +45,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary }) => {
         zoomControl: true,
         scrollWheelZoom: true,
         attributionControl: false
-      }).setView([24.7750, 46.6350], 12); // Centered in North Riyadh (Hittin, Al Malqa, Al Nakheel)
+      }).setView([31.7683, 35.2137], 13); // Centered in Jerusalem, Palestine (القدس)
 
       // Add OpenStreetMap standard tiles for a light street map look (matching user's screenshot)
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -68,27 +68,27 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary }) => {
     const markers = [
       {
         id: 'sos',
-        coords: [24.7645, 46.6138], // Hittin coordinate
-        title: '🚨 SOS Emergency in Hittin',
-        desc: 'Lina Al-Qahtani · Bathroom pipe burst · Job #SN-2417',
+        coords: [31.7767, 35.2345], // Old City Jerusalem coordinate
+        title: '🚨 SOS Emergency in Old City Jerusalem (البلدة القديمة)',
+        desc: 'Lina Al-Mansour · Bathroom pipe burst · Job #SN-2417',
         color: '#dc2626',
         type: 'Emergencies',
         count: summary?.sosCount.toString() ?? '3'
       },
       {
         id: 'jobs',
-        coords: [24.8105, 46.6268], // Al Malqa coordinate
-        title: '🟢 Active Jobs in Al Malqa',
-        desc: `${summary?.activeJobs.toLocaleString() ?? '1,238'} active maintenance dispatches in Riyadh North`,
+        coords: [31.8260, 35.2260], // Beit Hanina coordinate
+        title: '🟢 Active Jobs in Beit Hanina (بيت حنينا)',
+        desc: `${summary?.activeJobs.toLocaleString() ?? '1,238'} active maintenance dispatches in Jerusalem`,
         color: '#10b981',
         type: 'Active jobs',
         count: summary?.activeJobs.toString() ?? '1238'
       },
       {
         id: 'crafts',
-        coords: [24.7431, 46.6450], // Al Nakheel coordinate
-        title: '🔵 Online Craftsmen in Al Nakheel',
-        desc: `${summary?.onlineCraftsmen.toLocaleString() ?? '312'} active technicians online on Sonaa network`,
+        coords: [31.8080, 35.2330], // Shuafat coordinate
+        title: '🔵 Online Craftsmen in Shuafat & Sheikh Jarrah',
+        desc: `${summary?.onlineCraftsmen.toLocaleString() ?? '312'} active technicians online on Sonaa network in Jerusalem`,
         color: '#3b82f6',
         type: 'Online craftsmen',
         count: summary?.onlineCraftsmen.toString() ?? '312'

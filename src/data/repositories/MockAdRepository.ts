@@ -47,7 +47,7 @@ export class MockAdRepository implements AdRepository {
       {
         id: 'P-101',
         title: '30% Off First Maintenance Order',
-        subtitle: 'Valid for all new customer signups in Riyadh',
+        subtitle: 'Valid for all new customer signups in Jerusalem (القدس)',
         buttonText: 'Claim Discount',
         imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80',
         bannerType: 'PROMO',
