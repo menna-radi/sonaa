@@ -41,6 +41,9 @@ export class ApiAuthRepository implements AuthRepository {
       if (token) {
         storageService.setToken(token);
       }
+      if (response.refreshToken) {
+        storageService.setRefreshToken(response.refreshToken);
+      }
 
       const domainUser: User = {
         id: response.user.id,
@@ -60,7 +63,8 @@ export class ApiAuthRepository implements AuthRepository {
 
   public async logout(): Promise<Result<void>> {
     try {
-      await apiClient.post<void>(API_ENDPOINTS.auth.logout);
+      const refreshToken = storageService.getRefreshToken();
+      await apiClient.post<void>(API_ENDPOINTS.auth.logout, { refreshToken });
       storageService.clearToken();
       storageService.remove('cached_user');
       return ok(undefined);

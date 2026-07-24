@@ -40,13 +40,51 @@ class ApiClient {
       }
     );
 
-    // Response interceptor to handle errors uniformly
+    // Response interceptor to handle errors and auto-refresh expired tokens
     this.client.interceptors.response.use(
       (response) => {
         logger.debug(`HTTP Response Success: ${response.status} ${response.config.url}`);
         return response;
       },
-      (error) => {
+      async (error) => {
+        const originalRequest = error?.config;
+
+        // Intercept 401 Unauthorized errors and attempt transparent refresh token rotation
+        if (axios.isAxiosError(error) && error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+          const requestUrl = originalRequest.url || '';
+          if (!requestUrl.includes('/auth/login') && !requestUrl.includes('/auth/refresh')) {
+            originalRequest._retry = true;
+            const refreshToken = storageService.getRefreshToken();
+
+            if (refreshToken) {
+              try {
+                logger.info('Access token expired. Attempting token refresh...');
+                const refreshRes = await axios.post<{ token?: string; accessToken?: string; refreshToken?: string }>(
+                  `${ENV.API_BASE_URL}/auth/refresh`,
+                  { refreshToken }
+                );
+
+                const newAccessToken = refreshRes.data.accessToken || refreshRes.data.token;
+                if (newAccessToken) {
+                  storageService.setToken(newAccessToken);
+                  if (refreshRes.data.refreshToken) {
+                    storageService.setRefreshToken(refreshRes.data.refreshToken);
+                  }
+
+                  // Update header and retry original failed request
+                  originalRequest.headers = originalRequest.headers || {};
+                  originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                  return this.client(originalRequest);
+                }
+              } catch (refreshErr) {
+                logger.error(`Token refresh attempt failed: ${refreshErr}`);
+                storageService.clearToken();
+                storageService.remove('cached_user');
+              }
+            }
+          }
+        }
+
         logger.error(`HTTP Response Failure: ${error.message}`);
         return Promise.reject(this.handleError(error));
       }

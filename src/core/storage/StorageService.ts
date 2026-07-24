@@ -8,6 +8,8 @@ export interface IStorageService {
   /** Auth token ─────────────────────────────── */
   getToken(): string | null;
   setToken(token: string, expiresIn?: number): void;
+  getRefreshToken(): string | null;
+  setRefreshToken(refreshToken: string): void;
   clearToken(): void;
 
   /** Generic key-value store ─────────────────── */
@@ -18,6 +20,7 @@ export interface IStorageService {
 }
 
 const TOKEN_KEY = `${ENV.API_BASE_URL}:auth_token`;
+const REFRESH_TOKEN_KEY = `${ENV.API_BASE_URL}:refresh_token`;
 
 /**
  * LocalStorage implementation of IStorageService.
@@ -33,8 +36,17 @@ export class LocalStorageService implements IStorageService {
     localStorage.setItem(TOKEN_KEY, token);
   }
 
+  getRefreshToken(): string | null {
+    return localStorage.getItem(REFRESH_TOKEN_KEY);
+  }
+
+  setRefreshToken(refreshToken: string): void {
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
+
   clearToken(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   }
 
   get<T>(key: string): T | null {

@@ -291,24 +291,29 @@ export const LoginPage: React.FC = () => {
               disabled={loading}
               style={{
                 width: '100%',
-                background: 'var(--color-primary)',
-                color: 'var(--bg-base)',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                borderRadius: 'var(--border-radius-sm)',
-                fontWeight: 600,
+                background: loading ? '#525252' : '#171717',
+                color: '#FFFFFF',
+                paddingTop: '13px',
+                paddingBottom: '13px',
+                borderRadius: '10px',
+                fontWeight: 700,
                 fontSize: '0.95rem',
                 marginTop: 'var(--spacing-xs)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                border: 'none',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
+                transition: 'all 0.15s ease'
               }}
               className="login-submit-btn"
             >
               {loading ? (
                 <div style={{ width: '20px', height: '20px', border: '2.5px solid rgba(255,255,255,0.2)', borderTopColor: '#FFFFFF', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-              ) : t('login_btn_submit')}
+              ) : (
+                <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{t('login_btn_submit') || 'Sign In'}</span>
+              )}
             </button>
           </form>
 
@@ -317,12 +322,21 @@ export const LoginPage: React.FC = () => {
 
       <style>{`
         .login-input:focus {
-          border-color: var(--color-primary) !important;
-          box-shadow: 0 0 0 2px rgba(23,23,23,0.05);
+          border-color: #171717 !important;
+          box-shadow: 0 0 0 2px rgba(23,23,23,0.1);
         }
         .login-submit-btn:hover:not(:disabled) {
           background: #333333 !important;
           transform: translateY(-1px);
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+        }
+        /* Browser Autofill Styling Fix */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 30px #f5f5f5 inset !important;
+          -webkit-text-fill-color: #171717 !important;
         }
         @media (max-width: 1024px) {
           .login-sidebar {
