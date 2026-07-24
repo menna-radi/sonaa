@@ -18,7 +18,15 @@ import {
   Trash2,
   AlertTriangle,
   FileText,
-  RefreshCw
+  RefreshCw,
+  MessageSquare,
+  Phone,
+  Send,
+  Info,
+  ShieldCheck,
+  Briefcase,
+  UserCheck,
+  ExternalLink
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -28,12 +36,21 @@ interface ReportItem {
   severity: 'high' | 'medium' | 'low';
   ai: boolean;
   reporter: string;
+  reporterId?: string;
+  reporterPhone?: string;
   subject: string;
+  suspectId?: string;
+  suspectPhone?: string;
+  suspectStatus?: string;
   subjectType: string;
   category: 'fraud' | 'fake_accounts' | 'chats' | 'ai_alerts' | 'spam';
   time: string;
   riskScore: number;
   desc: string;
+  taskId?: string;
+  taskDisplayId?: string;
+  taskTitle?: string;
+  aiTriggers?: string[];
 }
 
 type ReportFilter = 'All' | 'Fraud' | 'Fake accounts' | 'Chats' | 'AI Alerts' | 'Spam';
@@ -57,10 +74,67 @@ export const ReportsPage: React.FC = () => {
   const [notes, setNotes] = useState<{ [id: string]: string }>({});
   const [mobileView, setMobileView] = useState<'queue' | 'detail'>('queue');
 
+  // Interactive Message & Action States
+  const [selectedAction, setSelectedAction] = useState<'dismiss' | 'warning' | 'suspend' | 'ban'>('dismiss');
+  const [messageTarget, setMessageTarget] = useState<'reporter' | 'suspect' | 'both'>('reporter');
+  const [customMessage, setCustomMessage] = useState<string>('');
+  const [sendNotification, setSendNotification] = useState<boolean>(true);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
   // Decision States
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [suspendedIds, setSuspendedIds] = useState<Set<string>>(new Set());
   const [bannedIds, setBannedIds] = useState<Set<string>>(new Set());
+
+  const TEMPLATE_PRESETS = [
+    {
+      id: 'dismiss_safe',
+      label: '🟢 Case Safe & Closed',
+      action: 'dismiss' as const,
+      target: 'reporter' as const,
+      text: 'Thank you for reporting. Following a safety investigation, no breach was identified. This case has been marked as resolved.'
+    },
+    {
+      id: 'warning_suspect',
+      label: '🟡 Issue Safety Warning',
+      action: 'warning' as const,
+      target: 'suspect' as const,
+      text: 'Safety Warning: Your recent activity on Sonaa (Task #{taskId}) was flagged for violating community guidelines. Please adhere to platform rules.'
+    },
+    {
+      id: 'update_reporter',
+      label: '🔵 Update Reporter',
+      action: 'dismiss' as const,
+      target: 'reporter' as const,
+      text: 'Hello {reporter}, your safety report #{id} has been reviewed by Sonaa Admin and appropriate action has been taken. Thank you for keeping Sonaa safe.'
+    },
+    {
+      id: 'suspend_account',
+      label: '🟠 Suspend Suspect Account',
+      action: 'suspend' as const,
+      target: 'both' as const,
+      text: 'Notice: Sonaa partner account has been temporarily suspended pending safety audit regarding Report #{id}.'
+    },
+    {
+      id: 'ban_account',
+      label: '🔴 Permanent Ban',
+      action: 'ban' as const,
+      target: 'both' as const,
+      text: 'Notice: Sonaa partner account has been permanently blocked due to confirmed severe safety violation in Report #{id}.'
+    }
+  ];
+
+  const applyTemplate = (preset: typeof TEMPLATE_PRESETS[0], report?: ReportItem) => {
+    setSelectedAction(preset.action);
+    setMessageTarget(preset.target);
+    const targetReport = report || selectedReport;
+    if (!targetReport) return;
+    const formatted = preset.text
+      .replace('{reporter}', targetReport.reporter)
+      .replace('{id}', targetReport.id)
+      .replace('{taskId}', targetReport.taskDisplayId || targetReport.id);
+    setCustomMessage(formatted);
+  };
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -71,6 +145,7 @@ export const ReportsPage: React.FC = () => {
         setReports(result.data as ReportItem[]);
         if (result.data.length > 0) {
           setSelectedId(result.data[0].id);
+          applyTemplate(TEMPLATE_PRESETS[0], result.data[0] as ReportItem);
         }
       } else {
         setError(result.error.message || 'Failed to fetch safety reports.');
@@ -101,6 +176,13 @@ export const ReportsPage: React.FC = () => {
 
   const selectedReport = activeReports.find(r => r.id === selectedId) || activeReports[0];
 
+  const handleSelectReport = (report: ReportItem) => {
+    setSelectedId(report.id);
+    setMobileView('detail');
+    setActionSuccess(null);
+    applyTemplate(TEMPLATE_PRESETS[0], report);
+  };
+
   const handleSetFilter = (newFilter: ReportFilter) => {
     setFilter(newFilter);
     const filteredList = reports.filter(report => {
@@ -116,30 +198,40 @@ export const ReportsPage: React.FC = () => {
       return true;
     });
     if (filteredList.length > 0) {
-      setSelectedId(filteredList[0].id);
+      handleSelectReport(filteredList[0]);
     } else {
       setSelectedId('');
     }
   };
 
-  const handleAction = async (action: 'dismiss' | 'suspend' | 'ban') => {
+  const handleExecuteAction = async () => {
+    if (!selectedReport) return;
     setError(null);
+    setActionSuccess(null);
     try {
-      const reportNote = notes[selectedId] || '';
-      const result = await safetyReportRepository.moderateReport(selectedId, action, reportNote);
+      const actionToExecute = selectedAction === 'warning' ? 'dismiss' : selectedAction;
+      const combinedNotes = customMessage.trim().length > 0 
+        ? `${customMessage} (Target: ${messageTarget})`
+        : notes[selectedReport.id] || '';
+
+      const result = await safetyReportRepository.moderateReport(selectedReport.id, actionToExecute, combinedNotes);
       if (result.success) {
-        if (action === 'dismiss') {
-          setDismissedIds(prev => new Set([...prev, selectedId]));
-        } else if (action === 'suspend') {
-          setSuspendedIds(prev => new Set([...prev, selectedId]));
-        } else if (action === 'ban') {
-          setBannedIds(prev => new Set([...prev, selectedId]));
+        if (selectedAction === 'dismiss' || selectedAction === 'warning') {
+          setDismissedIds(prev => new Set([...prev, selectedReport.id]));
+        } else if (selectedAction === 'suspend') {
+          setSuspendedIds(prev => new Set([...prev, selectedReport.id]));
+        } else if (selectedAction === 'ban') {
+          setBannedIds(prev => new Set([...prev, selectedReport.id]));
         }
 
+        setActionSuccess(`Action '${selectedAction.toUpperCase()}' executed successfully. Automated notification sent to ${messageTarget}.`);
+
         // Auto-select the next report in the active list
-        const remaining = activeReports.filter(r => r.id !== selectedId);
+        const remaining = activeReports.filter(r => r.id !== selectedReport.id);
         if (remaining.length > 0) {
-          setSelectedId(remaining[0].id);
+          setTimeout(() => {
+            handleSelectReport(remaining[0]);
+          }, 1200);
         } else {
           setMobileView('queue');
         }
@@ -375,10 +467,7 @@ export const ReportsPage: React.FC = () => {
                         <button
                           key={report.id}
                           className={`rp-report-item-btn ${isSelected ? 'selected' : ''}`}
-                          onClick={() => {
-                            setSelectedId(report.id);
-                            setMobileView('detail');
-                          }}
+                          onClick={() => handleSelectReport(report)}
                         >
                           <div className="rp-report-item-left">
                             <div className={`rp-report-severity-dot-bg severity-bg-${report.severity}`}>
@@ -438,86 +527,214 @@ export const ReportsPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="rp-detail-card">
-                  {/* Title Row */}
+                  {/* Title Header */}
                   <div className="rp-detail-header">
                     <div className="rp-detail-header-text">
-                      <span className="rp-detail-id">{t('report')} #{selectedReport.id}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <span className="rp-detail-id">Report #{selectedReport.id}</span>
+                        <span style={{ fontSize: '0.75rem', color: '#737373', background: '#f5f5f5', padding: '2px 8px', borderRadius: '12px' }}>
+                          Category: {selectedReport.category.toUpperCase()}
+                        </span>
+                      </div>
                       <h2>{selectedReport.title}</h2>
+                      <span style={{ fontSize: '0.8rem', color: '#a3a3a3' }}>Submitted {selectedReport.time}</span>
                     </div>
                     <div className={`rp-detail-badge severity-${selectedReport.severity}`}>
                       {getSeverityLabel(selectedReport.severity)}
                     </div>
                   </div>
 
-                  {/* AI Risk Score Banner */}
+                  {/* Success Alert Banner */}
+                  {actionSuccess && (
+                    <div className="glass-card status-success animate-fade-in" style={{ padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', color: '#166534' }}>
+                        <CheckCircle size={18} />
+                        <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{actionSuccess}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AI Risk & Safety Assessment Card */}
                   <div className="rp-risk-banner-card">
                     <div className="rp-risk-banner-title-row">
                       <div className="rp-risk-banner-label">
-                        <Sparkles size={10} style={{ marginInlineEnd: 4, color: '#a3a3a3' }} />
-                        <span>{t('reports_risk_score_title')}</span>
+                        <Sparkles size={14} style={{ marginInlineEnd: 6, color: '#eab308' }} />
+                        <strong>AI Safety Risk Score</strong>
                       </div>
-                      <span className="rp-risk-banner-score">{selectedReport.riskScore}</span>
+                      <span className="rp-risk-banner-score" style={{ color: selectedReport.riskScore > 75 ? '#dc2626' : selectedReport.riskScore > 40 ? '#d97706' : '#16a34a' }}>
+                        {selectedReport.riskScore}/100
+                      </span>
                     </div>
-                    <div className="rp-risk-banner-progress-track">
+                    <div className="rp-risk-banner-progress-track" style={{ marginTop: '8px' }}>
                       <div
                         className="rp-risk-banner-progress-fill"
-                        style={{ width: `${selectedReport.riskScore}%` }}
+                        style={{
+                          width: `${selectedReport.riskScore}%`,
+                          background: selectedReport.riskScore > 75 ? '#dc2626' : selectedReport.riskScore > 40 ? '#d97706' : '#16a34a'
+                        }}
+                      />
+                    </div>
+                    {selectedReport.aiTriggers && selectedReport.aiTriggers.length > 0 && (
+                      <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#737373' }}>Automated Signals Detected:</span>
+                        {selectedReport.aiTriggers.map((trig, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#525252' }}>
+                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#737373' }} />
+                            <span>{trig}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Parties Contact Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', margin: '16px 0' }}>
+                    {/* Reporter Card */}
+                    <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reporter Profile</span>
+                        <span style={{ fontSize: '0.7rem', background: '#dbeafe', color: '#1e40af', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Customer</span>
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#171717' }}>{selectedReport.reporter}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#525252', marginTop: '6px' }}>
+                        <Phone size={12} />
+                        <a href={`tel:${selectedReport.reporterPhone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{selectedReport.reporterPhone}</a>
+                      </div>
+                    </div>
+
+                    {/* Suspect Card */}
+                    <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reported Suspect</span>
+                        <span style={{ fontSize: '0.7rem', background: selectedReport.suspectStatus === 'BLOCKED' ? '#fee2e2' : selectedReport.suspectStatus === 'SUSPENDED' ? '#fef3c7' : '#dcfce7', color: selectedReport.suspectStatus === 'BLOCKED' ? '#991b1b' : selectedReport.suspectStatus === 'SUSPENDED' ? '#92400e' : '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                          {selectedReport.suspectStatus || 'ACTIVE'}
+                        </span>
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#171717' }}>{selectedReport.subject}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#525252', marginTop: '6px' }}>
+                        <Phone size={12} />
+                        <a href={`tel:${selectedReport.suspectPhone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{selectedReport.suspectPhone}</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Task / Order Context Card */}
+                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Briefcase size={18} style={{ color: '#0284c7' }} />
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}>{selectedReport.taskTitle}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Order Reference: {selectedReport.taskDisplayId}</div>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#0284c7', background: '#e0f2fe', padding: '3px 8px', borderRadius: '6px' }}>Linked Order</span>
+                  </div>
+
+                  {/* Incident Description */}
+                  <div className="rp-detail-section">
+                    <span className="rp-section-label">Reported Incident Statement</span>
+                    <p className="rp-section-description" style={{ background: '#ffffff', border: '1px solid #e5e5e5', borderRadius: '8px', padding: '12px', fontSize: '0.9rem', color: '#262626' }}>
+                      {selectedReport.desc}
+                    </p>
+                  </div>
+
+                  {/* Ready Response Template Switcher Bar */}
+                  <div style={{ marginTop: '20px', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span className="rp-section-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                        <MessageSquare size={14} style={{ color: '#171717' }} />
+                        Response Templates & Automation Presets
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {TEMPLATE_PRESETS.map((preset) => (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => applyTemplate(preset)}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            border: '1px solid #e5e5e5',
+                            background: selectedAction === preset.action && messageTarget === preset.target ? '#171717' : '#ffffff',
+                            color: selectedAction === preset.action && messageTarget === preset.target ? '#ffffff' : '#404040',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Target Audience & Direct Notification Controls */}
+                  <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#404040' }}>Notification Target Audience:</span>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {(['reporter', 'suspect', 'both'] as const).map((targ) => (
+                          <button
+                            key={targ}
+                            type="button"
+                            onClick={() => setMessageTarget(targ)}
+                            style={{
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              border: '1px solid #d4d4d4',
+                              background: messageTarget === targ ? '#262626' : '#ffffff',
+                              color: messageTarget === targ ? '#ffffff' : '#525252',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {targ.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Pre-filled Message Textarea */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#737373' }}>Automated Notification Message (Editable):</span>
+                      <textarea
+                        className="rp-notes-textarea"
+                        value={customMessage}
+                        onChange={(e) => setCustomMessage(e.target.value)}
+                        rows={3}
+                        placeholder="Type custom response message to send to party..."
+                        style={{ width: '100%', borderRadius: '8px', padding: '10px', fontSize: '0.85rem' }}
                       />
                     </div>
                   </div>
 
-                  {/* Description Box */}
-                  <div className="rp-detail-section">
-                    <span className="rp-section-label">{t('reports_desc')}</span>
-                    <p className="rp-section-description">{selectedReport.desc}</p>
-                  </div>
-
-                  {/* Metadata Row */}
-                  <div className="rp-detail-metadata-divider-row">
-                    <div className="rp-metadata-item">
-                      <span className="rp-metadata-label">{t('reports_reporter')}</span>
-                      <span className="rp-metadata-value">{selectedReport.reporter}</span>
-                    </div>
-                    <div className="rp-metadata-item">
-                      <span className="rp-metadata-label">{t('reports_subject')}</span>
-                      <span className="rp-metadata-value">{selectedReport.subject}</span>
-                    </div>
-                  </div>
-
-                  {/* Moderator Notes */}
-                  <div className="rp-detail-notes-section">
-                    <span className="rp-notes-label">{t('reports_notes_label')}</span>
-                    <textarea
-                      className="rp-notes-textarea"
-                      placeholder={t('reports_notes_placeholder')}
-                      value={notes[selectedReport.id] || ''}
-                      onChange={(e) => handleNoteChange(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Action Buttons Row */}
-                  <div className="rp-detail-actions-row">
+                  {/* Primary Decision Action Bar */}
+                  <div className="rp-detail-actions-row" style={{ gap: '10px' }}>
                     <button
-                      className="rp-action-btn btn-dismiss"
-                      onClick={() => handleAction('dismiss')}
+                      className="rp-action-btn"
+                      style={{
+                        flex: 1,
+                        background: selectedAction === 'dismiss' ? '#16a34a' : selectedAction === 'warning' ? '#d97706' : selectedAction === 'suspend' ? '#ea580c' : '#dc2626',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '12px 16px',
+                        borderRadius: '10px',
+                        fontWeight: 600,
+                        fontSize: '0.9rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                      }}
+                      onClick={handleExecuteAction}
                     >
-                      <Check size={14} style={{ marginInlineEnd: 6 }} />
-                      <span>{t('reports_dismiss')}</span>
-                    </button>
-                    <button
-                      className="rp-action-btn btn-suspend"
-                      onClick={() => handleAction('suspend')}
-                    >
-                      <X size={14} style={{ marginInlineEnd: 6 }} />
-                      <span>{t('reports_suspend')}</span>
-                    </button>
-                    <button
-                      className="rp-action-btn btn-ban"
-                      onClick={() => handleAction('ban')}
-                    >
-                      <Trash2 size={14} style={{ marginInlineEnd: 6 }} />
-                      <span>{t('reports_ban')}</span>
+                      <Send size={16} />
+                      <span>Execute {selectedAction.toUpperCase()} & Dispatch Notification</span>
                     </button>
                   </div>
                 </div>

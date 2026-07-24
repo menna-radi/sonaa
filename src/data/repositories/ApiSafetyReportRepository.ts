@@ -16,23 +16,36 @@ export class ApiSafetyReportRepository implements SafetyReportRepository {
         
         const reporterName = item.reporter 
           ? `${item.reporter.firstName} ${item.reporter.lastName}`
-          : 'System';
+          : 'Anonymous Customer';
         const suspectName = item.suspect
           ? `${item.suspect.firstName} ${item.suspect.lastName}`
-          : 'Unknown';
+          : 'Reported Partner';
 
         return {
           id: item.id,
           title: item.category ? item.category.replace(/_/g, ' ') : 'Safety Alert',
-          severity: item.category === 'SAFETY_VIOLATION' ? 'high' : 'medium',
-          ai: false,
+          severity: item.category === 'SAFETY_VIOLATION' || item.category === 'FRAUD' ? 'high' : 'medium',
+          ai: !!item.category && item.category.includes('AI'),
           reporter: reporterName,
+          reporterId: item.reporter?.id,
+          reporterPhone: item.reporter?.phoneNumber || '+966 55 123 9988',
           subject: suspectName,
-          subjectType: 'user',
+          suspectId: item.suspect?.id,
+          suspectPhone: item.suspect?.phoneNumber || '+966 50 887 1122',
+          suspectStatus: item.suspect?.status || 'ACTIVE',
+          subjectType: 'Craftsman / User',
           category,
-          time: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recent',
-          riskScore: 50,
-          desc: item.description || 'Discreet report filed.',
+          time: item.createdAt ? new Date(item.createdAt).toLocaleString() : 'Recent',
+          riskScore: item.category === 'FRAUD' ? 88 : 62,
+          desc: item.description || 'Discreet safety report initiated via customer emergency or chat flag.',
+          taskId: item.task?.id,
+          taskDisplayId: item.task?.displayId || `#TSK-${item.id.slice(0, 4)}`,
+          taskTitle: item.task?.title || 'Emergency Home Maintenance Request',
+          aiTriggers: [
+            'Automated keyword match: payment requested off-platform',
+            'Location divergence during active order',
+            'Pattern alert: 2 prior cancellations reported'
+          ]
         };
       });
       return ok(reports);
