@@ -70,6 +70,15 @@ export const useServiceManagement = () => {
     enabled: !!selectedFieldCategoryId
   });
 
+  // 4. Fetch Metrics for KPIs
+  const { data: metrics = [] } = useQuery({
+    queryKey: ['dashboard-metrics'],
+    queryFn: async () => {
+      const res = await dependencies.metricRepository.getMetrics();
+      return res.success ? res.data : [];
+    }
+  });
+
   // ── Mutations ──
 
   // Create Category Mutation
@@ -208,6 +217,7 @@ export const useServiceManagement = () => {
     categories,
     subcategories,
     fields,
+    metrics,
     loading: loadingCategories || loadingSubcats || loadingFields,
     error: errorCategories?.message || errorSubcats?.message || errorFields?.message || null,
     selectedSubCatCategoryId,
