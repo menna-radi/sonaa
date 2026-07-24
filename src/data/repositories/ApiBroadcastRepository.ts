@@ -19,28 +19,32 @@ export class ApiBroadcastRepository implements BroadcastRepository {
     try {
       const response = await apiClient.get<any[]>(API_ENDPOINTS.admin.broadcasts);
       
-      const mapped: CampaignRecord[] = response.map((b, index) => {
+      const mapped: CampaignRecord[] = response.map((b) => {
         let status: CampaignRecord['status'] = 'Sent';
-        if (b.status === 'scheduled') {
+        if (b.status === 'SCHEDULED' || b.status === 'scheduled') {
           status = 'Scheduled';
-        } else if (b.status === 'draft') {
+        } else if (b.status === 'DRAFT' || b.status === 'draft') {
           status = 'Draft';
-        } else if (b.status === 'failed') {
+        } else if (b.status === 'FAILED' || b.status === 'failed') {
           status = 'Failed';
         }
 
-        const audienceMap: Record<string, 'ALL' | 'CUSTOMER' | 'CRAFTSMAN'> = {
+        const audienceMap: Record<string, string> = {
           'ALL': 'ALL',
           'CUSTOMERS': 'CUSTOMER',
           'CRAFTSMEN': 'CRAFTSMAN',
         };
 
         return {
-          id: index + 1,
+          id: b.id,
           title: b.title,
-          audience: audienceMap[b.audience] || 'ALL',
+          body: b.body,
+          audience: audienceMap[b.audience] || b.audience || 'ALL',
+          targetCity: b.targetCity || undefined,
+          imageUrl: b.imageUrl || undefined,
+          deepLink: b.deepLink || undefined,
           status,
-          sendDate: b.sentAt ? new Date(b.sentAt).toLocaleString() : '—',
+          sendDate: b.sentAt ? new Date(b.sentAt).toLocaleString() : (b.scheduledAt ? new Date(b.scheduledAt).toLocaleString() : '—'),
           recipients: b.reach !== undefined ? String(b.reach) : '—',
           openRate: '—',
         };
@@ -56,7 +60,12 @@ export class ApiBroadcastRepository implements BroadcastRepository {
     title: string,
     body: string,
     targetAudience: 'ALL' | 'CUSTOMER' | 'CRAFTSMAN',
-    scheduleTime?: string
+    options?: {
+      targetCity?: string;
+      imageUrl?: string;
+      deepLink?: string;
+      scheduleTime?: string;
+    }
   ): Promise<Result<CampaignRecord>> {
     try {
       const audienceMap: Record<string, string> = {
@@ -69,20 +78,36 @@ export class ApiBroadcastRepository implements BroadcastRepository {
         title,
         body,
         audience: audienceMap[targetAudience] || 'ALL',
-        scheduleTime,
+        targetCity: options?.targetCity,
+        imageUrl: options?.imageUrl,
+        deepLink: options?.deepLink,
+        scheduledAt: options?.scheduleTime,
       });
 
       const record: CampaignRecord = {
-        id: Date.now(),
+        id: response.id || String(Date.now()),
         title: response.title,
+        body: response.body,
         audience: targetAudience,
-        status: 'Sent',
+        targetCity: response.targetCity,
+        imageUrl: response.imageUrl,
+        deepLink: response.deepLink,
+        status: response.status === 'SCHEDULED' ? 'Scheduled' : 'Sent',
         sendDate: response.sentAt ? new Date(response.sentAt).toLocaleString() : new Date().toLocaleString(),
         recipients: response.reach !== undefined ? String(response.reach) : '—',
         openRate: '—',
       };
 
       return ok(record);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async deleteBroadcast(id: string | number): Promise<Result<boolean>> {
+    try {
+      await apiClient.delete<any>(`${API_ENDPOINTS.admin.broadcasts}/${id}`);
+      return ok(true);
     } catch (error) {
       return fail(error as AppError);
     }

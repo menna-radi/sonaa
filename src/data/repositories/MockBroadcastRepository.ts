@@ -18,19 +18,32 @@ export class MockBroadcastRepository implements BroadcastRepository {
     title: string,
     _body: string,
     targetAudience: 'ALL' | 'CUSTOMER' | 'CRAFTSMAN',
-    scheduleTime?: string
+    options?: {
+      targetCity?: string;
+      imageUrl?: string;
+      deepLink?: string;
+      scheduleTime?: string;
+    }
   ): Promise<Result<CampaignRecord>> {
     const record: CampaignRecord = {
       id: Date.now(),
       title,
       audience: targetAudience,
-      status: scheduleTime ? 'Scheduled' : 'Sent',
-      sendDate: scheduleTime ? new Date(scheduleTime).toLocaleString() : 'Just now',
+      targetCity: options?.targetCity,
+      imageUrl: options?.imageUrl,
+      deepLink: options?.deepLink,
+      status: options?.scheduleTime ? 'Scheduled' : 'Sent',
+      sendDate: options?.scheduleTime ? new Date(options.scheduleTime).toLocaleString() : 'Just now',
       recipients: '—',
       openRate: '—',
     };
     this.campaigns = [record, ...this.campaigns];
     return ok(record);
+  }
+
+  public async deleteBroadcast(id: string | number): Promise<Result<boolean>> {
+    this.campaigns = this.campaigns.filter(c => c.id !== id);
+    return ok(true);
   }
 }
 export default MockBroadcastRepository;

@@ -35,6 +35,12 @@ export const BroadcastPage: React.FC = () => {
     setTitle,
     message,
     setMessage,
+    imageUrl,
+    setImageUrl,
+    deepLink,
+    setDeepLink,
+    targetCity,
+    setTargetCity,
     channels,
     setChannels,
     audience,
@@ -328,19 +334,57 @@ export const BroadcastPage: React.FC = () => {
                   onChange={(e) => setMessage(e.target.value.slice(0, 240))}
                   rows={4}
                 />
-                <div className="form-actions-row">
-                  <button className="icon-helper-btn" onClick={() => triggerToast('Image attachment simulated')}>
-                    <ImageIcon size={12} />
-                    <span>Add image</span>
-                  </button>
-                  <button className="icon-helper-btn" onClick={() => triggerToast('Deep link added')}>
-                    <LinkIcon size={12} />
-                    <span>Deep link</span>
-                  </button>
-                  <button className="icon-helper-btn" onClick={() => triggerToast('Variables helper opened')}>
-                    <span>{`{ }`} Variables</span>
-                  </button>
+              </div>
+
+              {/* Rich Push Options: Image URL & Deep-Link URI */}
+              <div className="form-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label htmlFor="broadcast-image-url" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                    <ImageIcon size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                    Rich Image Banner URL (Optional)
+                  </label>
+                  <input
+                    id="broadcast-image-url"
+                    type="text"
+                    className="form-input-field"
+                    placeholder="https://images.unsplash.com/..."
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                  />
                 </div>
+                <div>
+                  <label htmlFor="broadcast-deeplink" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                    <LinkIcon size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                    App Screen Deep-Link URI (Optional)
+                  </label>
+                  <input
+                    id="broadcast-deeplink"
+                    type="text"
+                    className="form-input-field"
+                    placeholder="sonaa://offers or sonaa://category/PLUMBER"
+                    value={deepLink}
+                    onChange={(e) => setDeepLink(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Target City Selector */}
+              <div className="form-group">
+                <label className="form-section-label">Target City (Palestine Region)</label>
+                <select
+                  className="form-input-field"
+                  value={targetCity}
+                  onChange={(e) => setTargetCity(e.target.value)}
+                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', borderRadius: '8px', padding: '10px 14px' }}
+                >
+                  <option value="All">All Palestine Cities (الجميع)</option>
+                  <option value="Jerusalem">Jerusalem (القدس)</option>
+                  <option value="Ramallah">Ramallah (رام الله)</option>
+                  <option value="Bethlehem">Bethlehem (بيت لحم)</option>
+                  <option value="Hebron">Hebron (الخليل)</option>
+                  <option value="Nablus">Nablus (نابلس)</option>
+                  <option value="Jericho">Jericho (أريحا)</option>
+                </select>
               </div>
 
               {/* Channels Selector */}
@@ -507,7 +551,7 @@ export const BroadcastPage: React.FC = () => {
                       <div className="scheduler-field flex-grow-2">
                         <label>Timezone</label>
                         <div className="timezone-badge">
-                          <span>AST (Riyadh) · GMT+3</span>
+                          <span>Jerusalem (Palestine) · GMT+3</span>
                         </div>
                       </div>
                     </div>
@@ -522,19 +566,32 @@ export const BroadcastPage: React.FC = () => {
               <div className="preview-card glass-card">
                 <div className="preview-header-row">
                   <span className="preview-label">Preview</span>
-                  <span className="device-tag">iPhone push</span>
+                  <span className="device-tag">Android Push Notification</span>
                 </div>
 
                 <div className="ios-notification-mockup">
-                  <div className="notification-card">
+                  <div className="notification-card" style={{ padding: '14px' }}>
                     <div className="notification-top">
                       <div className="app-icon-badge">S</div>
-                      <span className="app-name">SONAA</span>
-                      <span className="time-tag">now</span>
+                      <span className="app-name">SONAA • صناع</span>
+                      <span className="time-tag">Just now</span>
                     </div>
-                    <div className="notification-content">
+                    <div className="notification-content" style={{ marginTop: '8px' }}>
                       <strong className="notification-title">{title || 'Welcome offer · 20% off your first task'}</strong>
-                      <p className="notification-body">{message || 'Get started on Sonaa with 20% off your first task. Use code WELCOME20.'}</p>
+                      <p className="notification-body" style={{ margin: '4px 0 0 0' }}>{message || 'Get started on Sonaa in Jerusalem with 20% off your first task.'}</p>
+                      
+                      {imageUrl && (
+                        <div style={{ marginTop: '10px', borderRadius: '8px', overflow: 'hidden', maxHeight: '120px' }}>
+                          <img src={imageUrl} alt="Notification Attachment" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      )}
+
+                      {deepLink && (
+                        <div style={{ marginTop: '8px', fontSize: '0.75rem', color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <LinkIcon size={12} />
+                          <span>Action: {deepLink}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

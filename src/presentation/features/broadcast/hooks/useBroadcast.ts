@@ -1,14 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
-
-export interface CampaignRecord {
-  id: number;
-  title: string;
-  audience: string;
-  status: 'Sent' | 'Scheduled' | 'Draft' | 'Failed';
-  sendDate: string;
-  recipients: string;
-  openRate: string;
-}
+import { CampaignRecord } from '../../../../domain/repositories/BroadcastRepository';
+export type { CampaignRecord };
 
 export interface BroadcastKpis {
   totalSent: string;
@@ -114,7 +106,10 @@ export const useBroadcast = () => {
 
   // Form State
   const [title, setTitle] = useState<string>('Welcome offer · 20% off your first task');
-  const [message, setMessage] = useState<string>('Get started on Sonaa with 20% off your first task. Use code WELCOME20.');
+  const [message, setMessage] = useState<string>('Get started on Sonaa in Jerusalem with 20% off your first task. Use code WELCOME20.');
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [deepLink, setDeepLink] = useState<string>('');
+  const [targetCity, setTargetCity] = useState<string>('Jerusalem');
   const [channels, setChannels] = useState<string[]>(['push', 'email']);
   const [audience, setAudience] = useState<string>('all');
   const [schedule, setSchedule] = useState<string>('once');
@@ -216,11 +211,19 @@ export const useBroadcast = () => {
         const targetAud = audienceInfo.name as 'ALL' | 'CUSTOMER' | 'CRAFTSMAN';
         const scheduleTime = schedule === 'custom' ? `${date}T${time}:00Z` : undefined;
 
-        const result = await broadcastRepository.sendBroadcast(title, message, targetAud, scheduleTime);
+        const result = await broadcastRepository.sendBroadcast(title, message, targetAud, {
+          targetCity: targetCity !== 'All' ? targetCity : undefined,
+          imageUrl: imageUrl.trim() || undefined,
+          deepLink: deepLink.trim() || undefined,
+          scheduleTime,
+        });
+
         if (result.success) {
           // Reset form inputs to defaults
           setTitle('Welcome offer · 20% off your first task');
-          setMessage('Get started on Sonaa with 20% off your first task. Use code WELCOME20.');
+          setMessage('Get started on Sonaa in Jerusalem with 20% off your first task. Use code WELCOME20.');
+          setImageUrl('');
+          setDeepLink('');
           setChannels(['push', 'email']);
           setAudience('all');
           setSchedule('once');
@@ -238,12 +241,15 @@ export const useBroadcast = () => {
         setLoading(false);
       }
     },
-    [title, message, schedule, audienceInfo, date, time, broadcastRepository, fetchCampaigns]
+    [title, message, imageUrl, deepLink, targetCity, schedule, audienceInfo, date, time, broadcastRepository, fetchCampaigns]
   );
 
-  const deleteCampaign = useCallback((id: number) => {
+  const deleteCampaign = useCallback(async (id: string | number) => {
+    if (broadcastRepository.deleteBroadcast) {
+      await broadcastRepository.deleteBroadcast(id);
+    }
     setCampaigns(prev => prev.filter(c => c.id !== id));
-  }, []);
+  }, [broadcastRepository]);
 
   return {
     loading,
@@ -253,6 +259,12 @@ export const useBroadcast = () => {
     setTitle,
     message,
     setMessage,
+    imageUrl,
+    setImageUrl,
+    deepLink,
+    setDeepLink,
+    targetCity,
+    setTargetCity,
     channels,
     setChannels,
     audience,
