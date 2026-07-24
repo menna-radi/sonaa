@@ -58,8 +58,7 @@ const TOP_CITIES = [
   { name: 'Ramallah (رام الله)', value: '1,124 conv', width: '61%', active: false },
   { name: 'Bethlehem (بيت لحم)', value: '624 conv', width: '34%', active: false },
   { name: 'Hebron (الخليل)', value: '380 conv', width: '21%', active: false },
-];
-  { name: 'Madinah', value: '158 conv', width: '9%', active: false }
+  { name: 'Nablus (نابلس)', value: '158 conv', width: '9%', active: false }
 ];
 
 // Heatmap Days and Hours
