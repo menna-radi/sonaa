@@ -200,6 +200,20 @@ export const AdsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteCampaign = async (id: string) => {
+    setError(null);
+    try {
+      const result = await adRepository.deleteAd(id);
+      if (result.success) {
+        setCampaigns(prev => prev.filter(c => c.id !== id));
+      } else {
+        setError(result.error.message || 'Failed to delete campaign.');
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete campaign.');
+    }
+  };
+
   const handleExportCSV = () => {
     const headers = ['Campaign ID', 'Name', 'Placement', 'Status', 'Impressions', 'CTR', 'Conversions', 'Budget (SAR)'];
     const rows = campaigns.map(c => [
@@ -656,7 +670,7 @@ export const AdsPage: React.FC = () => {
                               {camp.status === 'Active' ? <Pause size={12} /> : <Play size={12} />}
                             </button>
                             <button
-                              onClick={() => deleteCampaign(camp.id)}
+                              onClick={() => handleDeleteCampaign(camp.id)}
                               className="action-icon-btn delete"
                               title="Delete Campaign"
                             >

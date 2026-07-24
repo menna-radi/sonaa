@@ -1,4 +1,4 @@
-import { AdRepository, Campaign } from '../../domain/repositories/AdRepository';
+import { AdRepository, Campaign, PromotionOffer } from '../../domain/repositories/AdRepository';
 import { Result, ok, fail } from '../../core/result/Result';
 import { apiClient } from '../../core/network/apiClient';
 import { API_ENDPOINTS } from '../../core/config/apiEndpoints';
@@ -80,6 +80,84 @@ export class ApiAdRepository implements AdRepository {
       };
 
       return ok(campaign);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async deleteAd(id: string): Promise<Result<boolean>> {
+    try {
+      await apiClient.delete(`/admin/ads/${id}`);
+      return ok(true);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async getPromotions(): Promise<Result<PromotionOffer[]>> {
+    try {
+      const response = await apiClient.get<any[]>('/admin/promotions');
+      const mapped: PromotionOffer[] = (response || []).map((item) => ({
+        id: item.id,
+        title: item.title || item.titleEn || 'Special Offer',
+        subtitle: item.subtitle || item.subtitleEn || 'Exclusive discount on Sonaa',
+        buttonText: item.buttonText || 'Claim Offer',
+        imageUrl: item.imageUrl,
+        bannerType: item.bannerType === 'EMERGENCY_SOS' ? 'EMERGENCY_SOS' : 'PROMO',
+        placement: item.placement === 'FEATURED' ? 'FEATURED' : 'TOP',
+        isActive: item.isActive !== false,
+        createdAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Today',
+      }));
+      return ok(mapped);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async createPromotion(data: { title: string; subtitle: string; imageUrl: string; bannerType?: string; placement?: string }): Promise<Result<PromotionOffer>> {
+    try {
+      const item = await apiClient.post<any>('/admin/promotions', data);
+      const offer: PromotionOffer = {
+        id: item.id,
+        title: item.title || data.title,
+        subtitle: item.subtitle || data.subtitle,
+        buttonText: item.buttonText || 'Claim Offer',
+        imageUrl: item.imageUrl || data.imageUrl,
+        bannerType: item.bannerType === 'EMERGENCY_SOS' ? 'EMERGENCY_SOS' : 'PROMO',
+        placement: item.placement === 'FEATURED' ? 'FEATURED' : 'TOP',
+        isActive: item.isActive !== false,
+        createdAt: new Date().toLocaleDateString(),
+      };
+      return ok(offer);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async togglePromotionStatus(id: string): Promise<Result<PromotionOffer>> {
+    try {
+      const item = await apiClient.put<any>(`/admin/promotions/${id}/toggle`, {});
+      const offer: PromotionOffer = {
+        id: item.id,
+        title: item.title,
+        subtitle: item.subtitle,
+        buttonText: item.buttonText || 'Claim Offer',
+        imageUrl: item.imageUrl,
+        bannerType: item.bannerType === 'EMERGENCY_SOS' ? 'EMERGENCY_SOS' : 'PROMO',
+        placement: item.placement === 'FEATURED' ? 'FEATURED' : 'TOP',
+        isActive: item.isActive,
+        createdAt: new Date(item.createdAt).toLocaleDateString(),
+      };
+      return ok(offer);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async deletePromotion(id: string): Promise<Result<boolean>> {
+    try {
+      await apiClient.delete(`/admin/promotions/${id}`);
+      return ok(true);
     } catch (error) {
       return fail(error as AppError);
     }

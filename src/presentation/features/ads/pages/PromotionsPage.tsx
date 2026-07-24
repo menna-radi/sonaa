@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { Sidebar } from '../../../layouts/Sidebar';
 import { Header } from '../../../layouts/Header';
 import { MobileBottomTabs } from '../../../layouts/MobileBottomTabs';
+import { useDependencies } from '../../../../core/di/DependencyProvider';
+import { PromotionOffer } from '../../../../domain/repositories/AdRepository';
 import {
   Download,
   Search,
@@ -56,6 +58,30 @@ interface PromotionFeature {
 
 export const PromotionsPage: React.FC = () => {
   const { t, isRtl } = useLanguage();
+  const { dependencies } = useDependencies();
+  const { adRepository } = dependencies;
+
+  const [promotions, setPromotions] = useState<PromotionOffer[]>([]);
+  const [loadingPromos, setLoadingPromos] = useState<boolean>(true);
+
+  const fetchPromotions = useCallback(async () => {
+    setLoadingPromos(true);
+    try {
+      const res = await adRepository.getPromotions();
+      if (res.success) {
+        setPromotions(res.data);
+      }
+    } catch {
+      // fallback
+    } finally {
+      setLoadingPromos(false);
+    }
+  }, [adRepository]);
+
+  useEffect(() => {
+    fetchPromotions();
+  }, [fetchPromotions]);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);

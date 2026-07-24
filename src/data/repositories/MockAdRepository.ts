@@ -1,4 +1,4 @@
-import { AdRepository, Campaign } from '../../domain/repositories/AdRepository';
+import { AdRepository, Campaign, PromotionOffer } from '../../domain/repositories/AdRepository';
 import { Result, ok } from '../../core/result/Result';
 
 export class MockAdRepository implements AdRepository {
@@ -35,6 +35,60 @@ export class MockAdRepository implements AdRepository {
       updated.status = status;
     }
     return ok(updated!);
+  }
+
+  public async deleteAd(id: string): Promise<Result<boolean>> {
+    this.campaigns = this.campaigns.filter(c => c.id !== id);
+    return ok(true);
+  }
+
+  public async getPromotions(): Promise<Result<PromotionOffer[]>> {
+    return ok([
+      {
+        id: 'P-101',
+        title: '30% Off First Maintenance Order',
+        subtitle: 'Valid for all new customer signups in Riyadh',
+        buttonText: 'Claim Discount',
+        imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80',
+        bannerType: 'PROMO',
+        placement: 'TOP',
+        isActive: true,
+        createdAt: '2026-07-24'
+      }
+    ]);
+  }
+
+  public async createPromotion(data: { title: string; subtitle: string; imageUrl: string; bannerType?: string; placement?: string }): Promise<Result<PromotionOffer>> {
+    const offer: PromotionOffer = {
+      id: `P-${Date.now()}`,
+      title: data.title,
+      subtitle: data.subtitle,
+      buttonText: 'Claim Offer',
+      imageUrl: data.imageUrl,
+      bannerType: (data.bannerType as any) || 'PROMO',
+      placement: (data.placement as any) || 'TOP',
+      isActive: true,
+      createdAt: new Date().toLocaleDateString()
+    };
+    return ok(offer);
+  }
+
+  public async togglePromotionStatus(id: string): Promise<Result<PromotionOffer>> {
+    return ok({
+      id,
+      title: '30% Off First Order',
+      subtitle: 'Updated Status',
+      buttonText: 'Claim Offer',
+      imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80',
+      bannerType: 'PROMO',
+      placement: 'TOP',
+      isActive: true,
+      createdAt: 'Today'
+    });
+  }
+
+  public async deletePromotion(_id: string): Promise<Result<boolean>> {
+    return ok(true);
   }
 }
 export default MockAdRepository;
