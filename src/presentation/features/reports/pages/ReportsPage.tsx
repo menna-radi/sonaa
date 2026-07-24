@@ -76,6 +76,7 @@ export const ReportsPage: React.FC = () => {
   const [customMessage, setCustomMessage] = useState<string>('');
   const [sendNotification, setSendNotification] = useState<boolean>(true);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [showTaskModal, setShowTaskModal] = useState<boolean>(false);
 
   // Decision States
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
@@ -539,16 +540,36 @@ export const ReportsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Task / Order Context Card */}
-                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Briefcase size={18} style={{ color: '#0284c7' }} />
-                      <div>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}>{selectedReport.taskTitle}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Order Reference: {selectedReport.taskDisplayId}</div>
+                  {/* Task / Order Context Card (Interactive) */}
+                  <div 
+                    onClick={() => setShowTaskModal(true)}
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '12px',
+                      padding: '14px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ background: '#e0f2fe', color: '#0284c7', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Briefcase size={20} />
+                      </div>
+                      <div style={{ textAlign: 'start' }}>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>{selectedReport.taskTitle}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Order Reference: <strong style={{ color: '#0284c7' }}>{selectedReport.taskDisplayId}</strong></div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#0284c7', background: '#e0f2fe', padding: '3px 8px', borderRadius: '6px' }}>Linked Order</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0284c7', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 600 }}>
+                      <span>Inspect Order</span>
+                      <ExternalLink size={14} />
+                    </div>
                   </div>
 
                   {/* Incident Description */}
@@ -665,6 +686,83 @@ export const ReportsPage: React.FC = () => {
           </>
           )}
         </div>
+
+        {/* Full Order Details Modal */}
+        {showTaskModal && selectedReport && (
+          <div className="modal-backdrop animate-fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
+            <div className="glass-card" style={{ background: '#ffffff', width: '100%', maxWidth: '580px', borderRadius: '16px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', position: 'relative' }}>
+              <button 
+                onClick={() => setShowTaskModal(false)}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: '#f5f5f5', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <X size={18} />
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                <Briefcase size={24} style={{ color: '#0284c7' }} />
+                <div style={{ textAlign: 'start' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a' }}>Linked Order Inspector</h3>
+                  <span style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: 600 }}>Reference: {selectedReport.taskDisplayId}</span>
+                </div>
+              </div>
+
+              <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '16px', marginBottom: '16px', textAlign: 'start' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', marginBottom: '4px' }}>Order Title</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#171717', marginBottom: '12px' }}>{selectedReport.taskTitle}</div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: '#737373' }}>Category</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#262626' }}>{selectedReport.category.toUpperCase()}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: '#737373' }}>Order Status</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0284c7' }}>IN_PROGRESS / DISPUTED</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: '#737373' }}>Agreed Budget</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#16a34a' }}>250.00 SAR</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: '#737373' }}>Location</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#262626' }}>Riyadh, KSA</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px', textAlign: 'start' }}>
+                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>CUSTOMER</span>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>{selectedReport.reporter}</div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{selectedReport.reporterPhone}</div>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>ASSIGNED CRAFTSMAN</span>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>{selectedReport.subject}</div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{selectedReport.suspectPhone}</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => window.open('/tasks', '_blank')}
+                  style={{ flex: 1, padding: '10px', background: '#171717', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <span>Open Tasks Center</span>
+                  <ExternalLink size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowTaskModal(false)}
+                  style={{ padding: '10px 16px', background: '#f5f5f5', color: '#525252', border: '1px solid #e5e5e5', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <MobileBottomTabs />
