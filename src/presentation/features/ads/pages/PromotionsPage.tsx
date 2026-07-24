@@ -197,7 +197,7 @@ export const PromotionsPage: React.FC = () => {
       name: 'Ahmad Al-Dawsari',
       avatarInitials: 'AD',
       category: 'Electrician',
-      city: 'Riyadh',
+      city: 'Jerusalem',
       packageName: 'Premium',
       daysLeft: 62,
       views: 8420,
@@ -209,7 +209,7 @@ export const PromotionsPage: React.FC = () => {
       name: 'Mohammed Al-Zahrani',
       avatarInitials: 'MZ',
       category: 'Plumber',
-      city: 'Jeddah',
+      city: 'Ramallah',
       packageName: 'Featured',
       daysLeft: 18,
       views: 4128,
@@ -221,7 +221,7 @@ export const PromotionsPage: React.FC = () => {
       name: 'Saif Al-Otaibi',
       avatarInitials: 'SO',
       category: 'AC Repair',
-      city: 'Dammam',
+      city: 'Bethlehem',
       packageName: 'Featured',
       daysLeft: 24,
       views: 5612,
@@ -233,7 +233,7 @@ export const PromotionsPage: React.FC = () => {
       name: 'Bandar Al-Qahtani',
       avatarInitials: 'BQ',
       category: 'Carpenter',
-      city: 'Riyadh',
+      city: 'Jerusalem',
       packageName: 'Basic',
       daysLeft: 4,
       views: 1820,
@@ -245,7 +245,7 @@ export const PromotionsPage: React.FC = () => {
       name: 'Hassan Al-Harbi',
       avatarInitials: 'HH',
       category: 'Painter',
-      city: 'Makkah',
+      city: 'Hebron',
       packageName: 'Premium',
       daysLeft: 74,
       views: 9240,
@@ -257,7 +257,7 @@ export const PromotionsPage: React.FC = () => {
       name: 'Yousef Al-Maliki',
       avatarInitials: 'YM',
       category: 'Cleaner',
-      city: 'Riyadh',
+      city: 'Jerusalem',
       packageName: 'Featured',
       daysLeft: 12,
       views: 3520,
@@ -269,7 +269,7 @@ export const PromotionsPage: React.FC = () => {
       name: 'Khalid Al-Ghamdi',
       avatarInitials: 'KG',
       category: 'Mover',
-      city: 'Jeddah',
+      city: 'Nablus',
       packageName: 'Basic',
       daysLeft: 2,
       views: 980,
@@ -288,7 +288,7 @@ export const PromotionsPage: React.FC = () => {
   const [isNewPromoOpen, setIsNewPromoOpen] = useState(false);
   const [newCraftsmanName, setNewCraftsmanName] = useState('');
   const [newCraftsmanCat, setNewCraftsmanCat] = useState('Electrician');
-  const [newCraftsmanCity, setNewCraftsmanCity] = useState('Riyadh');
+  const [newCraftsmanCity, setNewCraftsmanCity] = useState('Jerusalem');
   const [newCraftsmanPack, setNewCraftsmanPack] = useState<'Basic' | 'Featured' | 'Premium'>('Basic');
   const [newCraftsmanDays, setNewCraftsmanDays] = useState('30');
 
@@ -596,7 +596,7 @@ export const PromotionsPage: React.FC = () => {
               </div>
               <span className="metric-label">{t('promotions_boost_revenue_mtd') || 'Boost Revenue (MTD)'}</span>
               <span className="metric-value">
-                {isRtl ? `ريال ${stats.boostRevenueMtd.toLocaleString()}` : `SAR ${(stats.boostRevenueMtd / 1000).toFixed(0)}K`}
+                {isRtl ? `₪ ${stats.boostRevenueMtd.toLocaleString()}` : `₪ ${(stats.boostRevenueMtd / 1000).toFixed(0)}K`}
               </span>
             </div>
 
@@ -643,7 +643,7 @@ export const PromotionsPage: React.FC = () => {
                   <h3 className="package-tier-name">{pkg.name}</h3>
 
                   <div className="price-container">
-                    <span className="price-value">SAR {pkg.price}</span>
+                    <span className="price-value">₪ {pkg.price}</span>
                     <span className="price-duration">/ {pkg.durationDays} {isRtl ? 'أيام' : 'days'}</span>
                   </div>
 
@@ -861,7 +861,7 @@ export const PromotionsPage: React.FC = () => {
 
               <form onSubmit={handleSavePackage} className="modal-form-body">
                 <div className="input-group">
-                  <label>{isRtl ? 'السعر (ريال سعودي)' : 'Price (SAR)'}</label>
+                  <label>{isRtl ? 'السعر (شيكل ₪)' : 'Price (₪)'}</label>
                   <input
                     type="number"
                     value={newPackagePrice}
@@ -950,11 +950,11 @@ export const PromotionsPage: React.FC = () => {
                     value={newCraftsmanCity}
                     onChange={(e) => setNewCraftsmanCity(e.target.value)}
                   >
-                    <option value="Riyadh">{isRtl ? 'الرياض' : 'Riyadh'}</option>
-                    <option value="Jeddah">{isRtl ? 'جدة' : 'Jeddah'}</option>
-                    <option value="Dammam">{isRtl ? 'الدمام' : 'Dammam'}</option>
-                    <option value="Makkah">{isRtl ? 'مكة المكرمة' : 'Makkah'}</option>
-                    <option value="Medina">{isRtl ? 'المدينة المنورة' : 'Medina'}</option>
+                    <option value="Jerusalem">{isRtl ? 'القدس الشريف' : 'Jerusalem'}</option>
+                    <option value="Ramallah">{isRtl ? 'رام الله' : 'Ramallah'}</option>
+                    <option value="Bethlehem">{isRtl ? 'بيت لحم' : 'Bethlehem'}</option>
+                    <option value="Hebron">{isRtl ? 'الخليل' : 'Hebron'}</option>
+                    <option value="Nablus">{isRtl ? 'نابلس' : 'Nablus'}</option>
                   </select>
                 </div>
 

@@ -166,12 +166,12 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '45K',
       ctr: '2.8%',
       conversions: 124,
-      spend: 'SAR 2,000',
+      spend: '₪ 2,000',
       status: 'Paused'
     },
     {
       id: 'act-8',
-      name: 'Makkah Maintenance Week',
+      name: 'Bethlehem Maintenance Week',
       objective: 'Awareness',
       placement: 'Notifications',
       audience: 'Customers · Maintenance',
@@ -181,12 +181,12 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '28K',
       ctr: '4.6%',
       conversions: 186,
-      spend: 'SAR 1,500',
+      spend: '₪ 1,500',
       status: 'Active'
     },
     {
       id: 'act-9',
-      name: 'Carpenters Boost — Khobar',
+      name: 'Carpenters Boost — Hebron',
       objective: 'Profile views',
       placement: 'Search Results',
       audience: 'Customers · Carpenters',
@@ -196,7 +196,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '38K',
       ctr: '3.3%',
       conversions: 142,
-      spend: 'SAR 1,800',
+      spend: '₪ 1,800',
       status: 'Active'
     },
     {
@@ -211,14 +211,14 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '96K',
       ctr: '4.0%',
       conversions: 512,
-      spend: 'SAR 3,200',
+      spend: '₪ 3,200',
       status: 'Active'
     },
 
     // Scheduled tab items (Scheduled count = 8)
     {
       id: 'sch-1',
-      name: 'Eid Plumbing Promo',
+      name: 'Plumbing Seasonal Push',
       objective: 'Seasonal push',
       placement: 'Home Banner',
       audience: 'Customers · Plumbers',
@@ -228,7 +228,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: 'SAR 0',
+      spend: '₪ 0',
       budget: 6000,
       status: 'Scheduled'
     },
@@ -244,13 +244,13 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: 'SAR 0',
+      spend: '₪ 0',
       budget: 8500,
       status: 'Scheduled'
     },
     {
       id: 'sch-3',
-      name: 'Riyadh Featured Electricians',
+      name: 'Jerusalem Featured Electricians',
       objective: 'Featured slots',
       placement: 'Featured Slots',
       audience: 'Customers · Electricians',
@@ -260,13 +260,13 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: 'SAR 0',
+      spend: '₪ 0',
       budget: 7200,
       status: 'Scheduled'
     },
     {
       id: 'sch-4',
-      name: 'Movers Black Friday',
+      name: 'Movers Promotion',
       objective: 'Conversions',
       placement: 'Home Banner',
       audience: 'Customers · Movers',
@@ -276,7 +276,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: 'SAR 0',
+      spend: '₪ 0',
       budget: 4000,
       status: 'Scheduled'
     },
@@ -292,13 +292,13 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: 'SAR 0',
+      spend: '₪ 0',
       budget: 3000,
       status: 'Scheduled'
     },
     {
       id: 'sch-6',
-      name: 'Madinah Cleaning Launch',
+      name: 'Nablus Cleaning Launch',
       objective: 'Awareness',
       placement: 'Category Page',
       audience: 'Customers · Cleaning',
@@ -308,13 +308,13 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: 'SAR 0',
+      spend: '₪ 0',
       budget: 5500,
       status: 'Scheduled'
     },
     {
       id: 'sch-7',
-      name: 'Carpenters National',
+      name: 'Carpenters Regional',
       objective: 'Lead gen',
       placement: 'Craftsmen Listing',
       audience: 'Customers · Carpenters',
@@ -324,7 +324,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: 'SAR 0',
+      spend: '₪ 0',
       budget: 6800,
       status: 'Scheduled'
     },
@@ -340,7 +340,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: 'SAR 0',
+      spend: '₪ 0',
       budget: 2500,
       status: 'Scheduled'
     },
@@ -358,7 +358,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '342K',
       ctr: '4.8%',
       conversions: 2180,
-      spend: 'SAR 9,500',
+      spend: '₪ 9,500',
       status: 'Expired'
     },
     {
@@ -373,12 +373,12 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '628K',
       ctr: '5.2%',
       conversions: 4124,
-      spend: 'SAR 18,400',
+      spend: '₪ 18,400',
       status: 'Expired'
     },
     {
       id: 'exp-3',
-      name: 'Ramadan Cleaning Push',
+      name: 'Seasonal Cleaning Push',
       objective: 'Conversions',
       placement: 'Popups',
       audience: 'Customers · Cleaning',
@@ -388,12 +388,12 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '512K',
       ctr: '6.1%',
       conversions: 3850,
-      spend: 'SAR 14,200',
+      spend: '₪ 14,200',
       status: 'Expired'
     },
     {
       id: 'exp-4',
-      name: 'Hajj Movers Special',
+      name: 'Jerusalem Movers Special',
       objective: 'Awareness',
       placement: 'Featured Slots',
       audience: 'Customers · Movers',
@@ -403,7 +403,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '218K',
       ctr: '4.4%',
       conversions: 1210,
-      spend: 'SAR 8,800',
+      spend: '₪ 8,800',
       status: 'Expired'
     },
     {
@@ -418,7 +418,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '124K',
       ctr: '3.1%',
       conversions: 482,
-      spend: 'SAR 4,500',
+      spend: '₪ 4,500',
       status: 'Expired'
     },
     {
@@ -433,12 +433,12 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '186K',
       ctr: '4.0%',
       conversions: 912,
-      spend: 'SAR 6,400',
+      spend: '₪ 6,400',
       status: 'Expired'
     },
     {
       id: 'exp-7',
-      name: 'Electricians Boost — Riyadh',
+      name: 'Electricians Boost — Jerusalem',
       objective: 'Featured listings',
       placement: 'Search Results',
       audience: 'Customers · Electricians',
@@ -448,7 +448,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '198K',
       ctr: '5.6%',
       conversions: 1440,
-      spend: 'SAR 7,200',
+      spend: '₪ 7,200',
       status: 'Expired'
     }
   ]);
@@ -477,7 +477,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: `SAR ${parseFloat(newCampBudget).toLocaleString()}`,
+      spend: `₪ ${parseFloat(newCampBudget).toLocaleString()}`,
       status: 'Scheduled' // New campaigns default to Scheduled timeframe
     };
 
@@ -877,7 +877,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                         </td>
                         <td style={{ textAlign: 'end', fontWeight: 600, fontSize: '13px' }}>
                           {camp.status === 'Scheduled' && camp.budget !== undefined
-                            ? `SAR 0 / ${camp.budget.toLocaleString()}`
+                            ? `₪ 0 / ${camp.budget.toLocaleString()}`
                             : camp.spend}
                         </td>
                         <td style={{ textAlign: 'start' }}>
@@ -987,7 +987,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Dammam AC Repair Promo"
+                    placeholder="e.g. Jerusalem AC Repair Promo"
                     value={newCampName}
                     onChange={(e) => setNewCampName(e.target.value)}
                     className="form-input"
@@ -1035,7 +1035,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Budget (SAR)</label>
+                  <label className="form-label">Budget (₪)</label>
                   <input
                     type="number"
                     required
