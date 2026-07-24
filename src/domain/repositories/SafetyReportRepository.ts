@@ -4,23 +4,27 @@ export interface SafetyReport {
   id: string;
   title: string;
   severity: 'high' | 'medium' | 'low';
-  ai: boolean;
   reporter: string;
   reporterId?: string;
   reporterPhone?: string;
+  reporterPriorReportsCount?: number;
   subject: string;
   suspectId?: string;
   suspectPhone?: string;
   suspectStatus?: string;
+  suspectPriorReportsCount?: number;
   subjectType: string;
-  category: 'fraud' | 'fake_accounts' | 'chats' | 'ai_alerts' | 'spam';
+  category: 'fraud' | 'fake_accounts' | 'chats' | 'spam';
   time: string;
-  riskScore: number;
   desc: string;
   taskId?: string;
   taskDisplayId?: string;
   taskTitle?: string;
-  aiTriggers?: string[];
+  orderBudget?: number;
+  escrowStatus?: 'RELEASED' | 'FROZEN' | 'REFUNDED';
+  chatLogs?: { sender: string; text: string; time: string; flagged?: boolean }[];
+  evidenceImages?: string[];
+  auditTrail?: { action: string; actor: string; timestamp: string }[];
 }
 
 export interface SafetyReportRepository {

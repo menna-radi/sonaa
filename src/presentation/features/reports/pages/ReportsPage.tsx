@@ -26,7 +26,13 @@ import {
   ShieldCheck,
   Briefcase,
   UserCheck,
-  ExternalLink
+  ExternalLink,
+  Lock,
+  Unlock,
+  DollarSign,
+  Image as ImageIcon,
+  Clock,
+  History
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -37,10 +43,12 @@ interface ReportItem {
   reporter: string;
   reporterId?: string;
   reporterPhone?: string;
+  reporterPriorReportsCount?: number;
   subject: string;
   suspectId?: string;
   suspectPhone?: string;
   suspectStatus?: string;
+  suspectPriorReportsCount?: number;
   subjectType: string;
   category: 'fraud' | 'fake_accounts' | 'chats' | 'spam';
   time: string;
@@ -48,6 +56,11 @@ interface ReportItem {
   taskId?: string;
   taskDisplayId?: string;
   taskTitle?: string;
+  orderBudget?: number;
+  escrowStatus?: 'RELEASED' | 'FROZEN' | 'REFUNDED';
+  chatLogs?: { sender: string; text: string; time: string; flagged?: boolean }[];
+  evidenceImages?: string[];
+  auditTrail?: { action: string; actor: string; timestamp: string }[];
 }
 
 type ReportFilter = 'All' | 'Fraud' | 'Fake accounts' | 'Chats' | 'Spam';
@@ -69,6 +82,9 @@ export const ReportsPage: React.FC = () => {
   const [filter, setFilter] = useState<ReportFilter>('All');
   const [notes, setNotes] = useState<{ [id: string]: string }>({});
   const [mobileView, setMobileView] = useState<'queue' | 'detail'>('queue');
+  const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'chat' | 'evidence' | 'audit'>('overview');
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [escrowStates, setEscrowStates] = useState<{ [id: string]: 'RELEASED' | 'FROZEN' | 'REFUNDED' }>({});
 
   // Interactive Message & Action States
   const [selectedAction, setSelectedAction] = useState<'dismiss' | 'warning' | 'suspend' | 'ban'>('dismiss');
@@ -236,6 +252,18 @@ export const ReportsPage: React.FC = () => {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to moderate report.');
     }
+  };
+
+  const handleToggleEscrow = (reportId: string, currentStatus?: 'RELEASED' | 'FROZEN' | 'REFUNDED') => {
+    const current = escrowStates[reportId] || currentStatus || 'FROZEN';
+    const nextStatus = current === 'FROZEN' ? 'RELEASED' : 'FROZEN';
+    setEscrowStates(prev => ({ ...prev, [reportId]: nextStatus }));
+    setActionSuccess(`Order payout status updated to '${nextStatus}'.`);
+  };
+
+  const handleRefundCustomer = (reportId: string) => {
+    setEscrowStates(prev => ({ ...prev, [reportId]: 'REFUNDED' }));
+    setActionSuccess(`Full refund of ${selectedReport?.orderBudget || 350} SAR initiated to customer account.`);
   };
 
   const handleNoteChange = (text: string) => {
@@ -509,76 +537,337 @@ export const ReportsPage: React.FC = () => {
 
 
 
-                  {/* Parties Contact Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', margin: '16px 0' }}>
-                    {/* Reporter Card */}
-                    <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reporter Profile</span>
-                        <span style={{ fontSize: '0.7rem', background: '#dbeafe', color: '#1e40af', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Customer</span>
-                      </div>
-                      <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#171717' }}>{selectedReport.reporter}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#525252', marginTop: '6px' }}>
-                        <Phone size={12} />
-                        <a href={`tel:${selectedReport.reporterPhone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{selectedReport.reporterPhone}</a>
-                      </div>
-                    </div>
+                  {/* Tab Navigation Header */}
+                  <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e5e5e5', margin: '16px 0 20px 0', paddingBottom: '2px', overflowX: 'auto' }}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveDetailTab('overview')}
+                      style={{
+                        padding: '8px 14px',
+                        border: 'none',
+                        borderBottom: activeDetailTab === 'overview' ? '2px solid #171717' : '2px solid transparent',
+                        background: 'none',
+                        fontWeight: activeDetailTab === 'overview' ? 700 : 500,
+                        color: activeDetailTab === 'overview' ? '#171717' : '#737373',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <FileText size={15} />
+                      <span>Incident Overview</span>
+                    </button>
 
-                    {/* Suspect Card */}
-                    <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reported Suspect</span>
-                        <span style={{ fontSize: '0.7rem', background: selectedReport.suspectStatus === 'BLOCKED' ? '#fee2e2' : selectedReport.suspectStatus === 'SUSPENDED' ? '#fef3c7' : '#dcfce7', color: selectedReport.suspectStatus === 'BLOCKED' ? '#991b1b' : selectedReport.suspectStatus === 'SUSPENDED' ? '#92400e' : '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                          {selectedReport.suspectStatus || 'ACTIVE'}
+                    <button
+                      type="button"
+                      onClick={() => setActiveDetailTab('chat')}
+                      style={{
+                        padding: '8px 14px',
+                        border: 'none',
+                        borderBottom: activeDetailTab === 'chat' ? '2px solid #171717' : '2px solid transparent',
+                        background: 'none',
+                        fontWeight: activeDetailTab === 'chat' ? 700 : 500,
+                        color: activeDetailTab === 'chat' ? '#171717' : '#737373',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <MessageSquare size={15} />
+                      <span>Chat Logs ({selectedReport.chatLogs?.length || 0})</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveDetailTab('evidence')}
+                      style={{
+                        padding: '8px 14px',
+                        border: 'none',
+                        borderBottom: activeDetailTab === 'evidence' ? '2px solid #171717' : '2px solid transparent',
+                        background: 'none',
+                        fontWeight: activeDetailTab === 'evidence' ? 700 : 500,
+                        color: activeDetailTab === 'evidence' ? '#171717' : '#737373',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <ImageIcon size={15} />
+                      <span>Evidence ({selectedReport.evidenceImages?.length || 0})</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveDetailTab('audit')}
+                      style={{
+                        padding: '8px 14px',
+                        border: 'none',
+                        borderBottom: activeDetailTab === 'audit' ? '2px solid #171717' : '2px solid transparent',
+                        background: 'none',
+                        fontWeight: activeDetailTab === 'audit' ? 700 : 500,
+                        color: activeDetailTab === 'audit' ? '#171717' : '#737373',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <History size={15} />
+                      <span>Audit Trail</span>
+                    </button>
+                  </div>
+
+                  {/* TAB 1: OVERVIEW */}
+                  {activeDetailTab === 'overview' && (
+                    <>
+                      {/* Financial Escrow Hold & Safeguards Banner */}
+                      <div style={{ background: escrowStates[selectedReport.id] === 'REFUNDED' ? '#eff6ff' : escrowStates[selectedReport.id] === 'RELEASED' ? '#f0fdf4' : '#fff7ed', border: `1px solid ${escrowStates[selectedReport.id] === 'REFUNDED' ? '#bfdbfe' : escrowStates[selectedReport.id] === 'RELEASED' ? '#bbf7d0' : '#fed7aa'}`, borderRadius: '12px', padding: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ background: escrowStates[selectedReport.id] === 'REFUNDED' ? '#2563eb' : escrowStates[selectedReport.id] === 'RELEASED' ? '#16a34a' : '#ea580c', color: '#ffffff', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Lock size={18} />
+                          </div>
+                          <div style={{ textAlign: 'start' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>
+                              Escrow Financial Protection: {selectedReport.orderBudget || 350} SAR
+                            </div>
+                            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                              Status: <strong style={{ color: escrowStates[selectedReport.id] === 'REFUNDED' ? '#2563eb' : escrowStates[selectedReport.id] === 'RELEASED' ? '#16a34a' : '#ea580c' }}>
+                                {escrowStates[selectedReport.id] || selectedReport.escrowStatus || 'FROZEN'}
+                              </strong>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleEscrow(selectedReport.id, selectedReport.escrowStatus)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              border: '1px solid #cbd5e1',
+                              background: '#ffffff',
+                              color: '#334155',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <Lock size={12} />
+                            <span>{(escrowStates[selectedReport.id] || selectedReport.escrowStatus) === 'FROZEN' ? 'Unfreeze Payout' : 'Freeze Payout'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRefundCustomer(selectedReport.id)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              border: 'none',
+                              background: '#2563eb',
+                              color: '#ffffff',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <DollarSign size={12} />
+                            <span>Issue Customer Refund</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Parties Contact Grid & Repeat Offender Counter */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                        {/* Reporter Card */}
+                        <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px', textAlign: 'start' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reporter Profile</span>
+                            <span style={{ fontSize: '0.7rem', background: '#dbeafe', color: '#1e40af', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Customer</span>
+                          </div>
+                          <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#171717' }}>{selectedReport.reporter}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#525252', marginTop: '6px' }}>
+                            <Phone size={12} />
+                            <a href={`tel:${selectedReport.reporterPhone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{selectedReport.reporterPhone}</a>
+                          </div>
+                          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#166534', background: '#dcfce7', padding: '3px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 600 }}>
+                            {selectedReport.reporterPriorReportsCount || 1} Prior Report Submitted
+                          </div>
+                        </div>
+
+                        {/* Suspect Card */}
+                        <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px', textAlign: 'start' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reported Suspect</span>
+                            <span style={{ fontSize: '0.7rem', background: selectedReport.suspectStatus === 'BLOCKED' ? '#fee2e2' : selectedReport.suspectStatus === 'SUSPENDED' ? '#fef3c7' : '#dcfce7', color: selectedReport.suspectStatus === 'BLOCKED' ? '#991b1b' : selectedReport.suspectStatus === 'SUSPENDED' ? '#92400e' : '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                              {selectedReport.suspectStatus || 'ACTIVE'}
+                            </span>
+                          </div>
+                          <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#171717' }}>{selectedReport.subject}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#525252', marginTop: '6px' }}>
+                            <Phone size={12} />
+                            <a href={`tel:${selectedReport.suspectPhone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{selectedReport.suspectPhone}</a>
+                          </div>
+                          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: (selectedReport.suspectPriorReportsCount || 0) > 1 ? '#991b1b' : '#166534', background: (selectedReport.suspectPriorReportsCount || 0) > 1 ? '#fee2e2' : '#dcfce7', padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                            {(selectedReport.suspectPriorReportsCount || 0) > 1 && <AlertTriangle size={12} />}
+                            <span>⚠️ {selectedReport.suspectPriorReportsCount || 1} Reported Incident(s) Logged</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Task / Order Context Card (Interactive) */}
+                      <div 
+                        onClick={() => setShowTaskModal(true)}
+                        style={{
+                          background: '#f8fafc',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '14px',
+                          marginBottom: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ background: '#e0f2fe', color: '#0284c7', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Briefcase size={20} />
+                          </div>
+                          <div style={{ textAlign: 'start' }}>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>{selectedReport.taskTitle}</div>
+                            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Order Reference: <strong style={{ color: '#0284c7' }}>{selectedReport.taskDisplayId}</strong></div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0284c7', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 600 }}>
+                          <span>Inspect Order</span>
+                          <ExternalLink size={14} />
+                        </div>
+                      </div>
+
+                      {/* Incident Description */}
+                      <div className="rp-detail-section" style={{ textAlign: 'start' }}>
+                        <span className="rp-section-label">Reported Incident Statement</span>
+                        <p className="rp-section-description" style={{ background: '#ffffff', border: '1px solid #e5e5e5', borderRadius: '8px', padding: '12px', fontSize: '0.9rem', color: '#262626' }}>
+                          {selectedReport.desc}
+                        </p>
+                      </div>
+                    </>
+                  )}
+
+                  {/* TAB 2: CHAT LOGS */}
+                  {activeDetailTab === 'chat' && (
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', textAlign: 'start' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MessageSquare size={16} style={{ color: '#0284c7' }} />
+                          Order Chat Log History
                         </span>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Flagged lines highlighted in red</span>
                       </div>
-                      <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#171717' }}>{selectedReport.subject}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#525252', marginTop: '6px' }}>
-                        <Phone size={12} />
-                        <a href={`tel:${selectedReport.suspectPhone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{selectedReport.suspectPhone}</a>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Task / Order Context Card (Interactive) */}
-                  <div 
-                    onClick={() => setShowTaskModal(true)}
-                    style={{
-                      background: '#f8fafc',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '12px',
-                      padding: '14px',
-                      marginBottom: '16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ background: '#e0f2fe', color: '#0284c7', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Briefcase size={20} />
-                      </div>
-                      <div style={{ textAlign: 'start' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>{selectedReport.taskTitle}</div>
-                        <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Order Reference: <strong style={{ color: '#0284c7' }}>{selectedReport.taskDisplayId}</strong></div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {(selectedReport.chatLogs || []).map((msg, idx) => (
+                          <div 
+                            key={idx}
+                            style={{
+                              background: msg.flagged ? '#fef2f2' : '#ffffff',
+                              border: msg.flagged ? '1px solid #fecaca' : '1px solid #e2e8f0',
+                              borderRadius: '8px',
+                              padding: '10px 12px',
+                              position: 'relative'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: msg.sender === selectedReport.reporter ? '#1e40af' : '#15803d' }}>
+                                {msg.sender}
+                              </span>
+                              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{msg.time}</span>
+                            </div>
+                            <div style={{ fontSize: '0.88rem', color: msg.flagged ? '#991b1b' : '#334155', fontWeight: msg.flagged ? 600 : 400 }}>
+                              {msg.text}
+                            </div>
+                            {msg.flagged && (
+                              <span style={{ fontSize: '0.7rem', color: '#dc2626', background: '#fee2e2', padding: '1px 6px', borderRadius: '4px', marginTop: '6px', display: 'inline-block', fontWeight: 600 }}>
+                                ⚠️ Flagged Message Signal
+                              </span>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0284c7', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 600 }}>
-                      <span>Inspect Order</span>
-                      <ExternalLink size={14} />
-                    </div>
-                  </div>
+                  )}
 
-                  {/* Incident Description */}
-                  <div className="rp-detail-section">
-                    <span className="rp-section-label">Reported Incident Statement</span>
-                    <p className="rp-section-description" style={{ background: '#ffffff', border: '1px solid #e5e5e5', borderRadius: '8px', padding: '12px', fontSize: '0.9rem', color: '#262626' }}>
-                      {selectedReport.desc}
-                    </p>
-                  </div>
+                  {/* TAB 3: EVIDENCE GALLERY */}
+                  {activeDetailTab === 'evidence' && (
+                    <div style={{ textAlign: 'start' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px', display: 'block' }}>
+                        Uploaded Photos & Attachments ({selectedReport.evidenceImages?.length || 0})
+                      </span>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+                        {(selectedReport.evidenceImages || []).map((imgUrl, idx) => (
+                          <div 
+                            key={idx}
+                            onClick={() => setLightboxImage(imgUrl)}
+                            style={{
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '12px',
+                              overflow: 'hidden',
+                              cursor: 'pointer',
+                              background: '#f8fafc',
+                              transition: 'transform 0.15s ease'
+                            }}
+                          >
+                            <img src={imgUrl} alt={`Evidence photo ${idx + 1}`} style={{ width: '100%', height: '140px', objectFit: 'cover' }} />
+                            <div style={{ padding: '8px', fontSize: '0.75rem', fontWeight: 600, color: '#475569', textAlign: 'center' }}>
+                              Photo Evidence #{idx + 1} 🔍
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 4: AUDIT TRAIL */}
+                  {activeDetailTab === 'audit' && (
+                    <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '16px', textAlign: 'start' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginBottom: '14px', display: 'block' }}>
+                        Incident Moderation Audit Log
+                      </span>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {(selectedReport.auditTrail || []).map((log, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0284c7', marginTop: '6px' }} />
+                            <div>
+                              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#171717' }}>{log.action}</div>
+                              <div style={{ fontSize: '0.75rem', color: '#737373' }}>By {log.actor} · {log.timestamp}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Ready Response Template Switcher Bar */}
                   <div style={{ marginTop: '20px', marginBottom: '12px' }}>
@@ -760,6 +1049,21 @@ export const ReportsPage: React.FC = () => {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Evidence Lightbox Modal */}
+        {lightboxImage && (
+          <div className="modal-backdrop animate-fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '20px' }}>
+            <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+              <button 
+                onClick={() => setLightboxImage(null)}
+                style={{ position: 'absolute', top: '-16px', right: '-16px', background: '#ffffff', color: '#171717', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+              >
+                <X size={20} />
+              </button>
+              <img src={lightboxImage} alt="Evidence preview" style={{ maxWidth: '100%', maxHeight: '85vh', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', objectFit: 'contain' }} />
             </div>
           </div>
         )}
