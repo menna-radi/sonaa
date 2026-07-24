@@ -68,7 +68,6 @@ export const TasksPage: React.FC = () => {
       return true;
     });
   }, [tasks, selectedCategory, selectedStatus]);
-  // Helper to format/localize ETA values
   const formatEta = (eta: string) => {
     if (eta === 'NOW') return t('eta_now') || 'NOW';
     if (eta === 'Done') return t('eta_done') || 'Done';
@@ -77,6 +76,64 @@ export const TasksPage: React.FC = () => {
       return `${mins} ${t('eta_mins') || 'min'}`;
     }
     return eta;
+  };
+
+  const handleExportTasksReport = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Jerusalem Tasks Audit Report</title>
+          <style>
+            body { font-family: system-ui, sans-serif; padding: 40px; color: #0f172a; }
+            .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+            th { background: #f8fafc; font-weight: 700; color: #475569; }
+            .badge { padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; }
+            .emergency { background: #fee2e2; color: #991b1b; }
+            .progress { background: #dbeafe; color: #1e40af; }
+            .disputed { background: #fef3c7; color: #92400e; }
+            .completed { background: #dcfce7; color: #166534; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>Jerusalem Service Tasks & Dispatch Audit Report</h2>
+            <p style="color: #64748b; margin: 4px 0 0 0;">Location: Jerusalem, Palestine (القدس، فلسطين) • Generated on ${new Date().toLocaleDateString()}</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Job ID</th>
+                <th>Task Title</th>
+                <th>Customer</th>
+                <th>Craftsman</th>
+                <th>Status</th>
+                <th>Location</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${displayedTasks.map(t => `
+                <tr>
+                  <td><strong>${t.jobNumber}</strong></td>
+                  <td>${t.title}</td>
+                  <td>${t.customer}</td>
+                  <td>${t.craftsman}</td>
+                  <td><span class="badge ${t.status}">${t.status.toUpperCase()}</span></td>
+                  <td>${t.zone || 'Jerusalem'}</td>
+                  <td>₪${t.amountSAR}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
   };
 
   // Status Badge Helper
@@ -260,7 +317,7 @@ export const TasksPage: React.FC = () => {
                 </div>
               )}
 
-              <button className="header-action-btn primary-btn">
+              <button className="header-action-btn primary-btn" onClick={handleExportTasksReport}>
                 <Download size={14} />
                 <span>{t('btn_export') || 'Export'}</span>
               </button>
