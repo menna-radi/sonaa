@@ -196,9 +196,9 @@ export const useBroadcast = () => {
 
   // Estimated SMS cost
   const estSmsCost = useMemo(() => {
-    if (!channels.includes('sms')) return 'SAR 0';
+    if (!channels.includes('sms')) return '₪0';
     const count = parseInt(audienceInfo.count.replace(/,/g, ''), 10) || 0;
-    return `SAR ${(count * 0.05).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+    return `₪ ${(count * 0.05).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
   }, [channels, audienceInfo]);
 
   // Actions

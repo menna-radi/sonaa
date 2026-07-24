@@ -368,7 +368,7 @@ export const BroadcastPage: React.FC = () => {
                       <div className="custom-checkbox"><div className="checkmark" /></div>
                     </div>
                     <strong>SMS</strong>
-                    <span>SAR 0.05/msg</span>
+                    <span>₪ 0.05/msg</span>
                   </button>
 
                   <button
