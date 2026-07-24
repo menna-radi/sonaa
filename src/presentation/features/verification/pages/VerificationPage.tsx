@@ -201,11 +201,8 @@ const PortfolioContent: React.FC<{ submission?: Submission }> = ({ submission })
 const SkillsContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
   const { t } = useLanguage();
 
-  const isFullyVerified = Boolean(submission?.isVerifiedCert || submission?.isVerifiedId);
 
   const items = [
-    { key: 'role', label: `Trade Role: ${submission?.role || 'Craftsman'}`, status: isFullyVerified ? 'verified' : 'missing' },
-    { key: 'city', label: `Location: ${submission?.city || 'Riyadh'}`, status: isFullyVerified ? 'verified' : 'missing' },
     { key: 'id', label: 'National ID & Identity Verification', status: submission?.isVerifiedId ? 'verified' : 'missing' },
     { key: 'cert', label: 'TVTC Certification & Trade License', status: submission?.isVerifiedCert ? 'verified' : 'missing' },
     { key: 'insurance', label: 'Liability Insurance Coverage', status: submission?.isInsured ? 'verified' : 'missing' },
