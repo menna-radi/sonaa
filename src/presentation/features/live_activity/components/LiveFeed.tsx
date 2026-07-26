@@ -14,6 +14,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import type { ActivityEvent, ActivityEventType } from '../../../../domain/entities/LiveActivity';
+import { useNavigation } from '../../../../presentation/context/NavigationContext';
 
 interface LiveFeedProps {
   events: ActivityEvent[];
@@ -48,6 +49,7 @@ const EVENT_BG: Partial<Record<ActivityEventType, string>> = {
 };
 
 export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePause }) => {
+  const { navigate, setSearchQuery } = useNavigation();
   return (
     <div
       className="glass-card live-desktop-feed-card"
@@ -193,7 +195,8 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePa
 
                 <button
                   onClick={() => {
-                    window.location.href = `/tasks?search=${encodeURIComponent(event.title)}`;
+                    setSearchQuery(event.title);
+                    navigate('tasks');
                   }}
                   style={{
                     padding: '3px 8px',

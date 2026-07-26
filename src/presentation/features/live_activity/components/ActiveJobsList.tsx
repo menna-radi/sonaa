@@ -1,5 +1,7 @@
+import React from 'react';
 import { Briefcase, MapPin, ExternalLink } from 'lucide-react';
 import type { ActiveJob } from '../../../../domain/entities/LiveActivity';
+import { useNavigation } from '../../../../presentation/context/NavigationContext';
 
 interface ActiveJobsListProps {
   jobs: ActiveJob[];
@@ -7,6 +9,7 @@ interface ActiveJobsListProps {
 }
 
 export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount }) => {
+  const { navigate, setSearchQuery } = useNavigation();
   return (
     <div
       className="glass-card live-desktop-jobs-card"
@@ -135,7 +138,8 @@ export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount
 
                 <button
                   onClick={() => {
-                    window.location.href = `/tasks?search=${encodeURIComponent(job.jobNumber || job.title)}`;
+                    setSearchQuery(job.jobNumber || job.title);
+                    navigate('tasks');
                   }}
                   style={{
                     padding: '4px 10px',

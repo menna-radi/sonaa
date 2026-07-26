@@ -240,7 +240,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
         iconAnchor: [11, 11]
       });
 
-      L.marker(marker.coords, { icon: customIcon, pane: 'markerPane' })
+      const markerObj = L.marker(marker.coords, { icon: customIcon, pane: 'markerPane' })
         .addTo(layerGroup)
         .bindPopup(`
           <div style="color: #171717; font-family: system-ui, -apple-system, sans-serif; padding: 10px; text-align: start; direction: ltr; min-width: 220px;">
@@ -257,15 +257,21 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
               ${marker.desc}
             </div>
             <button 
-              onclick="alert('Task dispatch record #${marker.id} selected for quick review.')" 
+              onclick="window.location.hash='tasks'" 
               style="width: 100%; padding: 6px 10px; background: #171717; color: #ffffff; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;"
             >
               <span>Inspect Dispatch Details</span>
             </button>
           </div>
         `);
+
+      if (marker.id) {
+        markerInstancesRef.current[marker.id] = markerObj;
+      }
     });
   }, [leafletLoaded, activeFilter, summary, jobs, showCraftsmen, showTasks, showZonesOverlay, searchQuery]);
+
+  const markerInstancesRef = useRef<Record<string, any>>({});
 
   const handleRecenter = () => {
     if (mapInstanceRef.current && (window as any).L) {
@@ -281,9 +287,18 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
       if (cardEl) {
         cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-      const { coords } = e.detail || {};
-      if (mapInstanceRef.current && Array.isArray(coords) && coords.length === 2) {
-        mapInstanceRef.current.flyTo(coords, 15, { duration: 1.2 });
+      const { coords, jobId, eventId } = e.detail || {};
+      const targetId = jobId || eventId;
+      const targetMarker = targetId ? markerInstancesRef.current[targetId] : null;
+
+      if (targetMarker && mapInstanceRef.current) {
+        const mCoords = targetMarker.getLatLng();
+        mapInstanceRef.current.flyTo([mCoords.lat, mCoords.lng], 16, { duration: 1.2 });
+        setTimeout(() => {
+          targetMarker.openPopup();
+        }, 1200);
+      } else if (mapInstanceRef.current && Array.isArray(coords) && coords.length === 2) {
+        mapInstanceRef.current.flyTo(coords, 16, { duration: 1.2 });
       } else if (mapInstanceRef.current) {
         mapInstanceRef.current.flyTo([31.7683, 35.2137], 14, { duration: 1.2 });
       }
