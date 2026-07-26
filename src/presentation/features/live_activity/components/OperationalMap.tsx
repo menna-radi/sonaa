@@ -185,9 +185,25 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
       L.marker(marker.coords, { icon: customIcon })
         .addTo(map)
         .bindPopup(`
-          <div style="color: #171717; font-family: system-ui, -apple-system, sans-serif; padding: 8px; text-align: start; direction: ltr; min-width: 200px;">
-            <strong style="display: block; font-size: 13px; margin-bottom: 4px;">${marker.title}</strong>
-            <span style="font-size: 11px; color: #52525b; line-height: 1.4; display: block;">${marker.desc}</span>
+          <div style="color: #171717; font-family: system-ui, -apple-system, sans-serif; padding: 10px; text-align: start; direction: ltr; min-width: 220px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-size: 10px; font-weight: 700; background: ${marker.color}22; color: ${marker.color}; border: 1px solid ${marker.color}44; padding: 2px 6px; border-radius: 12px; text-transform: uppercase;">
+                ${marker.status || 'ACTIVE'}
+              </span>
+              <span style="font-size: 10px; color: #71717a; font-weight: 600;">Jerusalem Zone</span>
+            </div>
+            <strong style="display: block; font-size: 13px; margin-bottom: 6px; color: #09090b; line-height: 1.3;">
+              ${marker.title}
+            </strong>
+            <div style="font-size: 11px; color: #52525b; line-height: 1.5; margin-bottom: 10px; background: #f4f4f5; padding: 6px 8px; border-radius: 6px;">
+              ${marker.desc}
+            </div>
+            <button 
+              onclick="alert('Task dispatch record #${marker.id} selected for quick review.')" 
+              style="width: 100%; padding: 6px 10px; background: #171717; color: #ffffff; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;"
+            >
+              <span>Inspect Dispatch Details</span>
+            </button>
           </div>
         `);
     });
