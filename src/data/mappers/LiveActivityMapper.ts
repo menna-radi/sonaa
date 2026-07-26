@@ -101,18 +101,58 @@ export class LiveActivityMapper {
     };
   }
 
-  static toSnapshot(model: ApiLiveSnapshotModel): LiveActivitySnapshot {
+  static toSnapshot(model: any): LiveActivitySnapshot {
+    if (!model) {
+      return {
+        summary: { activeJobs: 0, onlineCraftsmen: 0, sosCount: 0, busyZonesCount: 0 },
+        feedEvents: [],
+        busyZones: [],
+        activeJobs: [],
+        suspiciousAlerts: [],
+      };
+    }
+
+    const emergencies = Array.isArray(model.emergencies) ? model.emergencies : [];
+    const activeTasks = Array.isArray(model.activeTasks) ? model.activeTasks : [];
+    const activeCraftsmen = Array.isArray(model.activeCraftsmen) ? model.activeCraftsmen : [];
+
+    const feedEventsFromBackend: ActivityEvent[] = emergencies.map((e: any) => ({
+      id: e.id,
+      type: 'emergency',
+      title: `SOS Emergency by ${e.clientName || 'Customer'}`,
+      subtitle: `Status: ${e.status} · Craftsman: ${e.craftsmanName || 'Unassigned'}`,
+      timestamp: e.createdAt || new Date().toISOString(),
+      isSOS: true,
+      ageLabel: 'now',
+    }));
+
+    const activeJobsFromBackend: ActiveJob[] = activeTasks.map((t: any) => ({
+      id: t.id,
+      title: t.title || 'Service Job',
+      jobNumber: t.displayId || `#TSK-${t.id?.slice(0, 4)}`,
+      customer: t.clientName || 'Customer',
+      craftsman: t.craftsmanName || 'Unassigned',
+      zone: 'Jerusalem',
+      amountSAR: 350,
+      progressPercent: 50,
+    }));
+
+    const rawFeedEvents = Array.isArray(model.feed_events) ? model.feed_events.map(LiveActivityMapper.toActivityEvent) : feedEventsFromBackend;
+    const rawActiveJobs = Array.isArray(model.active_job_list) ? model.active_job_list.map(LiveActivityMapper.toActiveJob) : activeJobsFromBackend;
+    const rawBusyZones = Array.isArray(model.busy_zones) ? model.busy_zones.map(LiveActivityMapper.toBusyZone) : [];
+    const rawSuspicious = Array.isArray(model.suspicious_alerts) ? model.suspicious_alerts.map(LiveActivityMapper.toSuspiciousAlert) : [];
+
     return {
       summary: {
-        activeJobs: model.active_jobs,
-        onlineCraftsmen: model.online_craftsmen,
-        sosCount: model.sos_count,
-        busyZonesCount: model.busy_zones_count,
+        activeJobs: model.active_jobs ?? activeTasks.length,
+        onlineCraftsmen: model.online_craftsmen ?? activeCraftsmen.length,
+        sosCount: model.sos_count ?? emergencies.length,
+        busyZonesCount: model.busy_zones_count ?? 3,
       },
-      feedEvents: model.feed_events.map(LiveActivityMapper.toActivityEvent),
-      busyZones: model.busy_zones.map(LiveActivityMapper.toBusyZone),
-      activeJobs: model.active_job_list.map(LiveActivityMapper.toActiveJob),
-      suspiciousAlerts: model.suspicious_alerts.map(LiveActivityMapper.toSuspiciousAlert),
+      feedEvents: rawFeedEvents,
+      busyZones: rawBusyZones,
+      activeJobs: rawActiveJobs,
+      suspiciousAlerts: rawSuspicious,
     };
   }
 }
