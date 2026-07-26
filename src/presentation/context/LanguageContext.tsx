@@ -1457,7 +1457,7 @@ export const translations: TranslationDict = {
     he: 'חירום פיצוץ צינור · 12 שנות ניסיון'
   },
   vr_skill_insurance: {
-    en: 'Insurance coverage · ₪ 500K liability',
+    en: 'Insurance coverage · 500K ILS liability',
     ar: 'التغطية التأمينية · مسؤولية 500 ألف شيكل',
     he: 'כיסוי ביטוחי · אחריות של 500 אלף ש"ח'
   },

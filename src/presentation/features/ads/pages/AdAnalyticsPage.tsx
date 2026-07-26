@@ -29,11 +29,11 @@ const CHART_LABELS = ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4'];
 
 // Mock Campaigns Comparison Table data
 const INITIAL_CAMPAIGNS = [
-  { id: '1', name: 'Summer AC Repair Promo', impressions: '124K', clicks: '5,218', ctr: '4.2%', conversions: '842', revenue: '₪ 28K', rawImp: 124000, rawClicks: 5218, rawCtr: 4.2, rawConv: 842, rawRevenue: 28000 },
-  { id: '2', name: 'Jerusalem Deep Cleaning', impressions: '210K', clicks: '8,190', ctr: '3.9%', conversions: '1,204', revenue: '₪ 42K', rawImp: 210000, rawClicks: 8190, rawCtr: 3.9, rawConv: 1204, rawRevenue: 42000 },
-  { id: '3', name: 'Plumbing Emergency Boost', impressions: '89K', clicks: '4,539', ctr: '5.1%', conversions: '612', revenue: '₪ 18K', rawImp: 89000, rawClicks: 4539, rawCtr: 5.1, rawConv: 612, rawRevenue: 18000 },
-  { id: '4', name: 'Electricians Featured Slots', impressions: '152K', clicks: '9,728', ctr: '6.4%', conversions: '980', revenue: '₪ 34K', rawImp: 152000, rawClicks: 9728, rawCtr: 6.4, rawConv: 980, rawRevenue: 34000 },
-  { id: '5', name: 'Ramallah Movers Special', impressions: '65K', clicks: '2,015', ctr: '3.1%', conversions: '340', revenue: '₪ 14K', rawImp: 65000, rawClicks: 2015, rawCtr: 3.1, rawConv: 340, rawRevenue: 14000 }
+  { id: '1', name: 'Summer AC Repair Promo', impressions: '124K', clicks: '5,218', ctr: '4.2%', conversions: '842', revenue: '28K ILS', rawImp: 124000, rawClicks: 5218, rawCtr: 4.2, rawConv: 842, rawRevenue: 28000 },
+  { id: '2', name: 'Jerusalem Deep Cleaning', impressions: '210K', clicks: '8,190', ctr: '3.9%', conversions: '1,204', revenue: '42K ILS', rawImp: 210000, rawClicks: 8190, rawCtr: 3.9, rawConv: 1204, rawRevenue: 42000 },
+  { id: '3', name: 'Plumbing Emergency Boost', impressions: '89K', clicks: '4,539', ctr: '5.1%', conversions: '612', revenue: '18K ILS', rawImp: 89000, rawClicks: 4539, rawCtr: 5.1, rawConv: 612, rawRevenue: 18000 },
+  { id: '4', name: 'Electricians Featured Slots', impressions: '152K', clicks: '9,728', ctr: '6.4%', conversions: '980', revenue: '34K ILS', rawImp: 152000, rawClicks: 9728, rawCtr: 6.4, rawConv: 980, rawRevenue: 34000 },
+  { id: '5', name: 'Ramallah Movers Special', impressions: '65K', clicks: '2,015', ctr: '3.1%', conversions: '340', revenue: '14K ILS', rawImp: 65000, rawClicks: 2015, rawCtr: 3.1, rawConv: 340, rawRevenue: 14000 }
 ];
 
 // Mock Top lists

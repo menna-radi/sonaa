@@ -157,11 +157,10 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
 
   const getLocalizedValue = (id: string, value: number, unit: string, lang: string) => {
     if (id === 'revenue') {
-      const currency = lang === 'ar' ? 'ر.س' : (unit || 'SAR');
       return (
         <>
-          <span className="currency-unit">{currency}</span>
           <span className="value-number">{Math.floor(value / 1000)}K</span>
+          <span className="currency-unit" style={{ marginInlineStart: '4px' }}>ILS</span>
         </>
       );
     }

@@ -124,7 +124,7 @@ export const TasksPage: React.FC = () => {
                   <td>${t.craftsman}</td>
                   <td><span class="badge ${t.status}">${t.status.toUpperCase()}</span></td>
                   <td>${t.zone || 'Jerusalem'}</td>
-                  <td>₪${t.amountSAR}</td>
+                  <td>${t.amountSAR} ILS</td>
                 </tr>
               `).join('')}
             </tbody>

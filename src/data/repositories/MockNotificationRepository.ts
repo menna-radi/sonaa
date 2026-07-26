@@ -7,7 +7,7 @@ export class MockNotificationRepository implements NotificationRepository {
   private notifications: NotificationItem[] = [
     { id: '1', title: 'SOS triggered in Hittin', subtitle: 'Lina Al-Qahtani · Bathroom pipe burst · Job #SN-2417', time: '34s ago', unread: true, critical: true, category: 'emergency' },
     { id: '2', title: '129 verification requests pending', subtitle: 'Average SLA 3h 12m · 8 in last hour', time: '4m ago', unread: true, critical: false, category: 'verification' },
-    { id: '3', title: 'Failed payout · SAR 1,200', subtitle: 'Ahmad Al-Otaibi · Al Rajhi · Retry scheduled in 2h', time: '12m ago', unread: true, critical: true, category: 'payments' },
+    { id: '3', title: 'Failed payout · 1,200 ILS', subtitle: 'Ahmad Al-Otaibi · Al Rajhi · Retry scheduled in 2h', time: '12m ago', unread: true, critical: true, category: 'payments' },
     { id: '4', title: 'Off-platform payment attempt flagged', subtitle: 'Chat #C-2912 · AI confidence 92%', time: '34m ago', unread: true, critical: true, category: 'fraud' },
     { id: '5', title: 'Surge in AC Repair tasks · Al Aqiq', subtitle: 'Volume +180% vs baseline · 12 emergencies', time: '1h ago', unread: false, critical: false, category: 'emergency' }
   ];

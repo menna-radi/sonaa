@@ -132,7 +132,7 @@ export const LoginPage: React.FC = () => {
             </div>
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '16px' }}>
               <span style={{ display: 'block', fontSize: '0.8rem', color: '#737373' }}>{t('metrics_revenue_mtd')}</span>
-              <strong style={{ display: 'block', fontSize: '1.5rem', marginTop: '4px', fontFamily: 'var(--font-title)' }}>SAR 842K</strong>
+              <strong style={{ display: 'block', fontSize: '1.5rem', marginTop: '4px', fontFamily: 'var(--font-title)' }}>842K ILS</strong>
             </div>
           </div>
         </div>

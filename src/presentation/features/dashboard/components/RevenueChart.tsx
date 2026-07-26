@@ -21,8 +21,8 @@ export const RevenueChart: React.FC = () => {
     return () => { isMounted = false; };
   }, [repositories.paymentRepository]);
 
-  const displayRevenue = summary ? `SAR ${summary.netRevenue.toLocaleString()}` : 'SAR 842,308';
-  const displayGmv = summary ? `SAR ${(summary.gmvMtd / 1000000).toFixed(2)}M` : 'SAR 4.12M';
+  const displayRevenue = summary ? `${summary.netRevenue.toLocaleString()} ILS` : '842,308 ILS';
+  const displayGmv = summary ? `${(summary.gmvMtd / 1000000).toFixed(2)}M ILS` : '4.12M ILS';
   const displayTakeRate = summary ? `${summary.takeRate}%` : '20.4%';
 
   // Coordinate paths representing the filled chart matching the images
@@ -35,14 +35,14 @@ export const RevenueChart: React.FC = () => {
       sub: 'Last 30 days · Compared to prior month'
     },
     '90d': {
-      value: summary ? `SAR ${(summary.netRevenue * 2.8).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : 'SAR 2,458,920',
+      value: summary ? `${(summary.netRevenue * 2.8).toLocaleString('en-US', { maximumFractionDigits: 0 })} ILS` : '2,458,920 ILS',
       trend: '+22.4%',
       points: '10,140 70,135 140,110 210,118 280,95 350,102 420,82 490,68 560,50 600,42',
       fillPoints: '10,140 70,135 140,110 210,118 280,95 350,102 420,82 490,68 560,50 600,42 600,160 10,160',
       sub: 'Last 90 days · Compared to prior quarter'
     },
     'ytd': {
-      value: summary ? `SAR ${(summary.netRevenue * 10 / 1000000).toFixed(2)}M` : 'SAR 8.42M',
+      value: summary ? `${(summary.netRevenue * 10 / 1000000).toFixed(2)}M ILS` : '8.42M ILS',
       trend: '+34.1%',
       points: '10,150 100,130 200,112 300,90 400,68 500,52 600,30',
       fillPoints: '10,150 100,130 200,112 300,90 400,68 500,52 600,30 600,160 10,160',
@@ -182,7 +182,7 @@ export const RevenueChart: React.FC = () => {
         </div>
         <div style={{ textAlign: 'start' }}>
           <span style={{ display: 'block', fontSize: '10px', color: '#737373', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Avg Order</span>
-          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>SAR 342</strong>
+          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>342 ILS</strong>
         </div>
         <div style={{ textAlign: 'start' }}>
           <span style={{ display: 'block', fontSize: '10px', color: '#737373', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Disputes</span>

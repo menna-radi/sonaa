@@ -76,7 +76,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '124K',
       ctr: '4.2%',
       conversions: 842,
-      spend: '₪ 5,000',
+      spend: '5,000 ILS',
       status: 'Active'
     },
     {
@@ -91,7 +91,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '89K',
       ctr: '5.1%',
       conversions: 612,
-      spend: '₪ 3,500',
+      spend: '3,500 ILS',
       status: 'Active'
     },
     {
@@ -106,7 +106,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '210K',
       ctr: '3.9%',
       conversions: 1204,
-      spend: '₪ 8,000',
+      spend: '8,000 ILS',
       status: 'Active'
     },
     {
@@ -121,7 +121,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '65K',
       ctr: '3.1%',
       conversions: 340,
-      spend: '₪ 4,000',
+      spend: '4,000 ILS',
       status: 'Active'
     },
     {
@@ -136,7 +136,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '152K',
       ctr: '6.4%',
       conversions: 980,
-      spend: '₪ 6,200',
+      spend: '6,200 ILS',
       status: 'Active'
     },
     {
@@ -151,7 +151,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '78K',
       ctr: '3.7%',
       conversions: 420,
-      spend: '₪ 2,400',
+      spend: '2,400 ILS',
       status: 'Active'
     },
     {
@@ -166,7 +166,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '45K',
       ctr: '2.8%',
       conversions: 124,
-      spend: '₪ 2,000',
+      spend: '2,000 ILS',
       status: 'Paused'
     },
     {
@@ -181,7 +181,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '28K',
       ctr: '4.6%',
       conversions: 186,
-      spend: '₪ 1,500',
+      spend: '1,500 ILS',
       status: 'Active'
     },
     {
@@ -196,7 +196,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '38K',
       ctr: '3.3%',
       conversions: 142,
-      spend: '₪ 1,800',
+      spend: '1,800 ILS',
       status: 'Active'
     },
     {
@@ -211,7 +211,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '96K',
       ctr: '4.0%',
       conversions: 512,
-      spend: '₪ 3,200',
+      spend: '3,200 ILS',
       status: 'Active'
     },
 
@@ -228,7 +228,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: '₪ 0',
+      spend: '0 ILS',
       budget: 6000,
       status: 'Scheduled'
     },
@@ -244,7 +244,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: '₪ 0',
+      spend: '0 ILS',
       budget: 8500,
       status: 'Scheduled'
     },
@@ -260,7 +260,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: '₪ 0',
+      spend: '0 ILS',
       budget: 7200,
       status: 'Scheduled'
     },
@@ -276,7 +276,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: '₪ 0',
+      spend: '0 ILS',
       budget: 4000,
       status: 'Scheduled'
     },
@@ -292,7 +292,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: '₪ 0',
+      spend: '0 ILS',
       budget: 3000,
       status: 'Scheduled'
     },
@@ -308,7 +308,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: '₪ 0',
+      spend: '0 ILS',
       budget: 5500,
       status: 'Scheduled'
     },
@@ -324,7 +324,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: '₪ 0',
+      spend: '0 ILS',
       budget: 6800,
       status: 'Scheduled'
     },
@@ -340,7 +340,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: '₪ 0',
+      spend: '0 ILS',
       budget: 2500,
       status: 'Scheduled'
     },
@@ -358,7 +358,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '342K',
       ctr: '4.8%',
       conversions: 2180,
-      spend: '₪ 9,500',
+      spend: '9,500 ILS',
       status: 'Expired'
     },
     {
@@ -373,7 +373,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '628K',
       ctr: '5.2%',
       conversions: 4124,
-      spend: '₪ 18,400',
+      spend: '18,400 ILS',
       status: 'Expired'
     },
     {
@@ -388,7 +388,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '512K',
       ctr: '6.1%',
       conversions: 3850,
-      spend: '₪ 14,200',
+      spend: '14,200 ILS',
       status: 'Expired'
     },
     {
@@ -403,7 +403,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '218K',
       ctr: '4.4%',
       conversions: 1210,
-      spend: '₪ 8,800',
+      spend: '8,800 ILS',
       status: 'Expired'
     },
     {
@@ -418,7 +418,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '124K',
       ctr: '3.1%',
       conversions: 482,
-      spend: '₪ 4,500',
+      spend: '4,500 ILS',
       status: 'Expired'
     },
     {
@@ -433,7 +433,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '186K',
       ctr: '4.0%',
       conversions: 912,
-      spend: '₪ 6,400',
+      spend: '6,400 ILS',
       status: 'Expired'
     },
     {
@@ -448,7 +448,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '198K',
       ctr: '5.6%',
       conversions: 1440,
-      spend: '₪ 7,200',
+      spend: '7,200 ILS',
       status: 'Expired'
     }
   ]);
@@ -477,7 +477,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       impressions: '0',
       ctr: '0.0%',
       conversions: 0,
-      spend: `₪ ${parseFloat(newCampBudget).toLocaleString()}`,
+      spend: `${parseFloat(newCampBudget).toLocaleString()} ILS`,
       status: 'Scheduled' // New campaigns default to Scheduled timeframe
     };
 
@@ -877,7 +877,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                         </td>
                         <td style={{ textAlign: 'end', fontWeight: 600, fontSize: '13px' }}>
                           {camp.status === 'Scheduled' && camp.budget !== undefined
-                            ? `₪ 0 / ${camp.budget.toLocaleString()}`
+                            ? `0 / ${camp.budget.toLocaleString()} ILS`
                             : camp.spend}
                         </td>
                         <td style={{ textAlign: 'start' }}>
@@ -1035,7 +1035,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Budget (₪)</label>
+                  <label className="form-label">Budget (ILS)</label>
                   <input
                     type="number"
                     required

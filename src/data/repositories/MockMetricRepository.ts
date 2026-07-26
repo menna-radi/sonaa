@@ -15,7 +15,7 @@ export class MockMetricRepository implements MetricRepository {
     { id: 'users', nameKey: 'metrics_total_users', value: 48392, unit: '', status: 'normal', history: [45000, 46000, 47200, 48000, 48392] },
     { id: 'craftsmen', nameKey: 'metrics_active_craftsmen', value: 6847, unit: '', status: 'normal', history: [6000, 6200, 6400, 6700, 6847] },
     { id: 'tasks', nameKey: 'metrics_active_tasks', value: 1238, unit: '', status: 'normal', history: [1000, 1100, 1150, 1200, 1238] },
-    { id: 'revenue', nameKey: 'metrics_revenue_mtd', value: 842308, unit: '₪', status: 'normal', history: [750000, 780000, 810000, 830000, 842308] },
+    { id: 'revenue', nameKey: 'metrics_revenue_mtd', value: 842308, unit: 'ILS', status: 'normal', history: [750000, 780000, 810000, 830000, 842308] },
     { id: 'emergency', nameKey: 'metrics_emergency_reqs', value: 47, unit: '', status: 'normal', history: [30, 42, 38, 45, 47] },
     { id: 'verification', nameKey: 'metrics_verification_reqs', value: 129, unit: '', status: 'normal', history: [120, 125, 122, 128, 129] }
   ];

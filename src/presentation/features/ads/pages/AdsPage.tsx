@@ -98,7 +98,7 @@ export const AdsPage: React.FC = () => {
           clicks: '84.2K',
           ctr: '3.5%',
           conversions: '4,128',
-          revenue: 'SAR 218K',
+          revenue: '218K ILS',
           active: '24',
           impTrend: '+12.4%',
           clkTrend: '+8.2%',
@@ -113,7 +113,7 @@ export const AdsPage: React.FC = () => {
           clicks: '342.8K',
           ctr: '3.6%',
           conversions: '16,920',
-          revenue: 'SAR 890K',
+          revenue: '890K ILS',
           active: '28',
           impTrend: '+14.1%',
           clkTrend: '+9.4%',
@@ -128,7 +128,7 @@ export const AdsPage: React.FC = () => {
           clicks: '4.11M',
           ctr: '3.6%',
           conversions: '204,500',
-          revenue: 'SAR 10.8M',
+          revenue: '10.8M ILS',
           active: '35',
           impTrend: '+18.3%',
           clkTrend: '+12.6%',
@@ -215,7 +215,7 @@ export const AdsPage: React.FC = () => {
   };
 
   const handleExportCSV = () => {
-    const headers = ['Campaign ID', 'Name', 'Placement', 'Status', 'Impressions', 'CTR', 'Conversions', 'Budget (SAR)'];
+    const headers = ['Campaign ID', 'Name', 'Placement', 'Status', 'Impressions', 'CTR', 'Conversions', 'Budget (ILS)'];
     const rows = campaigns.map(c => [
       c.id,
       `"${c.name.replace(/"/g, '""')}"`,
@@ -659,7 +659,7 @@ export const AdsPage: React.FC = () => {
                         <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)' }}>{camp.impressions.toLocaleString()}</td>
                         <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)' }}>{camp.ctr > 0 ? `${camp.ctr}%` : '—'}</td>
                         <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)' }}>{camp.conversions > 0 ? camp.conversions.toLocaleString() : '—'}</td>
-                        <td style={{ textAlign: 'end', fontWeight: 600 }}>SAR {camp.budget.toLocaleString()}</td>
+                        <td style={{ textAlign: 'end', fontWeight: 600 }}>{camp.budget.toLocaleString()} ILS</td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                             <button
@@ -704,7 +704,7 @@ export const AdsPage: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Riyadh Plumber Discount Deal"
+                    placeholder="e.g. Jerusalem Plumber Discount Deal"
                     value={newCampName}
                     onChange={(e) => setNewCampName(e.target.value)}
                     className="form-input"
@@ -726,7 +726,7 @@ export const AdsPage: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Budget (SAR)</label>
+                  <label className="form-label">Budget (ILS)</label>
                   <input
                     type="number"
                     required

@@ -177,7 +177,7 @@ const OverviewPage: React.FC = () => {
                         18.9%
                       </span>
                     </div>
-                    <strong className="mobile-revenue-val">SAR 842,308</strong>
+                    <strong className="mobile-revenue-val">842,308 ILS</strong>
                     <span className="mobile-revenue-sub">Net · Commission + subscriptions</span>
                     <div className="mobile-revenue-chart">
                       <svg width="100%" height="48" viewBox="0 0 280 48" preserveAspectRatio="none">

@@ -622,7 +622,7 @@ export default function LiveActivityTailwind() {
                         <p className="leading-[16.5px]">{`leak repair"`}</p>
                       </div>
                       <p className="absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 text-[#737373] text-[10px] top-[51.5px]" data-node-id="59:1817" style={{ fontFeatureSettings: '"dlig"' }}>
-                        Al Malqa · SAR 350
+                        Old City · 350 ILS
                       </p>
                     </div>
                     <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-[178.06px] not-italic text-[#a3a3a3] text-[10px] top-[12px] whitespace-nowrap" data-node-id="59:1818" style={{ fontFeatureSettings: '"dlig"' }}>
@@ -641,7 +641,7 @@ export default function LiveActivityTailwind() {
                         <p className="leading-[16.5px]">went online</p>
                       </div>
                       <p className="absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 text-[#737373] text-[10px] top-[35px]" data-node-id="59:1825" style={{ fontFeatureSettings: '"dlig"' }}>
-                        Al Nakheel
+                        Beit Hanina
                       </p>
                     </div>
                     <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-[177.97px] not-italic text-[#a3a3a3] text-[10px] top-[12px] whitespace-nowrap" data-node-id="59:1826" style={{ fontFeatureSettings: '"dlig"' }}>
@@ -660,7 +660,7 @@ export default function LiveActivityTailwind() {
                         <p className="leading-[16.5px]">completed</p>
                       </div>
                       <p className="absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 text-[#737373] text-[10px] top-[35px]" data-node-id="59:1834" style={{ fontFeatureSettings: '"dlig"' }}>
-                        SAR 480 · Auto-released in 24h
+                        480 ILS · Auto-released in 24h
                       </p>
                     </div>
                     <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-[173.63px] not-italic text-[#a3a3a3] text-[10px] top-[12px] whitespace-nowrap" data-node-id="59:1835" style={{ fontFeatureSettings: '"dlig"' }}>
@@ -720,7 +720,7 @@ export default function LiveActivityTailwind() {
                         <p className="leading-[16.5px]">Z.</p>
                       </div>
                       <p className="absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 text-[#737373] text-[10px] top-[68px]" data-node-id="59:1861" style={{ fontFeatureSettings: '"dlig"' }}>
-                        AC install · SAR 720
+                        AC install · 720 ILS
                       </p>
                     </div>
                     <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-[171.52px] not-italic text-[#a3a3a3] text-[10px] top-[12px] whitespace-nowrap" data-node-id="59:1862" style={{ fontFeatureSettings: '"dlig"' }}>
@@ -777,7 +777,7 @@ export default function LiveActivityTailwind() {
                         <p className="leading-[16.5px]">processed</p>
                       </div>
                       <p className="absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 text-[#737373] text-[10px] top-[35px]" data-node-id="59:1887" style={{ fontFeatureSettings: '"dlig"' }}>
-                        Ahmad Al-Otaibi · SAR 1,200 · Al Rajhi
+                        Ahmad Al-Otaibi · 1,200 ILS · Arab Bank
                       </p>
                     </div>
                     <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-[174.58px] not-italic text-[#a3a3a3] text-[10px] top-[12px] whitespace-nowrap" data-node-id="59:1888" style={{ fontFeatureSettings: '"dlig"' }}>
@@ -815,7 +815,7 @@ export default function LiveActivityTailwind() {
                         New task created
                       </p>
                       <p className="absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 text-[#737373] text-[10px] top-[18.5px]" data-node-id="59:1904" style={{ fontFeatureSettings: '"dlig"' }}>
-                        Painting · Al Olaya · SAR 1,500
+                        Painting · Sheikh Jarrah · 1,500 ILS
                       </p>
                     </div>
                     <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-[174.5px] not-italic text-[#a3a3a3] text-[10px] top-[12px] whitespace-nowrap" data-node-id="59:1905" style={{ fontFeatureSettings: '"dlig"' }}>
@@ -850,7 +850,7 @@ export default function LiveActivityTailwind() {
                       Active Jobs In Progress
                     </p>
                     <p className="absolute leading-[20px] left-0 text-[#171717] text-[14px] top-[20px]" data-node-id="59:1918" style={{ fontFeatureSettings: '"dlig"' }}>
-                      Riyadh region · Top 5
+                      Jerusalem region · Top 5
                     </p>
                   </div>
                   <p className="-translate-x-1/2 absolute leading-[15px] left-[275.91px] text-[#171717] text-[10px] text-center top-[12.5px]" data-node-id="59:1919" style={{ fontFeatureSettings: '"dlig"' }}>
@@ -874,7 +874,7 @@ export default function LiveActivityTailwind() {
                         </p>
                       </div>
                       <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 not-italic text-[#737373] text-[10px] top-[18px] whitespace-nowrap" data-node-id="59:1930" style={{ fontFeatureSettings: '"dlig"' }}>
-                        Mona Al-Harbi ↔ Mohammed Z. · Al Nakheel
+                        Mona Al-Harbi ↔ Mohammed Z. · Shuafat
                       </p>
                       <div className="absolute bg-[#f5f5f5] h-[4px] left-0 overflow-clip rounded-[9999px] top-[39px] w-[161px]" data-node-id="59:1931" data-name="Background">
                         <div className="absolute bg-[#171717] h-[4px] left-0 rounded-[9999px] top-0 w-[96.59px]" data-node-id="59:1932" data-name="Background" />
@@ -882,7 +882,7 @@ export default function LiveActivityTailwind() {
                     </div>
                     <div className="absolute h-[31.5px] left-[233px] top-[17.75px] w-[50px]" data-node-id="59:1933" data-name="Container">
                       <p className="-translate-x-full [word-break:break-word] absolute font-['Inter:Bold'] font-bold leading-[16px] left-[50px] not-italic text-[#171717] text-[12px] text-right top-[-6px] whitespace-nowrap" data-node-id="59:1934" style={{ fontFeatureSettings: '"dlig"' }}>
-                        SAR 720
+                        720 ILS
                       </p>
                     </div>
                     <p className="-translate-x-full [word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[13.5px] left-[283px] not-italic text-[#a3a3a3] text-[9px] text-right top-[45px] whitespace-nowrap" data-node-id="59:1935" style={{ fontFeatureSettings: '"dlig"' }}>
@@ -905,7 +905,7 @@ export default function LiveActivityTailwind() {
                         </p>
                       </div>
                       <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 not-italic text-[#737373] text-[10px] top-[29px] whitespace-nowrap" data-node-id="59:1945" style={{ fontFeatureSettings: '"dlig"' }}>
-                        Saad Al-Dawsari ↔ Khalid Q. · Al Malqa
+                        Saad Al-Dawsari ↔ Khalid Q. · Old City
                       </p>
                       <div className="absolute bg-[#f5f5f5] h-[4px] left-0 overflow-clip rounded-[9999px] top-[50px] w-[160.33px]" data-node-id="59:1946" data-name="Background">
                         <div className="absolute bg-[#171717] h-[4px] left-0 rounded-[9999px] top-0 w-[144.28px]" data-node-id="59:1947" data-name="Background" />
@@ -913,7 +913,7 @@ export default function LiveActivityTailwind() {
                     </div>
                     <div className="absolute h-[31.5px] left-[232.33px] top-[23.25px] w-[50.67px]" data-node-id="59:1948" data-name="Container">
                       <p className="-translate-x-full [word-break:break-word] absolute font-['Inter:Bold'] font-bold leading-[16px] left-[50px] not-italic text-[#171717] text-[12px] text-right top-[-5px] whitespace-nowrap" data-node-id="59:1949" style={{ fontFeatureSettings: '"dlig"' }}>
-                        SAR 350
+                        350 ILS
                       </p>
                     </div>
                     <p className="-translate-x-full [word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[13.5px] left-[286px] not-italic text-[#a3a3a3] text-[9px] text-right top-[50px] whitespace-nowrap" data-node-id="59:1950" style={{ fontFeatureSettings: '"dlig"' }}>
@@ -938,7 +938,7 @@ export default function LiveActivityTailwind() {
                         </div>
                       </div>
                       <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 not-italic text-[#737373] text-[10px] top-[29px] whitespace-nowrap" data-node-id="59:1960" style={{ fontFeatureSettings: '"dlig"' }}>
-                        Lina Al-Qahtani ↔ Yousef H. · Hittin
+                        Lina Al-Qahtani ↔ Yousef H. · Beit Hanina
                       </p>
                       <div className="absolute bg-[#f5f5f5] h-[4px] left-0 overflow-clip rounded-[9999px] top-[50px] w-[159.61px]" data-node-id="59:1961" data-name="Background">
                         <div className="absolute bg-[#171717] h-[4px] left-0 rounded-[9999px] top-0 w-[47.88px]" data-node-id="59:1962" data-name="Background" />
@@ -946,7 +946,7 @@ export default function LiveActivityTailwind() {
                     </div>
                     <div className="[word-break:break-word] absolute h-[31.5px] left-[231.61px] not-italic text-right top-[23.25px] w-[51.39px] whitespace-nowrap" data-node-id="59:1963" data-name="Container">
                       <p className="-translate-x-full absolute font-['Inter:Bold'] font-bold leading-[16px] left-[51.39px] text-[#171717] text-[12px] top-[-4px]" data-node-id="59:1964" style={{ fontFeatureSettings: '"dlig"' }}>
-                        SAR 480
+                        480 ILS
                       </p>
                       <p className="-translate-x-full absolute font-['Inter:Regular'] font-normal leading-[13.5px] left-[53px] text-[#a3a3a3] text-[9px] top-[21px]" data-node-id="59:1965" style={{ fontFeatureSettings: '"dlig"' }}>
                         30%
@@ -969,7 +969,7 @@ export default function LiveActivityTailwind() {
                         #SN-2412
                       </p>
                       <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 not-italic text-[#737373] text-[10px] top-[29px] whitespace-nowrap" data-node-id="59:1975" style={{ fontFeatureSettings: '"dlig"' }}>
-                        Omar Al-Ghamdi ↔ Hassan M. · Al Olaya
+                        Omar Al-Ghamdi ↔ Hassan M. · Sheikh Jarrah
                       </p>
                       <div className="absolute bg-[#f5f5f5] h-[4px] left-0 overflow-clip rounded-[9999px] top-[50px] w-[150.88px]" data-node-id="59:1976" data-name="Background">
                         <div className="absolute bg-[#171717] h-[4px] left-0 rounded-[9999px] top-0 w-[67.89px]" data-node-id="59:1977" data-name="Background" />
@@ -977,7 +977,7 @@ export default function LiveActivityTailwind() {
                     </div>
                     <div className="[word-break:break-word] absolute h-[31.5px] left-[222.88px] not-italic text-right top-[23.25px] w-[60.13px] whitespace-nowrap" data-node-id="59:1978" data-name="Container">
                       <p className="-translate-x-full absolute font-['Inter:Bold'] font-bold leading-[16px] left-[60.13px] text-[#171717] text-[12px] top-0" data-node-id="59:1979" style={{ fontFeatureSettings: '"dlig"' }}>
-                        SAR 1,500
+                        1,500 ILS
                       </p>
                       <p className="-translate-x-full absolute font-['Inter:Regular'] font-normal leading-[13.5px] left-[19.99px] text-[#a3a3a3] text-[9px] top-[18px]" data-node-id="59:1980" style={{ fontFeatureSettings: '"dlig"' }}>
                         45%
@@ -993,7 +993,7 @@ export default function LiveActivityTailwind() {
                     <div className="absolute h-[54px] left-[60px] top-[12px] w-[159.66px]" data-node-id="59:1986" data-name="Container">
                       <div className="absolute h-[27px] left-0 top-0 w-[159.66px]" data-node-id="59:1987" data-name="Container" />
                       <p className="[word-break:break-word] absolute font-['Inter:Regular'] font-normal leading-[15px] left-0 not-italic text-[#737373] text-[10px] top-[29px] whitespace-nowrap" data-node-id="59:1990" style={{ fontFeatureSettings: '"dlig"' }}>
-                        Faisal Al-Shamri ↔ Saif G. · Diplomatic Q
+                        Faisal Al-Shamri ↔ Saif G. · Silwan
                       </p>
                       <div className="absolute bg-[#f5f5f5] h-[4px] left-0 overflow-clip rounded-[9999px] top-[50px] w-[159.66px]" data-node-id="59:1991" data-name="Background">
                         <div className="absolute bg-[#171717] h-[4px] left-0 rounded-[9999px] top-0 w-[119.73px]" data-node-id="59:1992" data-name="Background" />
@@ -1007,7 +1007,7 @@ export default function LiveActivityTailwind() {
                     </p>
                     <div className="[word-break:break-word] absolute h-[31.5px] left-[235px] not-italic text-right top-[28px] w-[51.34px] whitespace-nowrap" data-node-id="59:1993" data-name="Container">
                       <p className="-translate-x-full absolute font-['Inter:Bold'] font-bold leading-[16px] left-[51px] text-[#171717] text-[12px] top-[-9px]" data-node-id="59:1994" style={{ fontFeatureSettings: '"dlig"' }}>
-                        SAR 900
+                        900 ILS
                       </p>
                       <p className="-translate-x-full absolute font-['Inter:Regular'] font-normal leading-[13.5px] left-[19.27px] text-[#a3a3a3] text-[9px] top-[18px]" data-node-id="59:1995" style={{ fontFeatureSettings: '"dlig"' }}>
                         75%

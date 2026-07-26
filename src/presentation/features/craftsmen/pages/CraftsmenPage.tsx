@@ -932,7 +932,7 @@ export const CraftsmenPage: React.FC = () => {
                 </span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
                   <strong style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'var(--font-title)' }}>
-                    SAR {selectedCraftsman.earnings30Days.toLocaleString()}
+                    {selectedCraftsman.earnings30Days.toLocaleString()} ILS
                   </strong>
                   <span 
                     style={{ 
@@ -1173,7 +1173,7 @@ export const CraftsmenPage: React.FC = () => {
             <div style={{ background: '#171717', color: '#FFFFFF', borderRadius: '12px', padding: '16px', marginBottom: '20px', textAlign: 'start' }}>
               <span style={{ fontSize: '0.68rem', color: '#A3A3A3', fontWeight: 700, textTransform: 'uppercase' }}>30-Day Platform Earnings</span>
               <div style={{ fontSize: '1.4rem', fontWeight: 700, marginTop: '4px' }}>
-                SAR {selectedCraftsman.earnings30Days.toLocaleString()}
+                {selectedCraftsman.earnings30Days.toLocaleString()} ILS
               </div>
             </div>
 

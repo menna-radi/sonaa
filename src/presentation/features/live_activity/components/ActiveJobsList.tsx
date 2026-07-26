@@ -67,7 +67,7 @@ export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount
                     {job.title}
                   </span>
                   <span style={{ fontSize: '0.83rem', fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0 }}>
-                    ₪ {job.amountSAR.toLocaleString()}
+                    {job.amountSAR.toLocaleString()} ILS
                   </span>
                 </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '1px' }}>
