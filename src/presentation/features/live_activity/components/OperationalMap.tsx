@@ -67,7 +67,9 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
     }
   };
 
-  // Initialize and update Map markers
+  const layerGroupRef = useRef<any>(null);
+
+  // 1. Initialize Map ONCE (Keeps Leaflet map instance alive without recreating)
   useEffect(() => {
     const L = (window as any).L;
     if (!leafletLoaded || !L || !mapContainerRef.current) return;
@@ -83,17 +85,29 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
         maxZoom: 19
       }).addTo(map);
 
+      const layerGroup = L.layerGroup().addTo(map);
+      layerGroupRef.current = layerGroup;
       mapInstanceRef.current = map;
     }
 
-    const map = mapInstanceRef.current;
-
-    // Clear existing markers and circle overlays
-    map.eachLayer((layer: any) => {
-      if (layer instanceof L.Marker || layer instanceof L.Circle) {
-        map.removeLayer(layer);
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        layerGroupRef.current = null;
       }
-    });
+    };
+  }, [leafletLoaded]);
+
+  // 2. Update Layers & Markers smoothly inside layerGroup (Zero map recreation)
+  useEffect(() => {
+    const L = (window as any).L;
+    if (!leafletLoaded || !L || !mapInstanceRef.current || !layerGroupRef.current) return;
+
+    const layerGroup = layerGroupRef.current;
+
+    // Smoothly clear layers in-memory (Map container stays 100% active and still)
+    layerGroup.clearLayers();
 
     // Render District Coverage & Demand Capacity Circles when overlay is active
     if (showZonesOverlay) {
@@ -104,7 +118,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
           fillOpacity: 0.12,
           radius: 1200,
           weight: 1.5
-        }).addTo(map).bindPopup(`
+        }).addTo(layerGroup).bindPopup(`
           <div style="font-family: system-ui; padding: 4px;">
             <strong style="font-size: 12px; color: #1e3a8a;">${d.name} Zone Overlay</strong>
             <span style="display: block; font-size: 11px; color: #475569; margin-top: 2px;">Active service coverage area & demand ring.</span>
@@ -166,7 +180,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
       }
     ];
 
-    // Filter and add markers to map based on layer toggles & search
+    // Filter and add markers to layer group
     dynamicJobMarkers.forEach(marker => {
       if (activeFilter !== 'All activity' && marker.type !== activeFilter) return;
 
@@ -216,7 +230,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
       });
 
       L.marker(marker.coords, { icon: customIcon })
-        .addTo(map)
+        .addTo(layerGroup)
         .bindPopup(`
           <div style="color: #171717; font-family: system-ui, -apple-system, sans-serif; padding: 10px; text-align: start; direction: ltr; min-width: 220px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
@@ -240,13 +254,6 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
           </div>
         `);
     });
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
   }, [leafletLoaded, activeFilter, summary, jobs, showCraftsmen, showTasks, showZonesOverlay, searchQuery]);
 
   const handleRecenter = () => {
