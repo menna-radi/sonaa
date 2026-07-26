@@ -10,6 +10,8 @@ import {
   Flag,
   Pause,
   Play,
+  MapPin,
+  ExternalLink,
 } from 'lucide-react';
 import type { ActivityEvent, ActivityEventType } from '../../../../domain/entities/LiveActivity';
 
@@ -170,42 +172,47 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePa
                     }));
                   }}
                   style={{
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    background: '#171717',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    fontSize: '0.65rem',
+                    padding: '3px 8px',
+                    borderRadius: '5px',
+                    background: '#18181b',
+                    color: '#ffffff',
+                    border: '1px solid #27272a',
+                    fontSize: '0.68rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '3px'
+                    gap: '4px',
+                    transition: 'all 0.15s ease'
                   }}
-                  title="Show event on map"
+                  title="Fly map view to event location"
                 >
-                  🗺️ Map
+                  <MapPin size={11} color="#10b981" />
+                  <span>Map</span>
                 </button>
+
                 <button
                   onClick={() => {
                     window.location.href = `/tasks?search=${encodeURIComponent(event.title)}`;
                   }}
                   style={{
-                    padding: '2px 6px',
-                    borderRadius: '4px',
+                    padding: '3px 8px',
+                    borderRadius: '5px',
                     background: 'var(--bg-surface-hover)',
                     color: 'var(--text-primary)',
                     border: '1px solid var(--border-color)',
-                    fontSize: '0.65rem',
+                    fontSize: '0.68rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '3px'
+                    gap: '4px',
+                    transition: 'all 0.15s ease'
                   }}
                   title="Open task details"
                 >
-                  📋 Details
+                  <ExternalLink size={11} color="var(--text-secondary)" />
+                  <span>Details</span>
                 </button>
               </div>
             </div>

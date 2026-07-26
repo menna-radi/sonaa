@@ -130,19 +130,32 @@ export class LiveActivityMapper {
       ? model.feed_events.map(LiveActivityMapper.toActivityEvent)
       : feedEventsFromBackend).filter((e: ActivityEvent) => !e.isSOS && e.type !== 'sos_triggered');
 
-    const activeJobsFromBackend: ActiveJob[] = activeTasks.map((t: any) => ({
-      id: t.id,
-      title: t.title || 'Service Job',
-      jobNumber: t.displayId || `#TSK-${t.id?.slice(0, 4)}`,
-      customer: t.clientName || 'Customer',
-      craftsman: t.craftsmanName || 'Unassigned',
-      zone: 'Jerusalem',
-      amountSAR: Number(t.budgetAmount || 350),
-      progressPercent: t.status === 'IN_PROGRESS' ? 65 : t.status === 'ACCEPTED' ? 25 : 10,
-      status: t.status || 'IN_PROGRESS',
-      lat: t.lat || 31.7683,
-      lng: t.lng || 35.2137,
-    }));
+    const JERUSALEM_COORDS = [
+      { zone: 'Beit Hanina', lat: 31.8260, lng: 35.2260 },
+      { zone: 'Old City', lat: 31.7767, lng: 35.2345 },
+      { zone: 'Jerusalem Center', lat: 31.7800, lng: 35.2150 },
+      { zone: 'Shuafat', lat: 31.8080, lng: 35.2330 },
+      { zone: 'Sheikh Jarrah', lat: 31.7915, lng: 35.2295 },
+      { zone: 'Silwan', lat: 31.7700, lng: 35.2350 },
+    ];
+
+    const activeJobsFromBackend: ActiveJob[] = activeTasks.map((t: any, idx: number) => {
+      const loc = JERUSALEM_COORDS[idx % JERUSALEM_COORDS.length];
+      const realNumber = t.displayId || (typeof t.id === 'string' && t.id.startsWith('SN-') ? t.id : `SN-${t.id || idx + 1}`);
+      return {
+        id: String(t.id || idx + 1),
+        title: t.title || 'Service Job',
+        jobNumber: realNumber,
+        customer: t.clientName || 'Customer',
+        craftsman: t.craftsmanName || 'Unassigned',
+        zone: t.zone || loc.zone,
+        amountSAR: Number(t.budgetAmount || 350),
+        progressPercent: t.status === 'IN_PROGRESS' ? 65 : t.status === 'ACCEPTED' ? 25 : 10,
+        status: t.status || 'IN_PROGRESS',
+        lat: t.lat || loc.lat,
+        lng: t.lng || loc.lng,
+      };
+    });
 
     const rawActiveJobs = Array.isArray(model.active_job_list) ? model.active_job_list.map(LiveActivityMapper.toActiveJob) : activeJobsFromBackend;
     const rawBusyZones = Array.isArray(model.busy_zones) ? model.busy_zones.map(LiveActivityMapper.toBusyZone) : [];

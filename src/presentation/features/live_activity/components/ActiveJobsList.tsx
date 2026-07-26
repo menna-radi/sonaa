@@ -1,5 +1,4 @@
-import React from 'react';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, MapPin, ExternalLink } from 'lucide-react';
 import type { ActiveJob } from '../../../../domain/entities/LiveActivity';
 
 interface ActiveJobsListProps {
@@ -99,8 +98,8 @@ export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount
             </div>
 
             {/* Quick Actions Row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '4px', borderTop: '1px dashed var(--border-color)' }}>
-              <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid var(--border-color)' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)' }}>
                 Progress: {job.progressPercent}%
               </span>
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -115,21 +114,23 @@ export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount
                     }));
                   }}
                   style={{
-                    padding: '3px 8px',
-                    borderRadius: '4px',
-                    background: '#171717',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    fontSize: '0.68rem',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    background: '#18181b',
+                    color: '#ffffff',
+                    border: '1px solid #27272a',
+                    fontSize: '0.72rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '4px',
+                    transition: 'all 0.15s ease'
                   }}
-                  title="Focus and view on operational map"
+                  title="Fly Leaflet map directly to this task"
                 >
-                  🗺️ Show on Map
+                  <MapPin size={12} color="#10b981" />
+                  <span>Show on Map</span>
                 </button>
 
                 <button
@@ -137,21 +138,23 @@ export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount
                     window.location.href = `/tasks?search=${encodeURIComponent(job.jobNumber || job.title)}`;
                   }}
                   style={{
-                    padding: '3px 8px',
-                    borderRadius: '4px',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
                     background: 'var(--bg-surface)',
                     color: 'var(--text-primary)',
                     border: '1px solid var(--border-color)',
-                    fontSize: '0.68rem',
+                    fontSize: '0.72rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '4px',
+                    transition: 'all 0.15s ease'
                   }}
-                  title="Open full task dispatch management page"
+                  title="Open task dispatch management record"
                 >
-                  📋 Open in Tasks
+                  <ExternalLink size={12} color="var(--text-secondary)" />
+                  <span>Open Details</span>
                 </button>
               </div>
             </div>
