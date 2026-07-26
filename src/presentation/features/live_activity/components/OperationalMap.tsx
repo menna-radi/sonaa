@@ -130,11 +130,16 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
     // Build dynamic markers from real/mock jobs list or fall back
     const dynamicJobMarkers = jobs.length > 0 ? jobs.map((j, index) => {
       const statusMeta = getStatusColor(j.status);
-      const latOffset = (index % 3 - 1) * 0.008;
-      const lngOffset = Math.floor(index / 3) * 0.008;
+      const angle = index * 1.5;
+      const radius = 0.005 + (index % 4) * 0.004;
+      const latOffset = Math.sin(angle) * radius;
+      const lngOffset = Math.cos(angle) * radius;
+      const baseLat = j.lat && j.lat !== 31.7683 ? j.lat : 31.7683 + latOffset;
+      const baseLng = j.lng && j.lng !== 35.2137 ? j.lng : 35.2137 + lngOffset;
+
       return {
         id: j.id,
-        coords: [j.lat || (31.7683 + latOffset), j.lng || (35.2137 + lngOffset)],
+        coords: [baseLat, baseLng],
         title: `${statusMeta.label.split(' ')[0]} ${j.title} (${j.jobNumber})`,
         desc: `Customer: ${j.customer} · Craftsman: ${j.craftsman} · Status: ${j.status || 'IN_PROGRESS'} · ${j.amountSAR} ILS`,
         color: statusMeta.color,
@@ -180,7 +185,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
       }
     ];
 
-    // Filter and add markers to layer group
+    // Filter and add high-visibility circle markers to layer group
     dynamicJobMarkers.forEach(marker => {
       if (activeFilter !== 'All activity' && marker.type !== activeFilter) return;
 
@@ -195,41 +200,15 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
         if (!matches) return;
       }
 
-      const isPending = marker.status === 'PENDING';
-      const customIcon = L.divIcon({
-        className: 'custom-map-marker',
-        html: `
-          <div style="
-            width: 16px;
-            height: 16px;
-            background: ${marker.color};
-            border: 2.5px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-            display: block;
-            position: relative;
-          ">
-            ${isPending ? `
-              <span style="
-                position: absolute;
-                top: -4px;
-                left: -4px;
-                width: 20px;
-                height: 20px;
-                border: 2px solid ${marker.color};
-                border-radius: 50%;
-                animation: pulsate 1.5s infinite ease-out;
-                box-sizing: border-box;
-                display: block;
-              "></span>
-            ` : ''}
-          </div>
-        `,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-      });
-
-      L.marker(marker.coords, { icon: customIcon })
+      // Draw high-visibility native circle marker (guaranteed dot)
+      L.circleMarker(marker.coords, {
+        radius: 9,
+        fillColor: marker.color,
+        color: '#ffffff',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 0.95
+      })
         .addTo(layerGroup)
         .bindPopup(`
           <div style="color: #171717; font-family: system-ui, -apple-system, sans-serif; padding: 10px; text-align: start; direction: ltr; min-width: 220px;">
