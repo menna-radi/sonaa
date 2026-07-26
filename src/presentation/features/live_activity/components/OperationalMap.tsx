@@ -127,11 +127,11 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
       });
     }
 
-    // Build dynamic markers from real/mock jobs list or fall back
-    const dynamicJobMarkers = jobs.length > 0 ? jobs.map((j, index) => {
+    // Build dynamic markers from real/mock jobs list
+    const taskMarkers = jobs.map((j, index) => {
       const statusMeta = getStatusColor(j.status);
-      const angle = index * 1.5;
-      const radius = 0.005 + (index % 4) * 0.004;
+      const angle = (index + 1) * 1.8;
+      const radius = 0.007 + (index % 4) * 0.005;
       const latOffset = Math.sin(angle) * radius;
       const lngOffset = Math.cos(angle) * radius;
       const baseLat = j.lat && j.lat !== 31.7683 ? j.lat : 31.7683 + latOffset;
@@ -146,46 +146,63 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
         type: 'Active jobs',
         status: j.status || 'IN_PROGRESS'
       };
-    }) : [
+    });
+
+    const craftsmanMarkers = [
       {
-        id: 'jobs-in-progress',
-        coords: [31.8260, 35.2260], // Beit Hanina
-        title: '🟢 Working (In Progress) — Beit Hanina',
-        desc: 'Craftsman active on-site · Plumbing Repair #SN-1021',
-        color: '#10b981',
-        type: 'Active jobs',
-        status: 'IN_PROGRESS'
+        id: 'craft-1',
+        coords: [31.8080, 35.2330],
+        title: '🟣 Online Craftsman — Ahmad Al-Otaibi',
+        desc: 'Electrician & HVAC Tech · Active in Shuafat Zone',
+        color: '#8b5cf6',
+        type: 'Online craftsmen',
+        status: 'ONLINE'
       },
       {
-        id: 'jobs-accepted',
-        coords: [31.7800, 35.2150], // Jerusalem Center
-        title: '🔵 Accepted & En Route — Jerusalem Center',
-        desc: 'Craftsman accepted offer · Electrical Wiring #SN-1024',
-        color: '#3b82f6',
-        type: 'Active jobs',
-        status: 'ACCEPTED'
-      },
-      {
-        id: 'jobs-pending',
-        coords: [31.7767, 35.2345], // Old City
-        title: '🟡 New / Unfinished Task — Old City',
-        desc: 'Customer posted job · Awaiting craftsman acceptance #SN-1029',
-        color: '#f59e0b',
-        type: 'Active jobs',
-        status: 'PENDING'
-      },
-      {
-        id: 'crafts',
-        coords: [31.8080, 35.2330], // Shuafat
-        title: '🟣 Online Craftsman — Shuafat & Sheikh Jarrah',
-        desc: `${summary?.onlineCraftsmen.toLocaleString() ?? '312'} active technicians available on Sonaa network`,
+        id: 'craft-2',
+        coords: [31.8260, 35.2150],
+        title: '🟣 Online Craftsman — Yousef H.',
+        desc: 'Master Plumber · Active in Beit Hanina Zone',
         color: '#8b5cf6',
         type: 'Online craftsmen',
         status: 'ONLINE'
       }
     ];
 
-    // Filter and add high-visibility circle markers to layer group
+    const dynamicJobMarkers = jobs.length > 0 
+      ? [...taskMarkers, ...craftsmanMarkers] 
+      : [
+          {
+            id: 'jobs-in-progress',
+            coords: [31.8260, 35.2260],
+            title: '🟢 Working (In Progress) — Beit Hanina',
+            desc: 'Craftsman active on-site · Plumbing Repair #SN-1021',
+            color: '#10b981',
+            type: 'Active jobs',
+            status: 'IN_PROGRESS'
+          },
+          {
+            id: 'jobs-accepted',
+            coords: [31.7800, 35.2150],
+            title: '🔵 Accepted & En Route — Jerusalem Center',
+            desc: 'Craftsman accepted offer · Electrical Wiring #SN-1024',
+            color: '#3b82f6',
+            type: 'Active jobs',
+            status: 'ACCEPTED'
+          },
+          {
+            id: 'jobs-pending',
+            coords: [31.7767, 35.2345],
+            title: '🟡 New / Unfinished Task — Old City',
+            desc: 'Customer posted job · Awaiting craftsman acceptance #SN-1029',
+            color: '#f59e0b',
+            type: 'Active jobs',
+            status: 'PENDING'
+          },
+          ...craftsmanMarkers
+        ];
+
+    // Filter and add high-visibility markers (pane: markerPane at z-index 600 above blue rings)
     dynamicJobMarkers.forEach(marker => {
       if (activeFilter !== 'All activity' && marker.type !== activeFilter) return;
 
@@ -200,15 +217,30 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
         if (!matches) return;
       }
 
-      // Draw high-visibility native circle marker (guaranteed dot)
-      L.circleMarker(marker.coords, {
-        radius: 9,
-        fillColor: marker.color,
-        color: '#ffffff',
-        weight: 3,
-        opacity: 1,
-        fillOpacity: 0.95
-      })
+      // Draw high-visibility marker inside markerPane (z-index: 600 above all circle overlays)
+      const customIcon = L.divIcon({
+        className: 'custom-map-marker-pin',
+        html: `
+          <div style="
+            width: 22px;
+            height: 22px;
+            background: ${marker.color};
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px ${marker.color}, 0 2px 8px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+          ">
+            <div style="width: 6px; height: 6px; background: #ffffff; border-radius: 50%;"></div>
+          </div>
+        `,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
+      });
+
+      L.marker(marker.coords, { icon: customIcon, pane: 'markerPane' })
         .addTo(layerGroup)
         .bindPopup(`
           <div style="color: #171717; font-family: system-ui, -apple-system, sans-serif; padding: 10px; text-align: start; direction: ltr; min-width: 220px;">
