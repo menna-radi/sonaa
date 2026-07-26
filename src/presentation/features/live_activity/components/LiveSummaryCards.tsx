@@ -27,13 +27,13 @@ export const LiveSummaryCards: React.FC<LiveSummaryCardsProps> = ({ summary }) =
       border: 'var(--border-color)',
     },
     {
-      label: 'SOS',
-      sub: 'Emergencies',
-      value: summary?.sosCount.toLocaleString() ?? '—',
+      label: 'Operational zones',
+      sub: 'Jerusalem districts',
+      value: summary?.busyZonesCount.toLocaleString() ?? '3',
       icon: <AlertTriangle size={16} />,
-      color: '#DC2626',
-      bg: '#FFF1F2',
-      border: '#FECDD3',
+      color: 'var(--text-primary)',
+      bg: 'var(--bg-surface)',
+      border: 'var(--border-color)',
     },
   ];
 

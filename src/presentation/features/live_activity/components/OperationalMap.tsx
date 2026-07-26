@@ -67,15 +67,6 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary }) => {
     // Markers dataset
     const markers = [
       {
-        id: 'sos',
-        coords: [31.7767, 35.2345], // Old City Jerusalem coordinate
-        title: '🚨 SOS Emergency in Old City Jerusalem (البلدة القديمة)',
-        desc: 'Lina Al-Mansour · Bathroom pipe burst · Job #SN-2417',
-        color: '#dc2626',
-        type: 'Emergencies',
-        count: summary?.sosCount.toString() ?? '3'
-      },
-      {
         id: 'jobs',
         coords: [31.8260, 35.2260], // Beit Hanina coordinate
         title: '🟢 Active Jobs in Beit Hanina (بيت حنينا)',
@@ -99,7 +90,6 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary }) => {
     markers.forEach(marker => {
       if (activeFilter !== 'All activity' && marker.type !== activeFilter) return;
 
-      const isEmergency = marker.id === 'sos';
       const customIcon = L.divIcon({
         className: 'custom-map-marker',
         html: `
@@ -113,20 +103,6 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary }) => {
             display: block;
             position: relative;
           ">
-            ${isEmergency ? `
-              <span style="
-                position: absolute;
-                top: -5px;
-                left: -5px;
-                width: 20px;
-                height: 20px;
-                border: 2px solid #dc2626;
-                border-radius: 50%;
-                animation: pulsate 1.5s infinite ease-out;
-                box-sizing: border-box;
-                display: block;
-              "></span>
-            ` : ''}
           </div>
         `,
         iconSize: [14, 14],
@@ -143,10 +119,16 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary }) => {
         `);
     });
 
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
   }, [leafletLoaded, activeFilter, summary]);
 
-  const filterKeys = ['All activity', 'Active jobs', 'Online craftsmen', 'Emergencies'];
-  const filterValues = ['—', summary?.activeJobs.toLocaleString() ?? '—', summary?.onlineCraftsmen.toLocaleString() ?? '—', summary?.sosCount.toString() ?? '—'];
+  const filterKeys = ['All activity', 'Active jobs', 'Online craftsmen'];
+  const filterValues = ['—', summary?.activeJobs.toLocaleString() ?? '—', summary?.onlineCraftsmen.toLocaleString() ?? '—'];
 
   return (
     <div

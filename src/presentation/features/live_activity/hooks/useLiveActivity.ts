@@ -51,11 +51,16 @@ export const useLiveActivity = () => {
     loadSnapshot();
   }, [loadSnapshot]);
 
-  // ── Real-time subscription + event batching ───────────────────────────────
+  // ── Real-time subscription + 12s auto-polling ─────────────────────────────
   useEffect(() => {
     if (isPaused) return;
 
-    // Events go into a ref buffer — no setState per event (avoids excessive re-renders)
+    // Background auto-polling every 12 seconds
+    const pollInterval = window.setInterval(() => {
+      loadSnapshot();
+    }, 12000);
+
+    // Events go into a ref buffer — no setState per event
     const cleanupSubscription = liveActivityRepository.subscribeToFeed((event: ActivityEvent) => {
       pendingEventsRef.current.push(event);
     });
@@ -73,10 +78,11 @@ export const useLiveActivity = () => {
     }, FLUSH_INTERVAL_MS);
 
     return () => {
-      cleanupSubscription(); // ✅ subscription cleanup
-      window.clearInterval(flushTimer); // ✅ flush timer cleanup
+      window.clearInterval(pollInterval);
+      cleanupSubscription();
+      window.clearInterval(flushTimer);
     };
-  }, [isPaused, liveActivityRepository]);
+  }, [isPaused, liveActivityRepository, loadSnapshot]);
 
   // ── Controls ──────────────────────────────────────────────────────────────
   const togglePause = useCallback(() => {

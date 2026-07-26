@@ -179,7 +179,6 @@ export const LiveActivityPage: React.FC = () => {
             <div className="live-mobile-layout">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <LiveSummaryCards summary={summary} />
-                {sosEvent && <SosBanner event={sosEvent} />}
                 <LiveFeed events={feedEvents} isPaused={isPaused} onTogglePause={togglePause} />
                 <BusyZones zones={busyZones} />
               </div>
