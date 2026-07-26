@@ -16,6 +16,10 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
   const [searchQuery, setSearchQuery] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const [showCraftsmen, setShowCraftsmen] = useState(true);
+  const [showTasks, setShowTasks] = useState(true);
+  const [showZonesOverlay, setShowZonesOverlay] = useState(true);
+
   // Jerusalem Districts Coordinates
   const districts = [
     { key: 'ALL', name: '📍 All Jerusalem (القدس)', coords: [31.7683, 35.2137], zoom: 13 },
@@ -84,12 +88,30 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
 
     const map = mapInstanceRef.current;
 
-    // Clear existing markers
+    // Clear existing markers and circle overlays
     map.eachLayer((layer: any) => {
-      if (layer instanceof L.Marker) {
+      if (layer instanceof L.Marker || layer instanceof L.Circle) {
         map.removeLayer(layer);
       }
     });
+
+    // Render District Coverage & Demand Capacity Circles when overlay is active
+    if (showZonesOverlay) {
+      districts.filter(d => d.key !== 'ALL').forEach(d => {
+        L.circle(d.coords, {
+          color: '#3b82f6',
+          fillColor: '#3b82f6',
+          fillOpacity: 0.12,
+          radius: 1200,
+          weight: 1.5
+        }).addTo(map).bindPopup(`
+          <div style="font-family: system-ui; padding: 4px;">
+            <strong style="font-size: 12px; color: #1e3a8a;">${d.name} Zone Overlay</strong>
+            <span style="display: block; font-size: 11px; color: #475569; margin-top: 2px;">Active service coverage area & demand ring.</span>
+          </div>
+        `);
+      });
+    }
 
     // Build dynamic markers from real/mock jobs list or fall back
     const dynamicJobMarkers = jobs.length > 0 ? jobs.map((j, index) => {
@@ -144,9 +166,20 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
       }
     ];
 
-    // Filter and add markers to map
+    // Filter and add markers to map based on layer toggles & search
     dynamicJobMarkers.forEach(marker => {
       if (activeFilter !== 'All activity' && marker.type !== activeFilter) return;
+
+      // Layer visibility toggles
+      if (!showTasks && marker.type === 'Active jobs') return;
+      if (!showCraftsmen && marker.type === 'Online craftsmen') return;
+
+      // Search filter
+      if (searchQuery.trim().length > 0) {
+        const q = searchQuery.toLowerCase();
+        const matches = marker.title.toLowerCase().includes(q) || marker.desc.toLowerCase().includes(q);
+        if (!matches) return;
+      }
 
       const isPending = marker.status === 'PENDING';
       const customIcon = L.divIcon({
@@ -214,7 +247,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
         mapInstanceRef.current = null;
       }
     };
-  }, [leafletLoaded, activeFilter, summary, jobs]);
+  }, [leafletLoaded, activeFilter, summary, jobs, showCraftsmen, showTasks, showZonesOverlay, searchQuery]);
 
   const handleRecenter = () => {
     if (mapInstanceRef.current && (window as any).L) {
@@ -368,8 +401,59 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
             })}
           </div>
 
+          {/* Layer Visibility Toggles */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={() => setShowTasks(prev => !prev)}
+              style={{
+                padding: '3px 8px',
+                borderRadius: '4px',
+                border: '1px solid var(--border-color)',
+                background: showTasks ? '#10b98122' : 'transparent',
+                color: showTasks ? '#059669' : 'var(--text-muted)',
+                fontSize: '0.68rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              {showTasks ? '✓ Tasks Layer' : '+ Tasks Layer'}
+            </button>
+
+            <button
+              onClick={() => setShowCraftsmen(prev => !prev)}
+              style={{
+                padding: '3px 8px',
+                borderRadius: '4px',
+                border: '1px solid var(--border-color)',
+                background: showCraftsmen ? '#8b5cf622' : 'transparent',
+                color: showCraftsmen ? '#7c3aed' : 'var(--text-muted)',
+                fontSize: '0.68rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              {showCraftsmen ? '✓ Craftsmen Layer' : '+ Craftsmen Layer'}
+            </button>
+
+            <button
+              onClick={() => setShowZonesOverlay(prev => !prev)}
+              style={{
+                padding: '3px 8px',
+                borderRadius: '4px',
+                border: '1px solid var(--border-color)',
+                background: showZonesOverlay ? '#3b82f622' : 'transparent',
+                color: showZonesOverlay ? '#2563eb' : 'var(--text-muted)',
+                fontSize: '0.68rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              {showZonesOverlay ? '✓ Zone Rings' : '+ Zone Rings'}
+            </button>
+          </div>
+
           {/* Quick Search */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', minWidth: '180px' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', minWidth: '160px' }}>
             <Search size={13} style={{ position: 'absolute', left: 8, color: 'var(--text-muted)' }} />
             <input
               type="text"
