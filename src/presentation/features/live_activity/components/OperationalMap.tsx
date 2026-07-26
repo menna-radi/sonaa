@@ -167,7 +167,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary }) => {
           Operational Map
         </div>
         <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
-          Riyadh · Live dispatch
+          Jerusalem · Live dispatch
         </div>
 
         {/* Filter tabs */}
@@ -217,7 +217,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary }) => {
             fontSize: '0.85rem',
             zIndex: 10
           }}>
-            Loading Riyadh Live dispatch map...
+            Loading Jerusalem Live dispatch map...
           </div>
         )}
         <div 
