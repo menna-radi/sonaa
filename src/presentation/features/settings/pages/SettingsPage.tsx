@@ -202,11 +202,11 @@ export const SettingsPage: React.FC = () => {
   // Platform Config
   const [platformConfig, setPlatformConfig] = useState([
     { id: 'commission_rate', labelEn: 'Commission rate', labelAr: 'نسبة العمولة', val: '20.4%', icon: <Percent size={16} /> },
-    { id: 'min_withdrawal', labelEn: 'Min withdrawal', labelAr: 'الحد الأدنى للسحب', val: 'SAR 100', icon: <DollarSign size={16} /> },
+    { id: 'min_withdrawal', labelEn: 'Min withdrawal', labelAr: 'الحد الأدنى للسحب', val: '50 ILS', icon: <DollarSign size={16} /> },
     { id: 'payout_schedule', labelEn: 'Payout schedule', labelAr: 'جدولة المستحقات', val: 'Weekly · Sunday', icon: <Clock size={16} /> },
     { id: 'auto_release', labelEn: 'Auto-release escrow', labelAr: 'الإفراج التلقائي', val: '24 hours', icon: <Clock size={16} /> },
-    { id: 'currency', labelEn: 'Default currency', labelAr: 'العملة الافتراضية', val: 'SAR (Saudi Riyal)', icon: <DollarSign size={16} /> },
-    { id: 'region', labelEn: 'Service region', labelAr: 'منطقة الخدمة', val: 'Riyadh + 6 cities', icon: <MapPin size={16} /> },
+    { id: 'currency', labelEn: 'Default currency', labelAr: 'العملة الافتراضية', val: 'ILS (Israeli Shekel)', icon: <DollarSign size={16} /> },
+    { id: 'region', labelEn: 'Service region', labelAr: 'منطقة الخدمة', val: 'Jerusalem (القدس) + Districts', icon: <MapPin size={16} /> },
     { id: 'emergency_sla', labelEn: 'Emergency response SLA', labelAr: 'SLA الطوارئ', val: '15 minutes', icon: <ShieldAlert size={16} /> },
     { id: 'verification_sla', labelEn: 'Verification SLA', labelAr: 'SLA التحقق', val: '24 hours', icon: <Check size={16} /> }
   ]);

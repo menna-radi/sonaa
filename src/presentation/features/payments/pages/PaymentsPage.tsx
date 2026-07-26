@@ -42,12 +42,12 @@ export const PaymentsPage: React.FC = () => {
   // Format Helper for Currency
   const formatCurrency = (val: number): string => {
     if (val >= 1000000) {
-      return `SAR ${(val / 1000000).toFixed(2)}M`;
+      return `${(val / 1000000).toFixed(2)}M ILS`;
     }
     if (val >= 1000) {
-      return `SAR ${(val / 1000).toFixed(0)}K`;
+      return `${(val / 1000).toFixed(0)}K ILS`;
     }
-    return `SAR ${val.toLocaleString()}`;
+    return `${val.toLocaleString()} ILS`;
   };
 
   return (
@@ -221,7 +221,7 @@ export const PaymentsPage: React.FC = () => {
                   <div className="payments-chart-card">
                     <div className="payments-chart-header">
                       <div className="payments-chart-title-area">
-                        <strong className="payments-chart-headline">{formatCurrency(summary.netRevenue).replace('SAR ', '')}</strong>
+                        <strong className="payments-chart-headline">{formatCurrency(summary.netRevenue)}</strong>
                         <span className="payments-chart-subtitle">Net · Commission + subscriptions</span>
                       </div>
                       <div className="payments-chart-badge">
@@ -292,7 +292,7 @@ export const PaymentsPage: React.FC = () => {
                         return (
                           <div key={plan.id} className="payments-plan-item">
                             <div className="payments-plan-row">
-                              <span className="payments-plan-name">{planLabel} <span className="payments-plan-price">· {plan.price > 0 ? `SAR ${plan.price}/mo` : 'Free'}</span></span>
+                              <span className="payments-plan-name">{planLabel} <span className="payments-plan-price">· {plan.price > 0 ? `${plan.price} ILS/mo` : 'Free'}</span></span>
                               <strong className="payments-plan-count">{plan.subscribersCount.toLocaleString()}</strong>
                             </div>
                             <div className="payments-plan-track">
@@ -354,7 +354,7 @@ export const PaymentsPage: React.FC = () => {
                                     </div>
                                   </td>
                                   <td>
-                                    <strong className="failed-tx-amount">SAR {tx.amount.toLocaleString()}</strong>
+                                    <strong className="failed-tx-amount">{tx.amount.toLocaleString()} ILS</strong>
                                   </td>
                                   <td>
                                     <span className="failed-tx-reason">{reasonText}</span>
@@ -409,7 +409,7 @@ export const PaymentsPage: React.FC = () => {
                             </div>
 
                             <div className="withdrawal-item-right">
-                              <strong className="withdrawal-amount">SAR {req.amount.toLocaleString()}</strong>
+                              <strong className="withdrawal-amount">{req.amount.toLocaleString()} ILS</strong>
 
                               {isPending ? (
                                 <div className="withdrawal-actions">
@@ -529,7 +529,7 @@ export const PaymentsPage: React.FC = () => {
                           <strong style={{ display: 'block', color: '#171717' }}>{tx.name}</strong>
                           <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{tx.txId} · {tx.bank}</span>
                         </td>
-                        <td style={{ padding: '12px 8px', fontWeight: 600 }}>SAR {tx.amount.toLocaleString()}</td>
+                        <td style={{ padding: '12px 8px', fontWeight: 600 }}>{tx.amount.toLocaleString()} ILS</td>
                         <td style={{ padding: '12px 8px', color: '#dc2626' }}>{reasonText}</td>
                         <td style={{ padding: '12px 8px' }}>{tx.retries}</td>
                         <td style={{ padding: '12px 8px', textAlign: 'right' }}>
@@ -628,7 +628,7 @@ export const PaymentsPage: React.FC = () => {
                         <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{req.bank} · {req.timeAgo}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <strong style={{ fontSize: '0.9rem', color: '#171717' }}>SAR {req.amount.toLocaleString()}</strong>
+                        <strong style={{ fontSize: '0.9rem', color: '#171717' }}>{req.amount.toLocaleString()} ILS</strong>
                         {isPending ? (
                           <div style={{ display: 'flex', gap: '6px' }}>
                             <button

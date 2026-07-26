@@ -38,8 +38,8 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   },
   {
     id: '3',
-    title: 'Failed payout · SAR 1,200',
-    subtitle: 'Ahmad Al-Otaibi · Al Rajhi · Retry scheduled in 2h',
+    title: 'Failed payout · 1,200 ILS',
+    subtitle: 'Ahmad Al-Otaibi · Arab Bank · Retry scheduled in 2h',
     time: '12m ago',
     unread: true,
     critical: true,
@@ -56,7 +56,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   },
   {
     id: '5',
-    title: 'Surge in AC Repair tasks · Al Aqiq',
+    title: 'Surge in AC Repair tasks · Beit Hanina',
     subtitle: 'Volume +180% vs baseline · 12 emergencies',
     time: '1h ago',
     unread: true,
@@ -66,7 +66,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: '6',
     title: 'Daily reconciliation complete',
-    subtitle: 'GMV SAR 142,820 · Commission SAR 29,135',
+    subtitle: 'GMV 142,820 ILS · Commission 29,135 ILS',
     time: '2h ago',
     unread: false,
     critical: false,

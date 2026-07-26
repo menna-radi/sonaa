@@ -524,7 +524,7 @@ export const TasksPage: React.FC = () => {
                             </td>
                             {/* Budget */}
                             <td>
-                              <strong>SAR {task.amountSAR}</strong>
+                              <strong>{task.amountSAR} ILS</strong>
                             </td>
                             {/* ETA */}
                             <td>
@@ -673,7 +673,7 @@ export const TasksPage: React.FC = () => {
                                 {formatEta(task.eta)}
                               </span>
                             </div>
-                            <strong className="mid-capsule-budget">SAR {task.amountSAR}</strong>
+                            <strong className="mid-capsule-budget">{task.amountSAR} ILS</strong>
                           </div>
 
                           <div className="card-transition-box">
@@ -838,7 +838,7 @@ export const TasksPage: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                   <span style={{ color: '#71717a' }}>Budget Amount</span>
-                  <strong style={{ color: '#171717' }}>SAR {selectedDetailTask.amountSAR}</strong>
+                  <strong style={{ color: '#171717' }}>{selectedDetailTask.amountSAR} ILS</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                   <span style={{ color: '#71717a' }}>ETA Status</span>

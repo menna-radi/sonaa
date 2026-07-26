@@ -122,7 +122,7 @@ export const AdAnalyticsPage: React.FC = () => {
         ctrTrend: '+0.3pp',
         conversions: '4,128',
         conversionsTrend: '+18.9%',
-        revenue: isRtl ? '٢١٨,٠٠٠ ريال' : 'SAR 218K',
+        revenue: isRtl ? '٢١٨,٠٠٠ شيكل' : '218K ILS',
         revenueTrend: '+23%'
       };
     }
@@ -134,7 +134,7 @@ export const AdAnalyticsPage: React.FC = () => {
         clicks: '0', clicksTrend: '0%',
         ctr: '0%', ctrTrend: '0%',
         conversions: '0', conversionsTrend: '0%',
-        revenue: 'SAR 0', revenueTrend: '0%'
+        revenue: '0 ILS', revenueTrend: '0%'
       };
     }
 
@@ -230,7 +230,7 @@ export const AdAnalyticsPage: React.FC = () => {
       c.rawClicks,
       `${c.rawCtr}%`,
       c.rawConv,
-      `SAR ${c.rawRevenue}`
+      `${c.rawRevenue} ILS`
     ]);
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');

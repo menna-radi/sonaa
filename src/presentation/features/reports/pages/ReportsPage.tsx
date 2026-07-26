@@ -263,7 +263,7 @@ export const ReportsPage: React.FC = () => {
 
   const handleRefundCustomer = (reportId: string) => {
     setEscrowStates(prev => ({ ...prev, [reportId]: 'REFUNDED' }));
-    setActionSuccess(`Full refund of ${selectedReport?.orderBudget || 350} SAR initiated to customer account.`);
+    setActionSuccess(`Full refund of ${selectedReport?.orderBudget || 350} ILS initiated to customer account.`);
   };
 
   const handleNoteChange = (text: string) => {
@@ -639,7 +639,7 @@ export const ReportsPage: React.FC = () => {
                           </div>
                           <div style={{ textAlign: 'start' }}>
                             <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>
-                              Escrow Financial Protection: {selectedReport.orderBudget || 350} SAR
+                              Escrow Financial Protection: {selectedReport.orderBudget || 350} ILS
                             </div>
                             <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
                               Status: <strong style={{ color: escrowStates[selectedReport.id] === 'REFUNDED' ? '#2563eb' : escrowStates[selectedReport.id] === 'RELEASED' ? '#16a34a' : '#ea580c' }}>
@@ -1010,11 +1010,11 @@ export const ReportsPage: React.FC = () => {
                   </div>
                   <div>
                     <span style={{ fontSize: '0.75rem', color: '#737373' }}>Agreed Budget</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#16a34a' }}>250.00 SAR</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#16a34a' }}>250.00 ILS</div>
                   </div>
                   <div>
                     <span style={{ fontSize: '0.75rem', color: '#737373' }}>Location</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#262626' }}>Riyadh, KSA</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#262626' }}>Jerusalem, Palestine</div>
                   </div>
                 </div>
               </div>
