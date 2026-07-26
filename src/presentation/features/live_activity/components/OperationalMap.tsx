@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Search, LocateFixed, Maximize2, Minimize2, MapPin } from 'lucide-react';
 import type { LiveActivitySummary, ActiveJob } from '../../../../domain/entities/LiveActivity';
 
 interface OperationalMapProps {
@@ -11,6 +12,19 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
   const mapInstanceRef = useRef<any>(null);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All activity');
+  const [selectedDistrict, setSelectedDistrict] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Jerusalem Districts Coordinates
+  const districts = [
+    { key: 'ALL', name: '📍 All Jerusalem (القدس)', coords: [31.7683, 35.2137], zoom: 13 },
+    { key: 'OLD_CITY', name: '🏰 Old City (البلدة القديمة)', coords: [31.7767, 35.2345], zoom: 16 },
+    { key: 'BEIT_HANINA', name: '🏘️ Beit Hanina (بيت حنينا)', coords: [31.8260, 35.2260], zoom: 15 },
+    { key: 'SHUAFAT', name: '🏡 Shuafat (شعفاط)', coords: [31.8080, 35.2330], zoom: 15 },
+    { key: 'SHEIKH_JARRAH', name: '🌳 Sheikh Jarrah (الشيخ جراح)', coords: [31.7915, 35.2295], zoom: 16 },
+    { key: 'SILWAN', name: '🏛️ Silwan (سلوان)', coords: [31.7700, 35.2350], zoom: 15 },
+  ];
 
   // Load Leaflet dynamically from CDN
   useEffect(() => {
@@ -186,6 +200,21 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
     };
   }, [leafletLoaded, activeFilter, summary, jobs]);
 
+  const handleRecenter = () => {
+    if (mapInstanceRef.current && (window as any).L) {
+      mapInstanceRef.current.setView([31.7683, 35.2137], 13);
+      setSelectedDistrict('ALL');
+    }
+  };
+
+  const handleDistrictChange = (key: string) => {
+    setSelectedDistrict(key);
+    const target = districts.find(d => d.key === key);
+    if (target && mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo(target.coords, target.zoom, { duration: 1.2 });
+    }
+  };
+
   const filterKeys = ['All activity', 'Active jobs', 'Online craftsmen'];
   const filterValues = ['—', (jobs.length || summary?.activeJobs || 0).toLocaleString(), summary?.onlineCraftsmen.toLocaleString() ?? '—'];
 
@@ -197,50 +226,152 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
         border: '1px solid var(--border-color)',
         background: 'var(--bg-surface)',
         overflow: 'hidden',
-        height: '100%',
+        height: isFullscreen ? '100vh' : '100%',
+        width: isFullscreen ? '100vw' : '100%',
+        position: isFullscreen ? 'fixed' : 'relative',
+        top: isFullscreen ? 0 : 'auto',
+        left: isFullscreen ? 0 : 'auto',
+        zIndex: isFullscreen ? 9999 : 1,
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* Map header with filter tabs */}
-      <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-color)', textAlign: 'start' }}>
-        <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2px' }}>
-          Operational Map
-        </div>
-        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
-          Jerusalem · Live dispatch
+      {/* Map Header Toolbar */}
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', textAlign: 'start', background: 'var(--bg-surface)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1px' }}>
+              Operational Map & Telemetry
+            </div>
+            <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <MapPin size={16} style={{ color: '#16A34A' }} />
+              <span>Jerusalem · Live Dispatch Control</span>
+            </div>
+          </div>
+
+          {/* Action Toolbar Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {/* District Selector */}
+            <select
+              value={selectedDistrict}
+              onChange={(e) => handleDistrictChange(e.target.value)}
+              style={{
+                padding: '5px 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-surface-hover)',
+                color: 'var(--text-primary)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              {districts.map(d => (
+                <option key={d.key} value={d.key}>{d.name}</option>
+              ))}
+            </select>
+
+            {/* Recenter Button */}
+            <button
+              onClick={handleRecenter}
+              title="Recenter Map to Jerusalem Center"
+              style={{
+                padding: '5px 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-surface-hover)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <LocateFixed size={14} />
+              <span>Recenter</span>
+            </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={() => setIsFullscreen(prev => !prev)}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Expand Fullscreen Map'}
+              style={{
+                padding: '5px 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                background: isFullscreen ? '#171717' : 'var(--bg-surface-hover)',
+                color: isFullscreen ? '#FFFFFF' : 'var(--text-secondary)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              <span>{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+            </button>
+          </div>
         </div>
 
-        {/* Filter tabs */}
-        <div style={{ display: 'flex', gap: '6px', marginTop: '12px', overflowX: 'auto', paddingBottom: '2px' }}>
-          {filterKeys.map((key, i) => {
-            const isActive = activeFilter === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setActiveFilter(key)}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '20px',
-                  background: isActive ? '#171717' : 'var(--bg-surface-hover)',
-                  color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
-                  border: isActive ? 'none' : '1px solid var(--border-color)',
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                  outline: 'none',
-                  transition: 'all 0.15s'
-                }}
-              >
-                {key}
-                {filterValues[i] !== '—' && (
-                  <span style={{ marginInlineStart: '4px', opacity: 0.7 }}>{filterValues[i]}</span>
-                )}
-              </button>
-            );
-          })}
+        {/* Search input + Filter tabs */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+          {/* Filter tabs */}
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {filterKeys.map((key, i) => {
+              const isActive = activeFilter === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveFilter(key)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    background: isActive ? '#171717' : 'var(--bg-surface-hover)',
+                    color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
+                    border: isActive ? 'none' : '1px solid var(--border-color)',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    outline: 'none',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  {key}
+                  {filterValues[i] !== '—' && (
+                    <span style={{ marginInlineStart: '4px', opacity: 0.7 }}>{filterValues[i]}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick Search */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', minWidth: '180px' }}>
+            <Search size={13} style={{ position: 'absolute', left: 8, color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              placeholder="Search job or craftsman..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                padding: '4px 8px 4px 26px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-surface-hover)',
+                fontSize: '0.72rem',
+                color: 'var(--text-primary)',
+                outline: 'none',
+                width: '100%'
+              }}
+            />
+          </div>
         </div>
       </div>
 
