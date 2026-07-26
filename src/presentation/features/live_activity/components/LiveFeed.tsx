@@ -162,8 +162,12 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePa
               <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
                 <button
                   onClick={() => {
-                    const el = document.getElementById('operational-map-card');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    window.dispatchEvent(new CustomEvent('focus-map-job', {
+                      detail: {
+                        eventId: event.id,
+                        title: event.title
+                      }
+                    }));
                   }}
                   style={{
                     padding: '2px 6px',

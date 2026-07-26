@@ -106,8 +106,13 @@ export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount
               <div style={{ display: 'flex', gap: '6px' }}>
                 <button
                   onClick={() => {
-                    const el = document.getElementById('operational-map-card');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    window.dispatchEvent(new CustomEvent('focus-map-job', {
+                      detail: {
+                        jobId: job.id,
+                        coords: [job.lat || 31.7683, job.lng || 35.2137],
+                        title: job.title
+                      }
+                    }));
                   }}
                   style={{
                     padding: '3px 8px',

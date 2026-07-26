@@ -263,6 +263,27 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
     }
   };
 
+  // Listen for focus-map-job events from feed or jobs list
+  useEffect(() => {
+    const handleFocusMap = (e: any) => {
+      const cardEl = document.getElementById('operational-map-card');
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      const { coords } = e.detail || {};
+      if (mapInstanceRef.current && Array.isArray(coords) && coords.length === 2) {
+        mapInstanceRef.current.flyTo(coords, 15, { duration: 1.2 });
+      } else if (mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo([31.7683, 35.2137], 14, { duration: 1.2 });
+      }
+    };
+
+    window.addEventListener('focus-map-job', handleFocusMap);
+    return () => {
+      window.removeEventListener('focus-map-job', handleFocusMap);
+    };
+  }, []);
+
   const handleDistrictChange = (key: string) => {
     setSelectedDistrict(key);
     const target = districts.find(d => d.key === key);
@@ -276,6 +297,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
 
   return (
     <div
+      id="operational-map-card"
       className="glass-card live-desktop-map-card"
       style={{
         borderRadius: 'var(--border-radius-lg)',
