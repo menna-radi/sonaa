@@ -133,8 +133,11 @@ export class LiveActivityMapper {
       customer: t.clientName || 'Customer',
       craftsman: t.craftsmanName || 'Unassigned',
       zone: 'Jerusalem',
-      amountSAR: 350,
-      progressPercent: 50,
+      amountSAR: Number(t.budgetAmount || 350),
+      progressPercent: t.status === 'IN_PROGRESS' ? 65 : t.status === 'ACCEPTED' ? 25 : 10,
+      status: t.status || 'IN_PROGRESS',
+      lat: t.lat || 31.7683,
+      lng: t.lng || 35.2137,
     }));
 
     const rawFeedEvents = Array.isArray(model.feed_events) ? model.feed_events.map(LiveActivityMapper.toActivityEvent) : feedEventsFromBackend;

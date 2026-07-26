@@ -36,6 +36,9 @@ export interface ActiveJob {
   zone: string;
   amountSAR: number;
   progressPercent: number;
+  status?: 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'DISPUTED' | string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface SuspiciousAlert {

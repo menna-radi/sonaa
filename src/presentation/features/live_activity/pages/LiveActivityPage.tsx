@@ -192,7 +192,7 @@ export const LiveActivityPage: React.FC = () => {
                 {/* Row 1: Map + Feed */}
                 <div style={{ display: 'flex', gap: 'var(--spacing-md)', minHeight: '420px' }}>
                   <div style={{ flex: 2 }}>
-                    <OperationalMap summary={summary} />
+                    <OperationalMap summary={summary} jobs={activeJobs} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <LiveFeed events={feedEvents} isPaused={isPaused} onTogglePause={togglePause} />
@@ -222,7 +222,7 @@ export const LiveActivityPage: React.FC = () => {
 
                 {/* Row 1: Map (552px) + Live Feed (268px) with 16px gap */}
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                  <OperationalMap summary={summary} />
+                  <OperationalMap summary={summary} jobs={activeJobs} />
                   <LiveFeed events={feedEvents} isPaused={isPaused} onTogglePause={togglePause} />
                 </div>
 
