@@ -22,10 +22,12 @@ export const useLiveActivity = () => {
   // ── Event batching buffer (useRef — no re-render on push) ─────────────────
   const pendingEventsRef = useRef<ActivityEvent[]>([]);
 
-  // ── Initial snapshot load ─────────────────────────────────────────────────
-  const loadSnapshot = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // ── Initial & Background snapshot load ──────────────────────────────────
+  const loadSnapshot = useCallback(async (isBackground: boolean = false) => {
+    if (!isBackground) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const result = await liveActivityRepository.getSnapshot();
       if (result.success) {
@@ -34,30 +36,34 @@ export const useLiveActivity = () => {
         setBusyZones(result.data.busyZones);
         setActiveJobs(result.data.activeJobs);
         setSuspiciousAlerts(result.data.suspiciousAlerts);
-      } else {
+      } else if (!isBackground) {
         const errResult = result as { success: false; error: { message: string } };
         setError(errResult.error.message || 'Failed to load live activity.');
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to load live activity.';
-      setError(msg);
+      if (!isBackground) {
+        const msg = err instanceof Error ? err.message : 'Failed to load live activity.';
+        setError(msg);
+      }
     } finally {
-      setLoading(false);
+      if (!isBackground) {
+        setLoading(false);
+      }
     }
   }, [liveActivityRepository]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadSnapshot();
+    loadSnapshot(false);
   }, [loadSnapshot]);
 
-  // ── Real-time subscription + 12s auto-polling ─────────────────────────────
+  // ── Real-time subscription + 12s silent background polling ─────────────────
   useEffect(() => {
     if (isPaused) return;
 
-    // Background auto-polling every 12 seconds
+    // Silent background auto-polling every 12 seconds (no UI flickering)
     const pollInterval = window.setInterval(() => {
-      loadSnapshot();
+      loadSnapshot(true);
     }, 12000);
 
     // Events go into a ref buffer — no setState per event
