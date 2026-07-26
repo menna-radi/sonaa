@@ -14,7 +14,7 @@ const minsAgoISO = (m: number) => new Date(Date.now() - m * 60 * 1000).toISOStri
 const secsAgoISO = (s: number) => new Date(Date.now() - s * 1000).toISOString();
 
 const SEED_EVENTS: ActivityEvent[] = [
-  { id: 'e1', type: 'sos_triggered', title: 'SOS triggered · Old City', subtitle: 'Job #SN-2417 · Lina Al-Q.', timestamp: nowISO(), isSOS: true, ageLabel: 'now' },
+  { id: 'e1', type: 'job_posted', title: 'New job posted · Plumbing Repair', subtitle: 'Old City · 450 ILS', timestamp: nowISO(), isSOS: false, ageLabel: 'now' },
   { id: 'e2', type: 'job_posted', title: 'New job posted · AC Repair', subtitle: 'Beit Hanina · 720 ILS', timestamp: secsAgoISO(14), isSOS: false, ageLabel: '14s ago' },
   { id: 'e3', type: 'craftsman_online', title: 'Craftsman online · Mohammed Z.', subtitle: 'Shuafat · Plumber', timestamp: secsAgoISO(32), isSOS: false, ageLabel: '32s ago' },
   { id: 'e4', type: 'payment_processed', title: 'Payment processed', subtitle: '480 ILS · Job #SN-2415', timestamp: secsAgoISO(48), isSOS: false, ageLabel: '48s ago' },
@@ -51,7 +51,7 @@ const STREAM_EVENTS = [
   { type: 'job_completed' as const, title: 'Job completed · AC Repair', subtitle: 'Shuafat · ⭐ 4.8', isSOS: false },
   { type: 'verification_submitted' as const, title: 'Verification submitted', subtitle: 'Ahmed Al-Mutairi · Plumber', isSOS: false },
   { type: 'surge_detected' as const, title: 'Surge detected · Sheikh Jarrah', subtitle: 'Cleaning · +90%', isSOS: false },
-  { type: 'sos_triggered' as const, title: 'SOS triggered · Silwan', subtitle: 'Job #SN-2421 · Sara K.', isSOS: true },
+  { type: 'job_posted' as const, title: 'New job posted · Electrical', subtitle: 'Silwan · 380 ILS', isSOS: false },
 ];
 
 let streamCounter = 100;

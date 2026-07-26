@@ -142,7 +142,7 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePa
               {EVENT_ICON[event.type]}
             </div>
 
-            {/* Text */}
+            {/* Text & Actions */}
             <div style={{ flex: 1, textAlign: 'start', minWidth: 0 }}>
               <div style={{
                 fontSize: '0.83rem',
@@ -156,6 +156,53 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePa
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                 {event.subtitle}
+              </div>
+
+              {/* Action buttons */}
+              <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('operational-map-card');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  style={{
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    background: '#171717',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px'
+                  }}
+                  title="Show event on map"
+                >
+                  🗺️ Map
+                </button>
+                <button
+                  onClick={() => {
+                    window.location.href = `/tasks?search=${encodeURIComponent(event.title)}`;
+                  }}
+                  style={{
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    background: 'var(--bg-surface-hover)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-color)',
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px'
+                  }}
+                  title="Open task details"
+                >
+                  📋 Details
+                </button>
               </div>
             </div>
 

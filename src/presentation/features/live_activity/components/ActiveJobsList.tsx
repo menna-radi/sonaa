@@ -47,13 +47,23 @@ export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount
       {/* Job list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {jobs.map((job) => (
-          <div key={job.id} style={{ textAlign: 'start' }}>
+          <div
+            key={job.id}
+            style={{
+              textAlign: 'start',
+              padding: '10px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-surface-hover)',
+              transition: 'all 0.15s ease'
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
               {/* Icon */}
               <div style={{
                 width: '32px', height: '32px',
                 borderRadius: '50%',
-                background: 'var(--bg-surface-hover)',
+                background: 'var(--bg-surface)',
                 border: '1px solid var(--border-color)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
@@ -78,7 +88,7 @@ export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount
             </div>
 
             {/* Progress bar */}
-            <div style={{ height: '4px', background: 'var(--bg-surface-hover)', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ height: '4px', background: 'var(--bg-surface)', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
               <div style={{
                 height: '100%',
                 width: `${job.progressPercent}%`,
@@ -87,8 +97,58 @@ export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount
                 transition: 'width 0.6s ease',
               }} />
             </div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--text-disabled)', textAlign: 'end', marginTop: '2px' }}>
-              {job.progressPercent}%
+
+            {/* Quick Actions Row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '4px', borderTop: '1px dashed var(--border-color)' }}>
+              <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                Progress: {job.progressPercent}%
+              </span>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('operational-map-card');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    background: '#171717',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  title="Focus and view on operational map"
+                >
+                  🗺️ Show on Map
+                </button>
+
+                <button
+                  onClick={() => {
+                    window.location.href = `/tasks?search=${encodeURIComponent(job.jobNumber || job.title)}`;
+                  }}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    background: 'var(--bg-surface)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-color)',
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  title="Open full task dispatch management page"
+                >
+                  📋 Open in Tasks
+                </button>
+              </div>
             </div>
           </div>
         ))}
