@@ -58,7 +58,7 @@ export class ApiVerificationRepository implements VerificationRepository {
           isVerifiedSelfie: Boolean(r.isVerifiedSelfie),
           isVerifiedBankIban: Boolean(r.isVerifiedBankIban),
           isVerifiedBackground: Boolean(r.isVerifiedBackground),
-          phoneNumber: r.user?.phoneNumber || r.user?.phone || '+966 50 123 4567',
+          phoneNumber: r.user?.phoneNumber || r.user?.phone || '+972 54 123 4567',
           email: r.user?.email || `${r.firstName.toLowerCase()}.${r.lastName.toLowerCase()}@sonaa.sa`,
           deviceOs: 'Android 14 (SDK 34)',
           appVersion: 'Sonaa Partner v2.4.1',

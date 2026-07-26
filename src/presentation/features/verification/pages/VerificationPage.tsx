@@ -206,7 +206,7 @@ const ProfileInfoContent: React.FC<{ submission?: Submission }> = ({ submission 
             <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Phone Number</span>
             <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Phone size={13} style={{ color: '#16A34A' }} />
-              {submission.phoneNumber || '+966 50 123 4567'}
+              {submission.phoneNumber || '+972 54 123 4567'}
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
