@@ -116,15 +116,19 @@ export class LiveActivityMapper {
     const activeTasks = Array.isArray(model.activeTasks) ? model.activeTasks : [];
     const activeCraftsmen = Array.isArray(model.activeCraftsmen) ? model.activeCraftsmen : [];
 
-    const feedEventsFromBackend: ActivityEvent[] = emergencies.map((e: any) => ({
-      id: e.id,
-      type: 'emergency',
-      title: `SOS Emergency by ${e.clientName || 'Customer'}`,
-      subtitle: `Status: ${e.status} · Craftsman: ${e.craftsmanName || 'Unassigned'}`,
-      timestamp: e.createdAt || new Date().toISOString(),
-      isSOS: true,
+    const feedEventsFromBackend: ActivityEvent[] = activeTasks.map((t: any) => ({
+      id: `evt-${t.id}`,
+      type: t.status === 'ACCEPTED' ? 'job_posted' : 'job_completed',
+      title: `${t.title || 'Service Job'} (${t.displayId || 'Task'})`,
+      subtitle: `Status: ${t.status || 'IN_PROGRESS'} · Craftsman: ${t.craftsmanName || 'Unassigned'}`,
+      timestamp: t.createdAt || new Date().toISOString(),
+      isSOS: false,
       ageLabel: 'now',
     }));
+
+    const rawFeedEvents = (Array.isArray(model.feed_events)
+      ? model.feed_events.map(LiveActivityMapper.toActivityEvent)
+      : feedEventsFromBackend).filter((e: ActivityEvent) => !e.isSOS && e.type !== 'sos_triggered');
 
     const activeJobsFromBackend: ActiveJob[] = activeTasks.map((t: any) => ({
       id: t.id,
@@ -140,7 +144,6 @@ export class LiveActivityMapper {
       lng: t.lng || 35.2137,
     }));
 
-    const rawFeedEvents = Array.isArray(model.feed_events) ? model.feed_events.map(LiveActivityMapper.toActivityEvent) : feedEventsFromBackend;
     const rawActiveJobs = Array.isArray(model.active_job_list) ? model.active_job_list.map(LiveActivityMapper.toActiveJob) : activeJobsFromBackend;
     const rawBusyZones = Array.isArray(model.busy_zones) ? model.busy_zones.map(LiveActivityMapper.toBusyZone) : [];
     const rawSuspicious = Array.isArray(model.suspicious_alerts) ? model.suspicious_alerts.map(LiveActivityMapper.toSuspiciousAlert) : [];

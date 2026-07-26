@@ -115,7 +115,7 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePa
 
       {/* Event list */}
       <div style={{ overflowY: 'auto', flexGrow: 1, maxHeight: '420px' }}>
-        {events.map((event) => (
+        {events.filter(e => !e.isSOS && e.type !== 'sos_triggered').map((event) => (
           <div
             key={event.id}
             style={{
