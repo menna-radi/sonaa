@@ -5,9 +5,16 @@ import type { LiveActivitySummary, ActiveJob } from '../../../../domain/entities
 interface OperationalMapProps {
   summary: LiveActivitySummary | null;
   jobs?: ActiveJob[];
+  refreshInterval?: number;
+  onRefreshIntervalChange?: (intervalMs: number) => void;
 }
 
-export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = [] }) => {
+export const OperationalMap: React.FC<OperationalMapProps> = ({
+  summary,
+  jobs = [],
+  refreshInterval = 12000,
+  onRefreshIntervalChange,
+}) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
@@ -355,6 +362,63 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({ summary, jobs = 
 
           {/* Action Toolbar Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {/* Control #4: Telemetry Refresh Speed Pills */}
+            {onRefreshIntervalChange && (
+              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-surface-hover)', borderRadius: '6px', padding: '2px', border: '1px solid var(--border-color)' }}>
+                <button
+                  onClick={() => onRefreshIntervalChange(10000)}
+                  title="Fast Live Telemetry Stream (10s)"
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: refreshInterval === 10000 ? '#10b981' : 'transparent',
+                    color: refreshInterval === 10000 ? '#ffffff' : 'var(--text-secondary)',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  ⚡ 10s
+                </button>
+                <button
+                  onClick={() => onRefreshIntervalChange(30000)}
+                  title="Standard Telemetry Stream (30s)"
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: refreshInterval === 30000 ? '#3b82f6' : 'transparent',
+                    color: refreshInterval === 30000 ? '#ffffff' : 'var(--text-secondary)',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  ⏱️ 30s
+                </button>
+                <button
+                  onClick={() => onRefreshIntervalChange(0)}
+                  title="Pause Background Polling Stream"
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: refreshInterval === 0 ? '#ef4444' : 'transparent',
+                    color: refreshInterval === 0 ? '#ffffff' : 'var(--text-secondary)',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  ⏸️ Pause
+                </button>
+              </div>
+            )}
+
             {/* District Selector */}
             <select
               value={selectedDistrict}

@@ -19,6 +19,8 @@ export const useLiveActivity = () => {
   const [error,             setError]              = useState<string | null>(null);
   const [isPaused,          setIsPaused]           = useState(false);
 
+  const [refreshInterval, setRefreshInterval] = useState<number>(12000); // Default 12s
+
   // ── Event batching buffer (useRef — no re-render on push) ─────────────────
   const pendingEventsRef = useRef<ActivityEvent[]>([]);
 
@@ -57,14 +59,14 @@ export const useLiveActivity = () => {
     loadSnapshot(false);
   }, [loadSnapshot]);
 
-  // ── Real-time subscription + 12s silent background polling ─────────────────
+  // ── Real-time subscription + dynamic background polling ─────────────────
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || refreshInterval <= 0) return;
 
-    // Silent background auto-polling every 12 seconds (no UI flickering)
+    // Silent background auto-polling (no UI flickering)
     const pollInterval = window.setInterval(() => {
       loadSnapshot(true);
-    }, 12000);
+    }, refreshInterval);
 
     // Events go into a ref buffer — no setState per event
     const cleanupSubscription = liveActivityRepository.subscribeToFeed((event: ActivityEvent) => {
@@ -88,7 +90,7 @@ export const useLiveActivity = () => {
       cleanupSubscription();
       window.clearInterval(flushTimer);
     };
-  }, [isPaused, liveActivityRepository, loadSnapshot]);
+  }, [isPaused, refreshInterval, liveActivityRepository, loadSnapshot]);
 
   // ── Controls ──────────────────────────────────────────────────────────────
   const togglePause = useCallback(() => {
@@ -111,6 +113,8 @@ export const useLiveActivity = () => {
     isPaused,
     togglePause,
     refresh,
+    refreshInterval,
+    setRefreshInterval,
   };
 };
 
