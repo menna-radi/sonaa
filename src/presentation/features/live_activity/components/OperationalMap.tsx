@@ -17,6 +17,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+  const markerInstancesRef = useRef<Record<string, any>>({});
   const [leafletLoaded, setLeafletLoaded] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All activity');
   const [selectedDistrict, setSelectedDistrict] = useState('ALL');
@@ -26,6 +27,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
   const [showCraftsmen, setShowCraftsmen] = useState(true);
   const [showTasks, setShowTasks] = useState(true);
   const [showZonesOverlay, setShowZonesOverlay] = useState(true);
+  const [showRoutes, setShowRoutes] = useState(true);
 
   // Jerusalem Districts Coordinates
   const districts = [
@@ -129,6 +131,38 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
           <div style="font-family: system-ui; padding: 4px;">
             <strong style="font-size: 12px; color: #1e3a8a;">${d.name} Zone Overlay</strong>
             <span style="display: block; font-size: 11px; color: #475569; margin-top: 2px;">Active service coverage area & demand ring.</span>
+          </div>
+        `);
+      });
+    }
+
+    // Render Craftsman Live Path Tracking & Motion Vector Lines when routes layer is active
+    if (showRoutes) {
+      const routes = [
+        {
+          from: [31.8080, 35.2330],
+          to: [31.8260, 35.2260],
+          color: '#10b981',
+          label: '⚡ Live Transit: Ahmad Al-Otaibi → Beit Hanina (1.8 km · 5 min)'
+        },
+        {
+          from: [31.8260, 35.2150],
+          to: [31.7800, 35.2150],
+          color: '#3b82f6',
+          label: '⚡ Live Transit: Yousef H. → Jerusalem Center (4.2 km · 9 min)'
+        }
+      ];
+
+      routes.forEach(r => {
+        L.polyline([r.from, r.to], {
+          color: r.color,
+          weight: 3.5,
+          dashArray: '8, 8',
+          opacity: 0.85
+        }).addTo(layerGroup).bindPopup(`
+          <div style="font-family: system-ui; padding: 4px;">
+            <strong style="font-size: 12px; color: ${r.color};">${r.label}</strong>
+            <span style="display: block; font-size: 11px; color: #475569; margin-top: 2px;">Active technician route vector line in Jerusalem.</span>
           </div>
         `);
       });
@@ -276,9 +310,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
         markerInstancesRef.current[marker.id] = markerObj;
       }
     });
-  }, [leafletLoaded, activeFilter, summary, jobs, showCraftsmen, showTasks, showZonesOverlay, searchQuery]);
-
-  const markerInstancesRef = useRef<Record<string, any>>({});
+  }, [leafletLoaded, activeFilter, summary, jobs, showCraftsmen, showTasks, showZonesOverlay, showRoutes, searchQuery]);
 
   const handleRecenter = () => {
     if (mapInstanceRef.current && (window as any).L) {
@@ -568,6 +600,22 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
               }}
             >
               {showZonesOverlay ? '✓ Zone Rings' : '+ Zone Rings'}
+            </button>
+
+            <button
+              onClick={() => setShowRoutes(prev => !prev)}
+              style={{
+                padding: '3px 8px',
+                borderRadius: '4px',
+                border: '1px solid var(--border-color)',
+                background: showRoutes ? '#f59e0b22' : 'transparent',
+                color: showRoutes ? '#d97706' : 'var(--text-muted)',
+                fontSize: '0.68rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              {showRoutes ? '✓ Dispatch Routes' : '+ Dispatch Routes'}
             </button>
           </div>
 
