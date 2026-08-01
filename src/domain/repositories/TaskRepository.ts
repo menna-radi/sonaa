@@ -5,4 +5,5 @@ export interface TaskRepository {
   getTasks(): Promise<Result<Task[]>>;
   freezeTask(id: string): Promise<Result<Task>>;
   unfreezeTask(id: string): Promise<Result<Task>>;
+  dispatchBackup(id: string): Promise<Result<boolean>>;
 }

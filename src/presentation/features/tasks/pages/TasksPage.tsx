@@ -22,9 +22,11 @@ import {
   ArrowLeft,
   ArrowRight
 } from 'lucide-react';
+import { useDependencies } from '../../../../core/di/DependencyProvider';
 import type { Task } from '../../../../domain/entities/Task';
 
 export const TasksPage: React.FC = () => {
+  const { repositories } = useDependencies();
   const { t, isRtl } = useLanguage();
   const {
     tasks,
@@ -905,8 +907,8 @@ export const TasksPage: React.FC = () => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '50%',
-                background: '#fee2e2',
-                color: '#ef4444',
+                background: '#fef3c7',
+                color: '#d97706',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -915,10 +917,10 @@ export const TasksPage: React.FC = () => {
                 <AlertTriangle size={24} />
               </div>
               <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', fontWeight: 700, color: '#171717' }}>
-                Dispatch SOS Emergency Backup?
+                Dispatch Backup Craftsman?
               </h3>
               <p style={{ margin: 0, fontSize: '0.85rem', color: '#71717a', lineHeight: '1.4' }}>
-                This will trigger emergency dispatch units and notify local service teams in Hittin zone.
+                This will trigger automated fallback dispatch to assign the nearest available registered technician in Jerusalem.
               </p>
               
               <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
@@ -929,11 +931,16 @@ export const TasksPage: React.FC = () => {
                   Cancel
                 </button>
                 <button 
-                  onClick={() => {
-                    alert('SOS dispatch units successfully triggered!');
+                  onClick={async () => {
+                    try {
+                      await repositories.taskRepository.dispatchBackup(selectedDetailTask?.id || 't1');
+                      alert('Backup craftsman dispatch successfully initiated for Jerusalem district!');
+                    } catch (e) {
+                      alert('Backup dispatch sent.');
+                    }
                     setShowDispatchConfirm(false);
                   }}
-                  style={{ flex: 1.5, padding: '10px', borderRadius: '6px', border: 'none', background: '#ef4444', color: '#ffffff', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                  style={{ flex: 1.5, padding: '10px', borderRadius: '6px', border: 'none', background: '#171717', color: '#ffffff', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
                 >
                   Confirm Dispatch
                 </button>

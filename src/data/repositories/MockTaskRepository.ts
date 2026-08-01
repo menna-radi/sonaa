@@ -48,5 +48,10 @@ export class MockTaskRepository implements TaskRepository {
     this.tasks[idx] = updated;
     return ok(updated);
   }
+
+  public async dispatchBackup(_id: string): Promise<Result<boolean>> {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    return ok(true);
+  }
 }
 export default MockTaskRepository;

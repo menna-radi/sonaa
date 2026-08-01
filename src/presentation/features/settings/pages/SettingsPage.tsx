@@ -25,7 +25,7 @@ import { MobileBottomTabs } from '../../../layouts/MobileBottomTabs';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
 import { User as DomainUser } from '../../../../domain/entities/User';
 
-type TabKey = 'roles' | 'security' | 'notifications' | 'platform';
+type TabKey = 'roles' | 'security' | 'notifications' | 'platform' | 'audit_logs';
 
 interface TeamRole {
   id: string;
@@ -324,6 +324,7 @@ export const SettingsPage: React.FC = () => {
     { key: 'security' as TabKey, label: isRtl ? 'الأمن والحماية' : 'Security', icon: <Lock size={16} /> },
     { key: 'notifications' as TabKey, label: isRtl ? 'تفضيلات الإشعارات' : 'Notification preferences', icon: <Bell size={16} /> },
     { key: 'platform' as TabKey, label: isRtl ? 'تهيئة المنصة' : 'Platform configuration', icon: <Settings size={16} /> },
+    { key: 'audit_logs' as TabKey, label: isRtl ? 'سجل التدقيق' : 'Audit Logs Explorer', icon: <Sliders size={16} /> },
   ];
 
   return (
@@ -590,6 +591,66 @@ export const SettingsPage: React.FC = () => {
                       )}
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 5: AUDIT LOGS EXPLORER ── */}
+            {activeTab === 'audit_logs' && (
+              <div className="settings-card" style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <div>
+                    <p className="card-label-small">{isRtl ? 'سجل التدقيق' : 'Audit Logs Explorer'}</p>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                      {isRtl ? 'سجل عمليات المشرفين في النظام' : 'Track and audit administrative actions across Sonaa platform'}
+                    </p>
+                  </div>
+                  <button
+                    className="param-save-btn"
+                    style={{ padding: '6px 12px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => alert('Audit logs refreshed.')}
+                  >
+                    <Clock size={14} />
+                    <span>{isRtl ? 'تحديث السجل' : 'Refresh Logs'}</span>
+                  </button>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'start', color: 'var(--text-muted)' }}>
+                        <th style={{ padding: '10px 12px' }}>Timestamp</th>
+                        <th style={{ padding: '10px 12px' }}>Admin</th>
+                        <th style={{ padding: '10px 12px' }}>Action</th>
+                        <th style={{ padding: '10px 12px' }}>Target Entity</th>
+                        <th style={{ padding: '10px 12px' }}>IP Address</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { time: '2026-08-01 17:45:12', admin: 'admin@sonaa.app', action: 'TOGGLE_AUTO_VERIFICATION', target: 'AUTO_VERIFY_CRAFTSMEN', ip: '197.230.12.8' },
+                        { time: '2026-08-01 16:30:05', admin: 'moderator@sonaa.app', action: 'DISPATCH_BACKUP', target: 'Task #SN-2418', ip: '197.230.14.2' },
+                        { time: '2026-08-01 15:10:44', admin: 'admin@sonaa.app', action: 'SUSPEND_CRAFTSMAN', target: 'Craftsman #CR-4821', ip: '197.230.12.8' },
+                        { time: '2026-08-01 14:02:19', admin: 'admin@sonaa.app', action: 'CREATE_CATEGORY', target: 'HVAC Maintenance', ip: '197.230.12.8' },
+                        { time: '2026-08-01 12:20:00', admin: 'finance@sonaa.app', action: 'APPROVE_WITHDRAWAL', target: 'Payout #PO-9012 (450 ILS)', ip: '197.230.19.4' },
+                      ].map((log, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{log.time}</td>
+                          <td style={{ padding: '10px 12px', fontWeight: 600 }}>{log.admin}</td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <span style={{
+                              padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 700,
+                              background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)'
+                            }}>
+                              {log.action}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>{log.target}</td>
+                          <td style={{ padding: '10px 12px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{log.ip}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}

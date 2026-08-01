@@ -125,5 +125,14 @@ export class ApiTaskRepository implements TaskRepository {
       return fail(error as AppError);
     }
   }
+
+  public async dispatchBackup(id: string): Promise<Result<boolean>> {
+    try {
+      await apiClient.post(`/admin/tasks/${id}/dispatch-backup`);
+      return ok(true);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
 }
 export default ApiTaskRepository;
