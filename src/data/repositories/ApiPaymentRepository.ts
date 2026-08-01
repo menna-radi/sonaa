@@ -36,15 +36,63 @@ export class ApiPaymentRepository implements PaymentRepository {
 
   public async getSubscriptionPlans(): Promise<Result<SubscriptionPlan[]>> {
     try {
-      // Backend subscriptions plans endpoint
       const response = await apiClient.get<any[]>(API_ENDPOINTS.payments.plans);
       const plans: SubscriptionPlan[] = (response || []).map((p, idx) => ({
-        id: `p-${idx}`,
-        name: p.plan || 'Starter',
-        price: Number(p.priceMonthly || 0),
+        id: p.id || `p-${idx}`,
+        name: p.nameEn || p.key || p.plan || 'Starter',
+        price: Number(p.priceMonthly || p.price || 0),
         subscribersCount: Number(p.subscribersCount || 0),
       }));
       return ok(plans);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async createSubscriptionPlan(data: Partial<SubscriptionPlan>): Promise<Result<SubscriptionPlan>> {
+    try {
+      const response = await apiClient.post<any>('/admin/subscriptions/plans', {
+        key: data.name || 'CUSTOM',
+        nameEn: data.name || 'Custom Plan',
+        nameAr: data.name || 'باقة خاصة',
+        priceMonthly: data.price || 0,
+        priceYearly: (data.price || 0) * 10,
+        featuresEn: ['Unlimited access'],
+        featuresAr: ['وصول كامل'],
+      });
+      return ok({
+        id: response.id,
+        name: response.nameEn || response.key,
+        price: Number(response.priceMonthly || 0),
+        subscribersCount: 0,
+      });
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async getSubscribers(): Promise<Result<any[]>> {
+    try {
+      const response = await apiClient.get<any[]>('/admin/subscriptions/subscribers');
+      return ok(response || []);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async cancelSubscriber(id: string): Promise<Result<boolean>> {
+    try {
+      await apiClient.post<any>(`/admin/subscriptions/subscribers/${id}/cancel`);
+      return ok(true);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async extendSubscriber(id: string, days: number = 30): Promise<Result<boolean>> {
+    try {
+      await apiClient.post<any>(`/admin/subscriptions/subscribers/${id}/extend`, { days });
+      return ok(true);
     } catch (error) {
       return fail(error as AppError);
     }

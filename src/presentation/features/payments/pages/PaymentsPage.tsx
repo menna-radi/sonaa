@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useDependencies } from '../../../../core/di/DependencyProvider';
 import { Sidebar } from '../../../../presentation/layouts/Sidebar';
 import { Header } from '../../../../presentation/layouts/Header';
 import { MobileBottomTabs } from '../../../../presentation/layouts/MobileBottomTabs';
@@ -15,6 +16,8 @@ import {
   Check,
   X,
   RotateCw,
+  Plus,
+  Users,
 } from 'lucide-react';
 
 export const PaymentsPage: React.FC = () => {
@@ -38,6 +41,48 @@ export const PaymentsPage: React.FC = () => {
   const [mobileSection, setMobileSection] = useState<'overview' | 'payouts'>('overview');
   const [showAllFailedModal, setShowAllFailedModal] = useState(false);
   const [showAllRequestsModal, setShowAllRequestsModal] = useState(false);
+
+  const { dependencies } = useDependencies();
+  const { paymentRepository } = dependencies;
+
+  const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
+  const [showSubscribersModal, setShowSubscribersModal] = useState(false);
+  const [newPlanName, setNewPlanName] = useState('');
+  const [newPlanPrice, setNewPlanPrice] = useState(49);
+  const [subscribersList, setSubscribersList] = useState<any[]>([]);
+  const [subscribersLoading, setSubscribersLoading] = useState(false);
+
+  const handleOpenSubscribers = async () => {
+    setShowSubscribersModal(true);
+    setSubscribersLoading(true);
+    const res = await paymentRepository.getSubscribers();
+    if (res.success) {
+      setSubscribersList(res.data);
+    }
+    setSubscribersLoading(false);
+  };
+
+  const handleCreatePlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPlanName) return;
+    await paymentRepository.createSubscriptionPlan({
+      name: newPlanName,
+      price: Number(newPlanPrice),
+    });
+    setNewPlanName('');
+    setShowCreatePlanModal(false);
+    refresh();
+  };
+
+  const handleCancelSubscriber = async (id: string) => {
+    await paymentRepository.cancelSubscriber(id);
+    handleOpenSubscribers();
+  };
+
+  const handleExtendSubscriber = async (id: string) => {
+    await paymentRepository.extendSubscriber(id, 30);
+    handleOpenSubscribers();
+  };
 
   // Format Helper for Currency
   const formatCurrency = (val: number): string => {
@@ -277,9 +322,29 @@ export const PaymentsPage: React.FC = () => {
 
                   {/* Right Column: Subscription Plans Summary */}
                   <div className="payments-plans-card">
-                    <div className="payments-plans-header">
-                      <span className="payments-plans-card-title">{t('payments_sub_plans') || 'Subscription Plans'}</span>
-                      <strong className="payments-plans-mrr">MRR {formatCurrency(summary.mrr)}</strong>
+                    <div className="payments-plans-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="payments-plans-card-title">{t('payments_sub_plans') || 'Subscription Plans'}</span>
+                        <strong className="payments-plans-mrr">MRR {formatCurrency(summary.mrr)}</strong>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          className="payments-view-all-btn"
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', border: '1px solid #e4e4e7', background: '#f4f4f5', color: '#171717', cursor: 'pointer' }}
+                          onClick={handleOpenSubscribers}
+                        >
+                          <Users size={12} />
+                          <span>Subscribers</span>
+                        </button>
+                        <button
+                          className="payments-view-all-btn"
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+                          onClick={() => setShowCreatePlanModal(true)}
+                        >
+                          <Plus size={12} />
+                          <span>New Plan</span>
+                        </button>
+                      </div>
                     </div>
 
                     <div className="payments-plans-list">
@@ -672,6 +737,75 @@ export const PaymentsPage: React.FC = () => {
             </div>
           </div>
         )}
+          {/* Create Subscription Plan Modal */}
+          {showCreatePlanModal && (
+            <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+              <div style={{ background: '#fff', borderRadius: '16px', maxWidth: '440px', width: '100%', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', position: 'relative' }}>
+                <button onClick={() => setShowCreatePlanModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', border: 'none', background: 'transparent', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 700, color: '#171717' }}>Create Subscription Plan</h3>
+                <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: '#71717a' }}>Add a new dynamic pricing plan for your platform.</p>
+                <form onSubmit={handleCreatePlan} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px', color: '#171717' }}>Plan Name (e.g. VIP / Business)</label>
+                    <input type="text" value={newPlanName} onChange={e => setNewPlanName(e.target.value)} required placeholder="VIP Plan" style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e4e4e7' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px', color: '#171717' }}>Monthly Price (ILS)</label>
+                    <input type="number" value={newPlanPrice} onChange={e => setNewPlanPrice(Number(e.target.value))} required min="0" style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e4e4e7' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                    <button type="button" onClick={() => setShowCreatePlanModal(false)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e4e4e7', background: '#fff', cursor: 'pointer' }}>Cancel</button>
+                    <button type="submit" style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Create Plan</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Subscribers Inspector Modal */}
+          {showSubscribersModal && (
+            <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+              <div style={{ background: '#fff', borderRadius: '16px', maxWidth: '640px', width: '100%', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', position: 'relative', maxHeight: '85vh', overflowY: 'auto' }}>
+                <button onClick={() => setShowSubscribersModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', border: 'none', background: 'transparent', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 700, color: '#171717' }}>Active Subscribers Directory</h3>
+                <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: '#71717a' }}>Inspect and manage active customer & craftsman subscriptions.</p>
+                {subscribersLoading ? (
+                  <p style={{ color: '#71717a' }}>Loading subscribers...</p>
+                ) : subscribersList.length === 0 ? (
+                  <p style={{ color: '#71717a' }}>No active subscribers found.</p>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #e4e4e7', textAlign: 'left' }}>
+                        <th style={{ padding: '8px', color: '#71717a' }}>User</th>
+                        <th style={{ padding: '8px', color: '#71717a' }}>Plan</th>
+                        <th style={{ padding: '8px', color: '#71717a' }}>Cycle</th>
+                        <th style={{ padding: '8px', color: '#71717a' }}>Status</th>
+                        <th style={{ padding: '8px', color: '#71717a', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subscribersList.map((sub: any) => (
+                        <tr key={sub.id} style={{ borderBottom: '1px solid #f4f4f5' }}>
+                          <td style={{ padding: '8px' }}>
+                            <strong style={{ display: 'block', color: '#171717' }}>{sub.user?.firstName || 'User'} {sub.user?.lastName || ''}</strong>
+                            <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{sub.user?.phoneNumber || sub.user?.email || 'N/A'}</span>
+                          </td>
+                          <td style={{ padding: '8px' }}><span style={{ padding: '2px 6px', background: '#eff6ff', color: '#1d4ed8', borderRadius: '4px', fontWeight: 600 }}>{sub.plan}</span></td>
+                          <td style={{ padding: '8px', color: '#171717' }}>{sub.billingCycle}</td>
+                          <td style={{ padding: '8px' }}><span style={{ color: sub.status === 'ACTIVE' ? '#16a34a' : '#dc2626', fontWeight: 600 }}>{sub.status}</span></td>
+                          <td style={{ padding: '8px', textAlign: 'right', display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                            <button onClick={() => handleExtendSubscriber(sub.id)} style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #e4e4e7', background: '#f4f4f5', color: '#171717', cursor: 'pointer' }}>+30 Days</button>
+                            <button onClick={() => handleCancelSubscriber(sub.id)} style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '4px', border: 'none', background: '#fee2e2', color: '#dc2626', cursor: 'pointer' }}>Cancel</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          )}
 
       </main>
 

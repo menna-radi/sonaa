@@ -27,6 +27,11 @@ export class MockPaymentRepository implements PaymentRepository {
     { id: 'p3', name: 'Pro+', price: 249, subscribersCount: 112 }
   ];
 
+  private subscribers: any[] = [
+    { id: 'sub-1', customerProfileId: 'cust-1', user: { firstName: 'Tariq', lastName: 'Mansoor', email: 'tariq@sonaa.ps', phoneNumber: '+972541112233', role: 'CUSTOMER' }, plan: 'PRO', billingCycle: 'MONTHLY', amount: 49, currency: 'ILS', status: 'ACTIVE', autoRenew: true, startDate: '2026-07-01' },
+    { id: 'sub-2', customerProfileId: 'cust-2', user: { firstName: 'Omar', lastName: 'Farooq', email: 'omar@sonaa.ps', phoneNumber: '+972542223344', role: 'CRAFTSMAN' }, plan: 'PRO', billingCycle: 'YEARLY', amount: 490, currency: 'ILS', status: 'ACTIVE', autoRenew: true, startDate: '2026-06-15' },
+  ];
+
   private failedTransactions: FailedTransaction[] = [
     { id: 't1', name: 'Ahmad Al-Otaibi', txId: '#TX-8421', bank: 'Al Rajhi', timeAgo: '12m ago', amount: 4200, reasonKey: 'reason_bank_declined', retries: 1 },
     { id: 't2', name: 'Yousef Al-Harbi', txId: '#TX-8420', bank: 'SNB', timeAgo: '34m ago', amount: 1840, reasonKey: 'reason_insufficient_funds', retries: 2 },
@@ -50,6 +55,38 @@ export class MockPaymentRepository implements PaymentRepository {
   public async getSubscriptionPlans(): Promise<Result<SubscriptionPlan[]>> {
     await new Promise(resolve => setTimeout(resolve, 150));
     return ok([...this.plans]);
+  }
+
+  public async createSubscriptionPlan(data: Partial<SubscriptionPlan>): Promise<Result<SubscriptionPlan>> {
+    const newPlan: SubscriptionPlan = {
+      id: `p-${Date.now()}`,
+      name: data.name || 'Custom Plan',
+      price: data.price || 49,
+      subscribersCount: 0,
+    };
+    this.plans.push(newPlan);
+    return ok(newPlan);
+  }
+
+  public async getSubscribers(): Promise<Result<any[]>> {
+    return ok([...this.subscribers]);
+  }
+
+  public async cancelSubscriber(id: string): Promise<Result<boolean>> {
+    const sub = this.subscribers.find(s => s.id === id);
+    if (sub) {
+      sub.status = 'CANCELLED';
+      sub.autoRenew = false;
+    }
+    return ok(true);
+  }
+
+  public async extendSubscriber(id: string, days: number = 30): Promise<Result<boolean>> {
+    const sub = this.subscribers.find(s => s.id === id);
+    if (sub) {
+      sub.status = 'ACTIVE';
+    }
+    return ok(true);
   }
 
   public async getFailedTransactions(): Promise<Result<FailedTransaction[]>> {
