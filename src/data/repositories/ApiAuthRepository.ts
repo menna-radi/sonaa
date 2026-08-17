@@ -48,7 +48,7 @@ export class ApiAuthRepository implements AuthRepository {
       const domainUser: User = {
         id: response.user.id,
         email: response.user.email,
-        name: response.user.name,
+        name: response.user.name || `${response.user.firstName || ''} ${response.user.lastName || ''}`.trim() || response.user.username || response.user.email,
         role: response.user.role,
         avatarUrl: '', // Avatar not provided in raw login response fields, fallback to empty string
       };
@@ -80,18 +80,28 @@ export class ApiAuthRepository implements AuthRepository {
       const token = storageService.getToken();
       if (!token) return ok(null);
 
-      const response = await apiClient.get<any>(API_ENDPOINTS.auth.me);
-      
-      const domainUser: User = {
-        id: response.id,
-        email: response.email || '',
-        name: response.name || `${response.firstName} ${response.lastName}`.trim(),
-        role: response.role,
-        avatarUrl: response.avatarUrl || '',
-      };
+      const cachedUser = storageService.get<User>('cached_user');
 
-      storageService.set<User>('cached_user', domainUser);
-      return ok(domainUser);
+      try {
+        const response = await apiClient.get<any>(API_ENDPOINTS.auth.me);
+        
+        const domainUser: User = {
+          id: response.id,
+          email: response.email || '',
+          name: response.name || `${response.firstName} ${response.lastName}`.trim(),
+          role: response.role,
+          avatarUrl: response.avatarUrl || '',
+        };
+
+        storageService.set<User>('cached_user', domainUser);
+        return ok(domainUser);
+      } catch (err: any) {
+        // If cached user exists and request failed (network/server temporary error), preserve session
+        if (cachedUser) {
+          return ok(cachedUser);
+        }
+        throw err;
+      }
     } catch (error) {
       storageService.clearToken();
       storageService.remove('cached_user');

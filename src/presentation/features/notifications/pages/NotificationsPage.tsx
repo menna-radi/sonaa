@@ -343,15 +343,15 @@ export const NotificationsPage: React.FC = () => {
           }
 
           .primary-action-btn {
-            background: #171717;
+            background: var(--color-primary);
             color: #ffffff;
             border: none;
           }
 
           .secondary-action-btn {
-            background: #ffffff;
-            color: #171717;
-            border: 1px solid #e5e5e5;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
           }
 
           .primary-action-btn:hover, .secondary-action-btn:hover {
@@ -369,10 +369,10 @@ export const NotificationsPage: React.FC = () => {
 
           /* Glass card layout styles */
           .glass-card {
-            background: #ffffff;
-            border: 1px solid #e5e5e5;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
-            box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.04);
+            box-shadow: var(--shadow-sm);
             padding: 20px;
             box-sizing: border-box;
           }
@@ -391,13 +391,13 @@ export const NotificationsPage: React.FC = () => {
             justify-content: space-between;
             align-items: center;
             gap: 16px;
-            border-bottom: 1px solid #f5f5f5;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 16px;
           }
 
           .feed-tabs {
             display: flex;
-            background: #f5f5f5;
+            background: var(--bg-surface-hover);
             padding: 2px;
             border-radius: 8px;
             gap: 2px;
@@ -413,15 +413,15 @@ export const NotificationsPage: React.FC = () => {
             background: transparent;
             font-size: 11px;
             font-weight: 700;
-            color: #737373;
+            color: var(--text-muted);
             cursor: pointer;
             transition: all var(--transition-fast, 0.2s);
           }
 
           .feed-tab-btn.active {
-            background: #ffffff;
-            color: #171717;
-            box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
           }
 
           .tab-badge {
@@ -432,18 +432,18 @@ export const NotificationsPage: React.FC = () => {
           }
 
           .tab-badge.all {
-            background: #171717;
+            background: var(--color-primary);
             color: #ffffff;
           }
 
           .tab-badge.unread, .tab-badge.critical {
-            background: #e5e5e5;
-            color: #737373;
+            background: var(--border-color);
+            color: var(--text-muted);
           }
 
           .feed-tab-btn.active .tab-badge.unread, 
           .feed-tab-btn.active .tab-badge.critical {
-            background: #171717;
+            background: var(--color-primary);
             color: #ffffff;
           }
 
@@ -459,25 +459,24 @@ export const NotificationsPage: React.FC = () => {
             left: 10px;
             top: 50%;
             transform: translateY(-50%);
-            color: #a3a3a3;
+            color: var(--text-muted);
           }
 
           .search-input {
             width: 100%;
-            background: #f5f5f5;
-            border: 1px solid transparent;
+            background: var(--bg-surface-hover);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 6px 10px 6px 30px;
             font-size: 11px;
-            color: #171717;
+            color: var(--text-primary);
             outline: none;
             box-sizing: border-box;
             transition: all var(--transition-fast, 0.2s);
           }
 
           .search-input:focus {
-            border-color: #d4d4d4;
-            background: #ffffff;
+            border-color: var(--color-primary);
           }
 
           /* Feed Items List */
@@ -493,7 +492,7 @@ export const NotificationsPage: React.FC = () => {
           }
 
           .feed-items-list::-webkit-scrollbar-thumb {
-            background: #e5e5e5;
+            background: var(--border-color);
             border-radius: 4px;
           }
 
@@ -502,7 +501,7 @@ export const NotificationsPage: React.FC = () => {
             justify-content: space-between;
             align-items: center;
             padding: 16px;
-            border-top: 1px solid #f5f5f5;
+            border-top: 1px solid var(--border-color);
             cursor: pointer;
             transition: background var(--transition-fast, 0.2s), opacity var(--transition-fast, 0.2s);
             box-sizing: border-box;
@@ -513,7 +512,7 @@ export const NotificationsPage: React.FC = () => {
           }
 
           .feed-item-card:hover {
-            background: #fafafa;
+            background: var(--bg-surface-hover);
           }
 
           .feed-item-card.read {
@@ -528,7 +527,7 @@ export const NotificationsPage: React.FC = () => {
             text-align: start;
           }
 
-          /* Badges with colors corresponding to Figma mockup alerts */
+          /* Badges with colors corresponding to alerts */
           .icon-badge {
             width: 36px;
             height: 36px;
@@ -540,28 +539,28 @@ export const NotificationsPage: React.FC = () => {
           }
 
           .icon-badge.emergency {
-            background: #fef2f2;
-            color: #ef4444;
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
           }
 
           .icon-badge.verification {
-            background: #f5f5f5;
-            color: #171717;
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
           }
 
           .icon-badge.payments {
-            background: #fffbeb;
-            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
           }
 
           .icon-badge.fraud {
-            background: #fef2f2;
-            color: #ef4444;
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
           }
 
           .icon-badge.default {
-            background: #f5f5f5;
-            color: #171717;
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
           }
 
           .feed-item-content {
@@ -579,7 +578,7 @@ export const NotificationsPage: React.FC = () => {
           .item-title {
             font-size: 12px;
             font-weight: 700;
-            color: #171717;
+            color: var(--text-primary);
           }
 
           .item-unread-dot {
@@ -592,7 +591,7 @@ export const NotificationsPage: React.FC = () => {
 
           .item-subtitle {
             font-size: 11px;
-            color: #737373;
+            color: var(--text-muted);
             margin: 0;
           }
 
@@ -604,13 +603,13 @@ export const NotificationsPage: React.FC = () => {
 
           .item-time {
             font-size: 10px;
-            color: #a3a3a3;
+            color: var(--text-muted);
           }
 
           .item-delete-btn {
             background: transparent;
             border: none;
-            color: #a3a3a3;
+            color: var(--text-muted);
             cursor: pointer;
             padding: 4px;
             border-radius: 4px;
@@ -624,7 +623,7 @@ export const NotificationsPage: React.FC = () => {
 
           .item-delete-btn:hover {
             color: #ef4444;
-            background: #fef2f2;
+            background: rgba(239, 68, 68, 0.15);
           }
 
           /* Empty State */
@@ -634,7 +633,7 @@ export const NotificationsPage: React.FC = () => {
             align-items: center;
             justify-content: center;
             padding: 48px 16px;
-            color: #a3a3a3;
+            color: var(--text-muted);
           }
 
           .empty-icon {
@@ -666,7 +665,7 @@ export const NotificationsPage: React.FC = () => {
           .categories-sub-tag {
             font-size: 10px;
             font-weight: 700;
-            color: #737373;
+            color: var(--text-muted);
             letter-spacing: 0.5px;
             text-transform: uppercase;
           }
@@ -674,7 +673,7 @@ export const NotificationsPage: React.FC = () => {
           .categories-title {
             font-size: 14px;
             font-weight: 700;
-            color: #171717;
+            color: var(--text-primary);
             margin: 0;
           }
 
@@ -688,7 +687,8 @@ export const NotificationsPage: React.FC = () => {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #fafafa;
+            background: var(--bg-surface-hover);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 12px;
             gap: 12px;
@@ -704,16 +704,16 @@ export const NotificationsPage: React.FC = () => {
           .category-name {
             font-size: 12px;
             font-weight: 700;
-            color: #171717;
+            color: var(--text-primary);
           }
 
           .category-desc {
             font-size: 10px;
-            color: #737373;
+            color: var(--text-muted);
             margin: 0;
           }
 
-          /* Custom toggle switch styling matching Figma exactly */
+          /* Custom toggle switch styling */
           .custom-toggle-switch {
             width: 36px;
             height: 20px;
@@ -728,11 +728,11 @@ export const NotificationsPage: React.FC = () => {
           }
 
           .custom-toggle-switch.on {
-            background-color: #171717;
+            background-color: var(--color-primary);
           }
 
           .custom-toggle-switch.off {
-            background-color: #d4d4d4;
+            background-color: var(--border-color);
           }
 
           .switch-handle {

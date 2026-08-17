@@ -5,6 +5,7 @@ import { Sidebar } from '../../../../presentation/layouts/Sidebar';
 import { Header } from '../../../../presentation/layouts/Header';
 import { MobileBottomTabs } from '../../../../presentation/layouts/MobileBottomTabs';
 import { usePayments } from '../hooks/usePayments';
+import { BitSubscriptionManager } from '../components/BitSubscriptionManager';
 import {
   Download,
   RefreshCw,
@@ -82,6 +83,21 @@ export const PaymentsPage: React.FC = () => {
   const handleExtendSubscriber = async (id: string) => {
     await paymentRepository.extendSubscriber(id, 30);
     handleOpenSubscribers();
+  };
+
+  const handleExportCSV = () => {
+    const csvRows = [
+      ['ID', 'User', 'Type', 'Amount (ILS)', 'Status', 'Date'],
+      ...withdrawalRequests.map((p: any) => [p.id, p.craftsmanName || p.recipient, p.type || 'Payout', String(p.amount), p.status, p.requestedDate || 'Recent'])
+    ];
+    const csvContent = 'data:text/csv;charset=utf-8,' + csvRows.map(e => e.join(',')).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `sonaa_payments_${timeFilter}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Format Helper for Currency
@@ -163,7 +179,7 @@ export const PaymentsPage: React.FC = () => {
               </div>
 
               {/* Export Button */}
-              <button className="payments-export-btn">
+              <button className="payments-export-btn" onClick={handleExportCSV} style={{ cursor: 'pointer' }}>
                 <Download size={14} />
                 <span>{t('btn_export') || 'Export'}</span>
               </button>
@@ -191,6 +207,9 @@ export const PaymentsPage: React.FC = () => {
             </div>
           ) : !error && summary ? (
             <div className="payments-content-layout animate-fade-in">
+
+              {/* Bit Subscription Payment Manager & Verification Queue */}
+              <BitSubscriptionManager onRefreshNeeded={refresh} />
 
               {/* Mobile View Navigation Toggle Pills */}
               <div className="mobile-section-toggles mobile-only">
@@ -323,49 +342,47 @@ export const PaymentsPage: React.FC = () => {
                   {/* Right Column: Subscription Plans Summary */}
                   <div className="payments-plans-card">
                     <div className="payments-plans-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="payments-plans-card-title">{t('payments_sub_plans') || 'Subscription Plans'}</span>
-                        <strong className="payments-plans-mrr">MRR {formatCurrency(summary.mrr)}</strong>
+                      <div>
+                        <span className="payments-plans-card-title">{t('payments_sub_plans') || 'Active Subscriptions'}</span>
+                        <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
+                          MRR {formatCurrency(summary.mrr)}
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button
-                          className="payments-view-all-btn"
-                          style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', border: '1px solid #e4e4e7', background: '#f4f4f5', color: '#171717', cursor: 'pointer' }}
-                          onClick={handleOpenSubscribers}
-                        >
-                          <Users size={12} />
-                          <span>Subscribers</span>
-                        </button>
-                        <button
-                          className="payments-view-all-btn"
-                          style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
-                          onClick={() => setShowCreatePlanModal(true)}
-                        >
-                          <Plus size={12} />
-                          <span>New Plan</span>
-                        </button>
-                      </div>
+                      <button
+                        className="payments-view-all-btn"
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-surface-hover)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}
+                        onClick={() => {
+                          const el = document.querySelector('.bit-sub-manager');
+                          if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                      >
+                        <Users size={14} />
+                        <span>Manage Passes</span>
+                      </button>
                     </div>
 
-                    <div className="payments-plans-list">
-                      {plans.map(plan => {
-                        const totalSubscribers = plans.reduce((acc, p) => acc + p.subscribersCount, 0);
-                        const pct = totalSubscribers > 0 ? (plan.subscribersCount / totalSubscribers) * 100 : 0;
-                        const planLabel = plan.name === 'Starter' ? t('payments_starter_plan') || 'Starter' :
-                                          plan.name === 'Pro' ? t('payments_pro_plan') || 'Pro' :
-                                          t('payments_pro_plus_plan') || 'Pro+';
-                        return (
-                          <div key={plan.id} className="payments-plan-item">
-                            <div className="payments-plan-row">
-                              <span className="payments-plan-name">{planLabel} <span className="payments-plan-price">· {plan.price > 0 ? `${plan.price} ILS/mo` : 'Free'}</span></span>
-                              <strong className="payments-plan-count">{plan.subscribersCount.toLocaleString()}</strong>
+                    <div className="payments-plans-list" style={{ marginTop: '12px' }}>
+                      {plans.length === 0 ? (
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0 }}>No active plans configured yet.</p>
+                      ) : (
+                        plans.map(plan => {
+                          const totalSubscribers = plans.reduce((acc, p) => acc + (p.subscribersCount || 0), 0);
+                          const pct = totalSubscribers > 0 ? ((plan.subscribersCount || 0) / totalSubscribers) * 100 : 0;
+                          return (
+                            <div key={plan.id} className="payments-plan-item">
+                              <div className="payments-plan-row">
+                                <span className="payments-plan-name">
+                                  {plan.name || plan.nameEn} <span className="payments-plan-price">· ₪{plan.price} ILS / {plan.durationMonths || 1}M</span>
+                                </span>
+                                <strong className="payments-plan-count">{(plan.subscribersCount || 0).toLocaleString()}</strong>
+                              </div>
+                              <div className="payments-plan-track">
+                                <div className="payments-plan-bar" style={{ width: `${Math.max(pct, 5)}%` }} />
+                              </div>
                             </div>
-                            <div className="payments-plan-track">
-                              <div className="payments-plan-bar" style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      )}
                     </div>
                   </div>
                 </div>
@@ -922,14 +939,14 @@ export const PaymentsPage: React.FC = () => {
         }
 
         .payments-metric-card {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 20px;
           display: flex;
           flex-direction: column;
           gap: 6px;
-          box-shadow: 0px 1px 1.5px rgba(0,0,0,0.04);
+          box-shadow: 0px 1px 1.5px rgba(0,0,0,0.2);
           text-align: start;
         }
 
@@ -942,7 +959,7 @@ export const PaymentsPage: React.FC = () => {
         .payments-metric-label {
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
@@ -957,20 +974,20 @@ export const PaymentsPage: React.FC = () => {
         }
 
         .payments-metric-trend.green {
-          color: #16A34A;
-          background: rgba(22, 163, 74, 0.08);
+          color: #4ade80;
+          background: rgba(34, 197, 94, 0.15);
         }
 
         .payments-metric-value {
           font-size: 24px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           line-height: 1.1;
         }
 
         .payments-metric-subtitle {
           font-size: 11px;
-          color: #A3A3A3;
+          color: var(--text-muted);
           margin-top: 2px;
         }
 
@@ -982,14 +999,14 @@ export const PaymentsPage: React.FC = () => {
 
         .payments-chart-card {
           flex: 2;
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 20px;
           padding: 24px;
           display: flex;
           flex-direction: column;
           gap: 20px;
-          box-shadow: 0px 1px 2px rgba(0,0,0,0.03);
+          box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
         }
 
         .payments-chart-header {
@@ -1008,13 +1025,13 @@ export const PaymentsPage: React.FC = () => {
         .payments-chart-headline {
           font-size: 32px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           line-height: 1.1;
         }
 
         .payments-chart-subtitle {
           font-size: 11px;
-          color: #737373;
+          color: var(--text-muted);
         }
 
         .payments-chart-badge {
@@ -1022,10 +1039,11 @@ export const PaymentsPage: React.FC = () => {
           align-items: center;
           padding: 4px 10px;
           border-radius: 20px;
-          border: 1px solid #E5E5E5;
+          border: 1px solid var(--border-color);
           font-size: 10px;
           font-weight: 700;
-          color: #171717;
+          color: #38bdf8;
+          background: rgba(56, 189, 248, 0.1);
         }
 
         .payments-chart-body {
@@ -1044,20 +1062,20 @@ export const PaymentsPage: React.FC = () => {
           justify-content: space-between;
           padding: 0 10px;
           font-size: 10px;
-          color: #A3A3A3;
+          color: var(--text-muted);
           font-weight: 600;
         }
 
         .payments-plans-card {
           flex: 1;
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 20px;
           padding: 24px;
           display: flex;
           flex-direction: column;
           gap: 20px;
-          box-shadow: 0px 1px 2px rgba(0,0,0,0.03);
+          box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
           box-sizing: border-box;
         }
 
@@ -1071,7 +1089,7 @@ export const PaymentsPage: React.FC = () => {
         .payments-plans-card-title {
           font-size: 11px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
@@ -1079,7 +1097,7 @@ export const PaymentsPage: React.FC = () => {
         .payments-plans-mrr {
           font-size: 20px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .payments-plans-list {
@@ -1103,22 +1121,22 @@ export const PaymentsPage: React.FC = () => {
 
         .payments-plan-name {
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .payments-plan-price {
           font-weight: 500;
-          color: #737373;
+          color: var(--text-muted);
         }
 
         .payments-plan-count {
-          color: #171717;
+          color: var(--text-primary);
           font-weight: 700;
         }
 
         .payments-plan-track {
           height: 6px;
-          background: #F3F4F6;
+          background: var(--bg-surface-hover);
           border-radius: 3px;
           overflow: hidden;
           width: 100%;
@@ -1126,7 +1144,7 @@ export const PaymentsPage: React.FC = () => {
 
         .payments-plan-bar {
           height: 100%;
-          background: #171717;
+          background: #38bdf8;
           border-radius: 3px;
         }
 
@@ -1138,14 +1156,14 @@ export const PaymentsPage: React.FC = () => {
 
         .payments-failed-card {
           flex: 2;
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 20px;
           padding: 24px;
           display: flex;
           flex-direction: column;
           gap: 20px;
-          box-shadow: 0px 1px 2px rgba(0,0,0,0.03);
+          box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
           overflow: hidden;
         }
 
@@ -1165,27 +1183,27 @@ export const PaymentsPage: React.FC = () => {
         .payments-failed-title, .payments-withdrawals-title {
           font-size: 16px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .payments-failed-count, .payments-withdrawals-count {
           font-size: 11px;
-          color: #737373;
+          color: var(--text-muted);
         }
 
         .payments-view-all-btn {
           font-size: 11px;
           font-weight: 700;
-          color: #171717;
-          background: #F5F5F5;
+          color: var(--text-primary);
+          background: var(--bg-surface-hover);
           padding: 6px 12px;
           border-radius: 6px;
-          border: 1px solid #E5E5E5;
+          border: 1px solid var(--border-color);
           cursor: pointer;
         }
 
         .payments-view-all-btn:hover {
-          background: #E5E5E5;
+          background: var(--border-color);
         }
 
         .payments-failed-table-wrapper {
@@ -1202,17 +1220,17 @@ export const PaymentsPage: React.FC = () => {
         .payments-failed-table th {
           font-size: 10px;
           font-weight: 700;
-          color: #8E8E93;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.5px;
           padding: 8px 12px;
-          border-bottom: 1px solid #F3F4F6;
+          border-bottom: 1px solid var(--border-color);
           text-align: start;
         }
 
         .payments-failed-table td {
           padding: 14px 12px;
-          border-bottom: 1px solid #FAFAFA;
+          border-bottom: 1px solid var(--border-color);
           font-size: 12px;
           vertical-align: middle;
           text-align: start;
@@ -1227,26 +1245,26 @@ export const PaymentsPage: React.FC = () => {
         .failed-tx-name {
           font-size: 13px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .failed-tx-meta {
           font-size: 10px;
-          color: #8E8E93;
+          color: var(--text-muted);
         }
 
         .failed-tx-amount {
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .failed-tx-reason {
-          color: #B91C1C;
+          color: #ef4444;
           font-weight: 600;
         }
 
         .failed-tx-retries {
-          color: #737373;
+          color: var(--text-muted);
           font-weight: 700;
         }
 
@@ -1255,36 +1273,36 @@ export const PaymentsPage: React.FC = () => {
           align-items: center;
           gap: 4px;
           padding: 6px 12px;
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           border-radius: 6px;
           font-size: 10px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           cursor: pointer;
           transition: all var(--transition-fast);
         }
 
         .failed-tx-retry-btn:hover {
-          background: #F5F5F5;
+          background: var(--border-color);
         }
 
         .failed-tx-retry-btn.retrying {
-          background: #F5F5F5;
-          color: #737373;
+          background: var(--bg-surface-hover);
+          color: var(--text-muted);
           cursor: not-allowed;
         }
 
         .payments-withdrawals-card {
           flex: 1;
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 20px;
           padding: 24px;
           display: flex;
           flex-direction: column;
           gap: 20px;
-          box-shadow: 0px 1px 2px rgba(0,0,0,0.03);
+          box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
           box-sizing: border-box;
         }
 
@@ -1299,15 +1317,15 @@ export const PaymentsPage: React.FC = () => {
           justify-content: space-between;
           align-items: center;
           padding: 12px;
-          border: 1px solid #F3F4F6;
+          border: 1px solid var(--border-color);
           border-radius: 12px;
-          background: #FFFFFF;
+          background: var(--bg-surface-hover);
           box-sizing: border-box;
           transition: border-color var(--transition-fast);
         }
 
         .withdrawal-item:hover {
-          border-color: #E5E5E5;
+          border-color: #38bdf8;
         }
 
         .withdrawal-item-left {

@@ -104,6 +104,11 @@ export const translations: TranslationDict = {
     ar: 'المهام',
     he: 'משימות'
   },
+  nav_chat: {
+    en: 'Live Support & Chat',
+    ar: 'الدعم والمحادثات المباشرة',
+    he: 'צ׳אט ותמיכה חיה'
+  },
   nav_verification: {
     en: 'Verification',
     ar: 'التوثيق',
@@ -429,6 +434,51 @@ export const translations: TranslationDict = {
     ar: 'جميع الأنظمة تعمل بشكل سليم',
     he: 'כל המערכות תקינות'
   },
+  analytics_tasks_count: {
+    en: 'tasks',
+    ar: 'مهام',
+    he: 'משימות'
+  },
+  analytics_match_rate: {
+    en: 'Task Match Rate',
+    ar: 'معدل التوافق والربط',
+    he: 'קצב התאמת משימות'
+  },
+  analytics_below_target: {
+    en: 'Below Target',
+    ar: 'أقل من الهدف',
+    he: 'מתחת ליעד'
+  },
+  analytics_on_track: {
+    en: 'On Track',
+    ar: 'ضمن الهدف',
+    he: 'במסלול'
+  },
+  analytics_avg_eta_accuracy: {
+    en: 'Avg ETA Accuracy',
+    ar: 'دقة تقدير وقت الوصول',
+    he: 'דיוק זמן הגעה משוער'
+  },
+  analytics_customer_satisfaction: {
+    en: 'Customer Satisfaction',
+    ar: 'رضا العملاء',
+    he: 'שביעות רצון לקוחות'
+  },
+  analytics_craftsman_utilization: {
+    en: 'Craftsman Utilization',
+    ar: 'نسبة إشغال الحرفيين',
+    he: 'ניצול בעלי מקצוע'
+  },
+  analytics_dispute_rate: {
+    en: 'Dispute Rate',
+    ar: 'معدل النزاعات',
+    he: 'שיעור מחלוקות'
+  },
+  analytics_refund_rate: {
+    en: 'Refund Rate',
+    ar: 'معدل الاسترجاع',
+    he: 'שיעור החזרים'
+  },
   ad_analytics_page_title: {
     en: 'Advertisement Analytics',
     ar: 'تحليلات الإعلانات',
@@ -649,9 +699,9 @@ export const translations: TranslationDict = {
     he: 'מה שאתה מקבל'
   },
   cat_emergency: {
-    en: 'Emergency / SOS',
-    ar: 'الحالات الطارئة / الاستغاثة',
-    he: 'חירום / SOS'
+    en: 'High-Priority Alerts',
+    ar: 'تنبيهات عالية الأولوية',
+    he: 'התראות בעדיפות גבוהה'
   },
   cat_emergency_desc: {
     en: '3 today · Email · SMS · Push',
@@ -1110,9 +1160,9 @@ export const translations: TranslationDict = {
     he: 'סקירה כללית'
   },
   subtitle: {
-    en: 'Marketplace performance - Riyadh region',
-    ar: 'أداء السوق - منطقة الرياض',
-    he: 'ביצועי שוק - אזור ריאד'
+    en: 'Marketplace performance - Jerusalem region',
+    ar: 'أداء السوق - منطقة القدس',
+    he: 'ביצועי שוק - אזור ירושלים'
   },
   search_placeholder: {
     en: 'Search users, tasks, transactions...',

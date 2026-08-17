@@ -71,6 +71,7 @@ export const CreateAdPage: React.FC = () => {
   const [startDate, setStartDate] = useState('2026-07-02');
   const [endDate, setEndDate] = useState('2026-08-02');
   const [runContinuously, setRunContinuously] = useState(false);
+  const [budget, setBudget] = useState('5000');
 
   // Placement States
   const [placements, setPlacements] = useState<Placement[]>([
@@ -237,7 +238,7 @@ export const CreateAdPage: React.FC = () => {
 
     // Format cities list for reach subtext
     const citiesListStr = locationType === 'All' 
-      ? 'All Saudi Arabia' 
+      ? 'All Jerusalem & Palestine (القدس والضفة)' 
       : cities.filter(c => c.selected).map(c => c.name).join(' and ') || 'No cities selected';
 
     // Format categories list
@@ -256,12 +257,13 @@ export const CreateAdPage: React.FC = () => {
     setError(null);
     try {
       const placementLabel = placements.find(p => p.selected)?.label || 'Home Banner';
-      const result = await adRepository.createAd(adTitle, 5000, placementLabel);
+      const numericBudget = parseFloat(budget.replace(/[^0-9.]/g, '')) || 5000;
+      const result = await adRepository.createAd(adTitle, numericBudget, placementLabel);
       if (result.success) {
         setShowSuccess(true);
         setTimeout(() => {
           setShowSuccess(false);
-          navigate('campaigns');
+          navigate('ads');
         }, 2000);
       } else {
         const errResult = result as { success: false; error: { message: string } };
@@ -760,7 +762,7 @@ export const CreateAdPage: React.FC = () => {
                       onChange={() => setLocationType('All')}
                       className="radio-input"
                     />
-                    <span className="radio-text">All Saudi Arabia</span>
+                    <span className="radio-text">{isRtl ? 'القدس والضفة الغربية (الكل)' : 'All Jerusalem & West Bank'}</span>
                   </label>
                   <label className="radio-label">
                     <input 

@@ -2,11 +2,14 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { ActivityEvent } from '../../../../domain/entities/LiveActivity';
 
+import { useNavigation } from '../../../context/NavigationContext';
+
 interface SosBannerProps {
   event: ActivityEvent | null;
 }
 
 export const SosBanner: React.FC<SosBannerProps> = ({ event }) => {
+  const { navigate } = useNavigation();
   if (!event) return null;
 
   return (
@@ -47,6 +50,7 @@ export const SosBanner: React.FC<SosBannerProps> = ({ event }) => {
       </div>
 
       <button
+        onClick={() => navigate('reports')}
         style={{
           background: '#FFFFFF',
           border: '1px solid #FECDD3',
@@ -59,7 +63,7 @@ export const SosBanner: React.FC<SosBannerProps> = ({ event }) => {
           flexShrink: 0,
         }}
       >
-        View
+        View Incident
       </button>
     </div>
   );

@@ -75,7 +75,7 @@ export const RevenueChart: React.FC = () => {
               fontSize: '30px', 
               fontWeight: 700, 
               fontFamily: 'var(--font-sans)', 
-              color: '#171717',
+              color: 'var(--text-primary)',
               letterSpacing: '-0.6px',
               margin: 0,
               lineHeight: '1.2'
@@ -95,7 +95,7 @@ export const RevenueChart: React.FC = () => {
               <span>{activeData.trend}</span>
             </div>
           </div>
-          <p style={{ fontSize: '12px', color: '#737373', marginTop: '4px', margin: '4px 0 0 0' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', margin: '4px 0 0 0' }}>
             {activeData.sub}
           </p>
         </div>
@@ -104,7 +104,7 @@ export const RevenueChart: React.FC = () => {
         <div style={{ 
           display: 'flex', 
           gap: '2px', 
-          background: '#F5F5F5', 
+          background: 'var(--bg-surface-hover)', 
           padding: '2px', 
           borderRadius: '8px',
           height: '27px',
@@ -124,14 +124,15 @@ export const RevenueChart: React.FC = () => {
                   borderRadius: '6px',
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  background: isActive ? '#FFFFFF' : 'transparent',
-                  color: isActive ? '#171717' : '#737373',
+                  background: isActive ? 'var(--bg-card)' : 'transparent',
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
                   boxShadow: isActive ? '0px 1px 1px rgba(0, 0, 0, 0.05)' : 'none',
                   border: 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  cursor: 'pointer'
                 }}
               >
                 {tab === '30d' ? '30D' : tab === '90d' ? '90D' : 'YTD'}
@@ -147,8 +148,8 @@ export const RevenueChart: React.FC = () => {
           {/* Gradients definitions */}
           <defs>
             <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#171717" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#171717" stopOpacity="0.00" />
+              <stop offset="0%" stopColor="var(--text-primary)" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="var(--text-primary)" stopOpacity="0.00" />
             </linearGradient>
           </defs>
 
@@ -161,7 +162,7 @@ export const RevenueChart: React.FC = () => {
           {/* Core Stroke Line */}
           <polyline
             fill="none"
-            stroke="#171717"
+            stroke="var(--text-primary)"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -173,20 +174,20 @@ export const RevenueChart: React.FC = () => {
       {/* Analytics stats row */}
       <div className="analytics-details-grid">
         <div style={{ textAlign: 'start' }}>
-          <span style={{ display: 'block', fontSize: '10px', color: '#737373', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>GMV</span>
-          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>{displayGmv}</strong>
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>GMV</span>
+          <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>{displayGmv}</strong>
         </div>
         <div style={{ textAlign: 'start' }}>
-          <span style={{ display: 'block', fontSize: '10px', color: '#737373', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Take Rate</span>
-          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>{displayTakeRate}</strong>
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Take Rate</span>
+          <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>{displayTakeRate}</strong>
         </div>
         <div style={{ textAlign: 'start' }}>
-          <span style={{ display: 'block', fontSize: '10px', color: '#737373', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Avg Order</span>
-          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>342 ILS</strong>
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Avg Order</span>
+          <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>342 ILS</strong>
         </div>
         <div style={{ textAlign: 'start' }}>
-          <span style={{ display: 'block', fontSize: '10px', color: '#737373', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Disputes</span>
-          <strong style={{ display: 'block', fontSize: '14px', color: '#171717', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>0.8%</strong>
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px' }}>Disputes</span>
+          <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginTop: '4px', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>0.8%</strong>
         </div>
       </div>
 
@@ -196,8 +197,8 @@ export const RevenueChart: React.FC = () => {
           display: flex;
           flex-direction: column;
           text-align: start;
-          background: #FFFFFF !important;
-          border: 1px solid #E5E5E5 !important;
+          background: var(--bg-surface) !important;
+          border: 1px solid var(--border-color) !important;
           border-radius: 16px !important;
           padding: 24px !important;
           box-shadow: 0px 1px 1.5px rgba(0, 0, 0, 0.04) !important;
@@ -209,7 +210,7 @@ export const RevenueChart: React.FC = () => {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 16px;
-          border-top: 1px solid #F5F5F5;
+          border-top: 1px solid var(--border-color);
           padding-top: 20px;
           margin-top: 20px;
         }

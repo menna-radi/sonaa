@@ -730,7 +730,7 @@ export const SettingsPage: React.FC = () => {
                   <input
                     type="email"
                     required
-                    placeholder="admin@sonaa.sa"
+                    placeholder="admin@sonaa.com"
                     value={newAdminEmail}
                     onChange={e => { setNewAdminEmail(e.target.value); setFormErrors(prev => ({ ...prev, email: undefined })); }}
                     className={`form-input${formErrors.email ? ' input-error' : ''}`}
@@ -869,10 +869,10 @@ export const SettingsPage: React.FC = () => {
 
         /* ── Left sub-nav card ── */
         .settings-subnav-card {
-          background: #fff;
-          border: 1px solid #e5e5e5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
-          box-shadow: 0 1px 1.5px rgba(0,0,0,0.04);
+          box-shadow: var(--shadow-sm);
           padding: 12px;
           display: flex;
           flex-direction: column;
@@ -892,17 +892,17 @@ export const SettingsPage: React.FC = () => {
           cursor: pointer;
           font-size: 12px;
           font-weight: 400;
-          color: #737373;
+          color: var(--text-muted);
           text-align: start;
           transition: all 0.15s ease;
         }
         .settings-subnav-btn:hover {
-          background: #f5f5f5;
-          color: #404040;
+          background: var(--bg-surface-hover);
+          color: var(--text-secondary);
         }
         .settings-subnav-btn.active {
-          background: #f5f5f5;
-          color: #171717;
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
           font-weight: 600;
         }
         .settings-subnav-arrow {
@@ -912,7 +912,7 @@ export const SettingsPage: React.FC = () => {
           transform: translateY(-50%);
           width: 3px;
           height: 20px;
-          background: #171717;
+          background: var(--color-primary);
           border-radius: 9999px;
         }
         .subnav-icon { display: flex; align-items: center; flex-shrink: 0; }
@@ -927,10 +927,10 @@ export const SettingsPage: React.FC = () => {
 
         /* ── Generic card ── */
         .settings-card {
-          background: #fff;
-          border: 1px solid #e5e5e5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
-          box-shadow: 0 1px 1.5px rgba(0,0,0,0.04);
+          box-shadow: var(--shadow-sm);
           padding: 24px;
           margin-bottom: 16px;
         }
@@ -945,14 +945,14 @@ export const SettingsPage: React.FC = () => {
         .card-label-small {
           font-size: 12px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
           letter-spacing: 0.6px;
           margin: 0 0 4px;
         }
         .card-value-medium {
           font-size: 14px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0;
         }
 
@@ -960,7 +960,7 @@ export const SettingsPage: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 6px;
-          background: #171717;
+          background: var(--color-primary);
           color: #fff;
           border: none;
           padding: 8px 14px;
@@ -985,14 +985,14 @@ export const SettingsPage: React.FC = () => {
           align-items: center;
           gap: 12px;
           padding: 16px;
-          border: 1px solid #e5e5e5;
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           cursor: pointer;
           transition: border-color 0.15s, background 0.15s;
-          background: #fff;
+          background: var(--bg-surface);
         }
-        .role-row:hover { border-color: #d4d4d4; }
-        .role-row.selected { border-color: #171717; background: #fafafa; }
+        .role-row:hover { border-color: var(--border-color); background: var(--bg-surface-hover); }
+        .role-row.selected { border-color: var(--color-primary); background: var(--bg-surface-hover); }
         .role-color-pill {
           width: 4px;
           height: 40px;
@@ -1009,11 +1009,11 @@ export const SettingsPage: React.FC = () => {
         .role-row-name {
           font-size: 12px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
         .role-row-desc {
           font-size: 10px;
-          color: #737373;
+          color: var(--text-muted);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1022,13 +1022,13 @@ export const SettingsPage: React.FC = () => {
           display: flex;
           align-items: baseline;
           gap: 2px;
-          background: #f5f5f5;
+          background: var(--bg-surface-hover);
           padding: 4px 8px;
           border-radius: 4px;
           flex-shrink: 0;
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
         }
 
         /* ── Permissions matrix ── */
@@ -1045,7 +1045,7 @@ export const SettingsPage: React.FC = () => {
         .perm-group-label {
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
           letter-spacing: 0.5px;
           text-transform: uppercase;
           margin: 0;
@@ -1059,14 +1059,14 @@ export const SettingsPage: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: #fafafa;
+          background: var(--bg-surface-hover);
           padding: 8px;
           border-radius: 8px;
           gap: 8px;
         }
         .perm-item-label {
           font-size: 12px;
-          color: #404040;
+          color: var(--text-secondary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1078,14 +1078,14 @@ export const SettingsPage: React.FC = () => {
           width: 28px;
           height: 16px;
           border-radius: 9999px;
-          background: #d4d4d4;
+          background: var(--border-color);
           border: none;
           cursor: pointer;
           transition: background 0.15s;
           padding: 0;
           flex-shrink: 0;
         }
-        .mini-toggle.on { background: #171717; }
+        .mini-toggle.on { background: var(--color-primary); }
         .mini-toggle-thumb {
           position: absolute;
           top: 2px;
@@ -1105,14 +1105,14 @@ export const SettingsPage: React.FC = () => {
           width: 40px;
           height: 20px;
           border-radius: 9999px;
-          background: #d4d4d4;
+          background: var(--border-color);
           border: none;
           cursor: pointer;
           transition: background 0.15s;
           padding: 0;
           flex-shrink: 0;
         }
-        .toggle-switch.on { background: #171717; }
+        .toggle-switch.on { background: var(--color-primary); }
         .toggle-thumb {
           position: absolute;
           top: 2px;
@@ -1137,7 +1137,7 @@ export const SettingsPage: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          border: 1px solid #e5e5e5;
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 16px 20px;
           gap: 16px;
@@ -1153,22 +1153,22 @@ export const SettingsPage: React.FC = () => {
           width: 36px;
           height: 36px;
           border-radius: 8px;
-          background: #f5f5f5;
+          background: var(--bg-surface-hover);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #171717;
+          color: var(--text-primary);
           flex-shrink: 0;
         }
         .security-title {
           font-size: 12px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0 0 3px;
         }
         .security-desc {
           font-size: 10px;
-          color: #737373;
+          color: var(--text-muted);
           margin: 0;
           white-space: nowrap;
           overflow: hidden;
@@ -1181,25 +1181,25 @@ export const SettingsPage: React.FC = () => {
           border-collapse: collapse;
         }
         .notif-table th {
-          background: #fafafa;
+          background: var(--bg-surface-hover);
           padding: 12px 16px;
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
           letter-spacing: 0.5px;
           text-transform: uppercase;
-          border-bottom: 1px solid #e5e5e5;
+          border-bottom: 1px solid var(--border-color);
           text-align: center;
         }
         .notif-table td {
           padding: 14px 16px;
-          border-bottom: 1px solid #f5f5f5;
+          border-bottom: 1px solid var(--border-color);
           font-size: 12px;
-          color: #171717;
+          color: var(--text-primary);
           text-align: center;
         }
         .notif-event-name { font-weight: 600; text-align: start !important; }
-        .notif-table tr:hover td { background: #fafafa; }
+        .notif-table tr:hover td { background: var(--bg-surface-hover); }
 
         /* ── Platform Config ── */
         .platform-params-grid {
@@ -1208,7 +1208,8 @@ export const SettingsPage: React.FC = () => {
           gap: 16px;
         }
         .param-card {
-          border: 1px solid #e5e5e5;
+          border: 1px solid var(--border-color);
+          background: var(--bg-surface);
           border-radius: 12px;
           padding: 20px 16px 16px;
           display: flex;
@@ -1217,22 +1218,23 @@ export const SettingsPage: React.FC = () => {
           cursor: default;
         }
         .param-edit-input {
-          border: 1px solid #d4d4d4;
+          border: 1px solid var(--border-color);
           border-radius: 6px;
           padding: 4px 8px;
           font-size: 14px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
+          background: var(--bg-surface-hover);
           width: 100%;
           outline: none;
           box-sizing: border-box;
         }
-        .param-edit-input:focus { border-color: #171717; }
+        .param-edit-input:focus { border-color: var(--color-primary); }
         .param-save-btn {
           width: 24px;
           height: 24px;
           border-radius: 6px;
-          background: #171717;
+          background: var(--color-primary);
           color: #fff;
           display: flex;
           align-items: center;
@@ -1244,13 +1246,13 @@ export const SettingsPage: React.FC = () => {
         .param-label {
           font-size: 12px;
           font-weight: 400;
-          color: #737373;
+          color: var(--text-muted);
           margin: 0;
         }
         .param-value {
           font-size: 20px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0;
         }
 
@@ -1306,12 +1308,12 @@ export const SettingsPage: React.FC = () => {
         .admin-modal-content {
           width: 100%;
           max-width: 440px;
-          background: #18181b;
-          border: 1px solid #27272a;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+          box-shadow: var(--shadow-sm);
           padding: 24px;
-          color: #fff;
+          color: var(--text-primary);
           box-sizing: border-box;
         }
         .admin-modal-header {
@@ -1319,25 +1321,25 @@ export const SettingsPage: React.FC = () => {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 20px;
-          border-bottom: 1px solid #27272a;
+          border-bottom: 1px solid var(--border-color);
           padding-bottom: 12px;
         }
         .admin-modal-title {
           margin: 0;
           font-size: 16px;
           font-weight: 700;
-          color: #f4f4f5;
+          color: var(--text-primary);
         }
         .admin-modal-close-btn {
           background: transparent;
           border: none;
-          color: #a1a1aa;
+          color: var(--text-muted);
           font-size: 24px;
           cursor: pointer;
           line-height: 1;
         }
         .admin-modal-close-btn:hover {
-          color: #fff;
+          color: var(--text-primary);
         }
         .admin-modal-form {
           display: flex;
@@ -1353,31 +1355,31 @@ export const SettingsPage: React.FC = () => {
         .form-label {
           font-size: 11px;
           font-weight: 600;
-          color: #a1a1aa;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
         .form-input, .form-select {
-          background: #000000 !important;
-          border: 1px solid #27272a;
+          background: var(--bg-surface-hover) !important;
+          border: 1px solid var(--border-color);
           border-radius: 8px;
           padding: 10px 12px;
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.75) !important;
+          color: var(--text-primary) !important;
           outline: none;
           transition: border-color 0.15s;
           box-sizing: border-box;
           width: 100%;
         }
         .form-input::placeholder {
-          color: rgba(255, 255, 255, 0.35);
+          color: var(--text-muted);
         }
         .form-input:focus, .form-select:focus {
-          border-color: #52525b;
+          border-color: var(--color-primary);
         }
         .form-select option {
-          background: #000000 !important;
-          color: rgba(255, 255, 255, 0.75) !important;
+          background: var(--bg-surface) !important;
+          color: var(--text-primary) !important;
         }
         .form-input.input-error, .form-select.input-error {
           border-color: #ef4444 !important;
@@ -1393,13 +1395,13 @@ export const SettingsPage: React.FC = () => {
           justify-content: flex-end;
           gap: 10px;
           margin-top: 12px;
-          border-top: 1px solid #27272a;
+          border-top: 1px solid var(--border-color);
           padding-top: 16px;
         }
         .btn-cancel {
           background: transparent;
-          border: 1px solid #27272a;
-          color: #a1a1aa;
+          border: 1px solid var(--border-color);
+          color: var(--text-muted);
           padding: 8px 16px;
           border-radius: 8px;
           font-size: 13px;
@@ -1408,13 +1410,13 @@ export const SettingsPage: React.FC = () => {
           transition: background 0.15s;
         }
         .btn-cancel:hover {
-          background: #27272a;
-          color: #fff;
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
         }
         .btn-submit {
-          background: #fff;
+          background: var(--color-primary);
           border: none;
-          color: #09090b;
+          color: #fff;
           padding: 8px 16px;
           border-radius: 8px;
           font-size: 13px;
@@ -1454,15 +1456,29 @@ export const SettingsPage: React.FC = () => {
           bottom: 0;
           width: 100%;
           max-width: 400px;
-          background: #fff;
-          border-left: 1px solid #e5e5e5;
-          box-shadow: -10px 0 25px -5px rgba(0,0,0,0.1);
+          background: var(--bg-surface);
+          border-left: 1px solid var(--border-color);
+          box-shadow: var(--shadow-sm);
           padding: 24px;
           box-sizing: border-box;
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           display: flex;
           flex-direction: column;
           gap: 20px;
+        }
+        [dir="ltr"] .role-drawer-content {
+          right: 0;
+          transform: translateX(100%);
+        }
+        [dir="ltr"] .role-drawer-content.open {
+          transform: translateX(0);
+        }
+        [dir="rtl"] .role-drawer-content {
+          left: 0;
+          transform: translateX(-100%);
+          border-left: none;
+          border-right: 1px solid var(--border-color);
+          box-shadow: var(--shadow-sm);
         }
         [dir="ltr"] .role-drawer-content {
           right: 0;

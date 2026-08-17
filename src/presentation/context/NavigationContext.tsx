@@ -6,6 +6,7 @@ export type PageKey =
   | 'live_activity'
   | 'craftsmen'
   | 'tasks'
+  | 'chat'
   | 'verification'
   | 'reports'
   | 'payments'
@@ -23,7 +24,7 @@ export type PageKey =
   | 'service_management';
 
 const VALID_PAGES: PageKey[] = [
-  'overview', 'live_activity', 'craftsmen', 'tasks', 'verification',
+  'overview', 'live_activity', 'craftsmen', 'tasks', 'chat', 'verification',
   'reports', 'payments', 'analytics', 'broadcast', 'notifications',
   'ads', 'campaigns', 'scheduled', 'expired', 'promotions',
   'ad_analytics', 'settings', 'create_ad', 'service_management',

@@ -20,6 +20,71 @@ import { useCraftsmen, type Craftsman } from '../hooks/useCraftsmen';
 import { Sidebar } from '../../../../presentation/layouts/Sidebar';
 import { Header } from '../../../../presentation/layouts/Header';
 import { MobileBottomTabs } from '../../../../presentation/layouts/MobileBottomTabs';
+const getInitials = (name: string): string => {
+  if (!name) return '??';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '??';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+const CraftsmanAvatar: React.FC<{
+  url?: string;
+  name: string;
+  size?: number;
+  borderRadius?: string;
+  className?: string;
+}> = ({ url, name, size = 32, borderRadius = '50%', className }) => {
+  const [imgError, setImgError] = useState(false);
+  const initials = useMemo(() => getInitials(name), [name]);
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [url]);
+
+  if (url && !imgError) {
+    return (
+      <img
+        src={url}
+        alt=""
+        onError={() => setImgError(true)}
+        className={className}
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          borderRadius,
+          objectFit: 'cover',
+          overflow: 'hidden',
+          display: 'block',
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={className}
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius,
+        background: 'linear-gradient(135deg, #475569, #334155)',
+        color: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: size <= 32 ? '0.72rem' : size <= 56 ? '1.1rem' : '1.3rem',
+        fontWeight: 700,
+        overflow: 'hidden',
+        userSelect: 'none',
+        flexShrink: 0,
+      }}
+    >
+      {initials}
+    </div>
+  );
+};
 
 export const CraftsmenPage: React.FC = () => {
   const {
@@ -249,24 +314,25 @@ export const CraftsmenPage: React.FC = () => {
                   position: 'absolute',
                   top: '40px',
                   right: '80px',
-                  background: '#ffffff',
+                  background: 'var(--bg-surface)',
                   border: '1px solid var(--border-color)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
-                  zIndex: 100,
+                  borderRadius: '10px',
+                  padding: '14px',
+                  boxShadow: '0 12px 24px -4px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
+                  zIndex: 1000,
                   width: '220px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '12px',
-                  textAlign: 'start'
+                  textAlign: 'start',
+                  backdropFilter: 'blur(16px)'
                 }}>
                   <div>
                     <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Status</label>
                     <select 
                       value={statusFilter} 
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
                     >
                       <option value="All">All Statuses</option>
                       <option value="Online">Online</option>
@@ -281,7 +347,7 @@ export const CraftsmenPage: React.FC = () => {
                     <select 
                       value={selectedTrade} 
                       onChange={(e) => setSelectedTrade(e.target.value)}
-                      style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.8rem', textTransform: 'capitalize' }}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '0.8rem', textTransform: 'capitalize' }}
                     >
                       {uniqueTrades.map(trade => (
                         <option key={trade} value={trade}>{trade}</option>
@@ -466,30 +532,7 @@ export const CraftsmenPage: React.FC = () => {
                         <td style={{ padding: '12px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div style={{ position: 'relative', flexShrink: 0 }}>
-                              {c.avatarUrl ? (
-                                <img 
-                                  src={c.avatarUrl} 
-                                  alt={c.name} 
-                                  style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} 
-                                />
-                              ) : (
-                                <div 
-                                  style={{ 
-                                    width: '32px', 
-                                    height: '32px', 
-                                    borderRadius: '50%', 
-                                    background: '#d1d6db', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center', 
-                                    fontSize: '0.8rem',
-                                    fontWeight: 700,
-                                    color: '#525252' 
-                                  }}
-                                >
-                                  {c.name.split(' ').map(n => n[0]).join('')}
-                                </div>
-                              )}
+                              <CraftsmanAvatar url={c.avatarUrl} name={c.name} size={32} />
                               {/* Status dot */}
                               <span 
                                 style={{ 
@@ -582,13 +625,7 @@ export const CraftsmenPage: React.FC = () => {
                   >
                     <div className="craftsman-mobile-card-top">
                       <div className="craftsman-mobile-avatar-wrapper">
-                        {c.avatarUrl ? (
-                          <img src={c.avatarUrl} alt={c.name} className="craftsman-mobile-avatar" />
-                        ) : (
-                          <div className="craftsman-mobile-avatar-placeholder">
-                            {c.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                        )}
+                        <CraftsmanAvatar url={c.avatarUrl} name={c.name} size={32} />
                         <span className="craftsman-mobile-status-dot" style={{ background: styleMeta.dot }} />
                       </div>
                       <div className="craftsman-mobile-info">
@@ -687,30 +724,7 @@ export const CraftsmenPage: React.FC = () => {
               </button>
               {/* Profile Header */}
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', textAlign: 'start' }}>
-                {selectedCraftsman.avatarUrl ? (
-                  <img 
-                    src={selectedCraftsman.avatarUrl} 
-                    alt={selectedCraftsman.name} 
-                    style={{ width: '64px', height: '64px', borderRadius: '16px', objectFit: 'cover' }} 
-                  />
-                ) : (
-                  <div 
-                    style={{ 
-                      width: '64px', 
-                      height: '64px', 
-                      borderRadius: '16px', 
-                      background: '#d1d6db', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      fontSize: '1.4rem',
-                      fontWeight: 700,
-                      color: '#525252' 
-                    }}
-                  >
-                    {selectedCraftsman.name.split(' ').map(n => n[0]).join('')}
-                  </div>
-                )}
+                <CraftsmanAvatar url={selectedCraftsman.avatarUrl} name={selectedCraftsman.name} size={64} borderRadius="16px" />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
@@ -742,42 +756,44 @@ export const CraftsmenPage: React.FC = () => {
                       {showActionsPopover && (
                         <div style={{
                           position: 'absolute',
-                          top: '24px',
+                          top: '28px',
                           right: 0,
-                          background: '#ffffff',
+                          background: 'var(--bg-surface)',
                           border: '1px solid var(--border-color)',
-                          borderRadius: '8px',
-                          padding: '4px',
-                          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
-                          zIndex: 100,
-                          width: '140px',
+                          borderRadius: '10px',
+                          padding: '6px',
+                          boxShadow: '0 12px 24px -4px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
+                          zIndex: 1000,
+                          width: '160px',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '2px'
+                          gap: '3px',
+                          backdropFilter: 'blur(16px)'
                         }}>
                           {[
-                            { label: 'Flag Account', action: () => { flagCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } },
-                            { label: 'Unflag Account', action: () => { unflagCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } },
+                            selectedCraftsman.status === 'flagged'
+                              ? { label: 'Unflag Account', action: () => { unflagCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } }
+                              : { label: 'Flag Account', action: () => { flagCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } },
                             selectedCraftsman.status === 'suspended'
                               ? { label: 'Unsuspend Account', action: () => { unsuspendCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } }
                               : { label: 'Suspend Account', action: () => { setSuspendReason(''); setShowSuspendModal(true); setShowActionsPopover(false); } },
-                            { label: 'Ban Account', action: () => { banCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } }
+                            { label: 'Ban Account', danger: true, action: () => { banCraftsman(selectedCraftsman.id); setShowActionsPopover(false); } }
                           ].map((act, index) => (
                             <button
                               key={index}
                               onClick={act.action}
                               style={{
                                 width: '100%',
-                                padding: '6px 8px',
+                                padding: '8px 10px',
                                 background: 'transparent',
                                 border: 'none',
-                                borderRadius: '4px',
+                                borderRadius: '6px',
                                 fontSize: '0.78rem',
-                                fontWeight: 500,
+                                fontWeight: 600,
                                 textAlign: 'start',
-                                color: 'var(--text-primary)',
+                                color: (act as any).danger ? '#ef4444' : 'var(--text-primary)',
                                 cursor: 'pointer',
-                                transition: 'background 0.2s'
+                                transition: 'all 0.15s ease'
                               }}
                               onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface-hover)'}
                               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
@@ -1101,13 +1117,7 @@ export const CraftsmenPage: React.FC = () => {
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
               <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                {selectedCraftsman.avatarUrl ? (
-                  <img src={selectedCraftsman.avatarUrl} alt={selectedCraftsman.name} style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#d1d6db', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.2rem', color: '#525252' }}>
-                    {selectedCraftsman.name.split(' ').map(n => n[0]).join('')}
-                  </div>
-                )}
+                <CraftsmanAvatar url={selectedCraftsman.avatarUrl} name={selectedCraftsman.name} size={56} />
                 <div style={{ textAlign: 'start' }}>
                   <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedCraftsman.name}</h3>
                   <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{selectedCraftsman.trade} · ID #{selectedCraftsman.idNumber}</span>
@@ -1222,25 +1232,26 @@ export const CraftsmenPage: React.FC = () => {
             justifyContent: 'center',
             padding: '16px'
           }}
-          onClick={() => setShowSuspendModal(false)}
+          onClick={() => { setSuspendReason(''); setShowSuspendModal(false); }}
         >
           <div 
             style={{
-              background: '#FFFFFF',
+              background: 'var(--bg-surface)',
               borderRadius: '20px',
               maxWidth: '500px',
               width: '100%',
               padding: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)',
               position: 'relative',
-              textAlign: 'start'
+              textAlign: 'start',
+              border: '1px solid var(--border-color)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(220,38,38,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626' }}>
                   <AlertTriangle size={20} />
                 </div>
                 <div>
@@ -1248,12 +1259,12 @@ export const CraftsmenPage: React.FC = () => {
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{selectedCraftsman.name} ({selectedCraftsman.trade})</span>
                 </div>
               </div>
-              <button onClick={() => setShowSuspendModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <button onClick={() => { setSuspendReason(''); setShowSuspendModal(false); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
 
-            <p style={{ fontSize: '0.82rem', color: '#4b5563', margin: '0 0 14px 0', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 14px 0', lineHeight: 1.5 }}>
               Specify the reason for suspending this craftsman. This message will be sent directly to the craftsman as a push & system notification.
             </p>
 
@@ -1334,7 +1345,7 @@ export const CraftsmenPage: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setShowSuspendModal(false)}
+                onClick={() => { setSuspendReason(''); setShowSuspendModal(false); }}
                 style={{
                   padding: '10px 16px',
                   background: 'var(--bg-surface-hover)',

@@ -45,9 +45,9 @@ export class ApiSafetyReportRepository implements SafetyReportRepository {
           escrowStatus: item.status === 'RESOLVED' ? 'REFUNDED' : 'FROZEN',
           chatLogs: [
             { sender: reporterName, text: 'Hello, what time will you arrive for the repair?', time: '10:14 AM' },
-            { sender: suspectName, text: 'I am on my way. Please pay me 200 SAR in cash directly instead of the app.', time: '10:16 AM', flagged: true },
+            { sender: suspectName, text: 'I am on my way. Please pay me 200 ILS in cash directly instead of the app.', time: '10:16 AM', flagged: true },
             { sender: reporterName, text: 'Why cash? The app says payment is managed securely via credit card.', time: '10:17 AM' },
-            { sender: suspectName, text: 'If you do not transfer cash to STC Pay directly I will cancel the order.', time: '10:19 AM', flagged: true }
+            { sender: suspectName, text: 'If you do not pay cash directly I will cancel the order.', time: '10:19 AM', flagged: true }
           ],
           evidenceImages: [
             'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',

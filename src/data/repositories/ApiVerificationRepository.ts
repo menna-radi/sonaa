@@ -50,16 +50,16 @@ export class ApiVerificationRepository implements VerificationRepository {
           docsCount: `${verifiedBadges}/6`,
           risk: trustScore < 0.85 ? 'High' : 'Low',
           status: r.isVerifiedId ? 'today' : (index % 3 === 0 ? 'flagged' : 'pending'),
-          city: r.locationCity || 'Riyadh',
-          skills: (r.skills || []).map((s: any) => s.name || s),
           isVerifiedId: Boolean(r.isVerifiedId),
           isVerifiedCert: Boolean(r.isVerifiedCert),
           isInsured: Boolean(r.isInsured),
           isVerifiedSelfie: Boolean(r.isVerifiedSelfie),
           isVerifiedBankIban: Boolean(r.isVerifiedBankIban),
           isVerifiedBackground: Boolean(r.isVerifiedBackground),
-          phoneNumber: r.user?.phoneNumber || r.user?.phone || '+972 54 123 4567',
-          email: r.user?.email || `${r.firstName.toLowerCase()}.${r.lastName.toLowerCase()}@sonaa.sa`,
+          city: r.locationCity || 'Jerusalem',
+          verificationType: (r.specialization || 'General Technician') as any,
+          phone: r.user?.phoneNumber || '+972 50 000 0000',
+          email: r.user?.email || `${r.firstName.toLowerCase()}.${r.lastName.toLowerCase()}@sonaa.com`,
           deviceOs: 'Android 14 (SDK 34)',
           appVersion: 'Sonaa Partner v2.4.1',
           registeredDate: r.user?.createdAt ? new Date(r.user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Jul 21, 2026',
@@ -78,14 +78,14 @@ export class ApiVerificationRepository implements VerificationRepository {
     moderatorNotes: string
   ): Promise<Result<boolean>> {
     try {
-      const itemMap = {
-        APPROVED: 'isVerifiedId',
-        REJECTED: 'isVerifiedId',
-        FLAGGED: 'isVerifiedBackground',
+      const itemMap: Record<string, string> = {
+        APPROVED: 'nationalId',
+        REJECTED: 'nationalId',
+        FLAGGED: 'backgroundCheck',
       };
       await apiClient.post<void>(API_ENDPOINTS.craftsmen.toggleVerificationItem(requestId), {
-        item: itemMap[decision] || 'isVerifiedId',
-        verified: decision === 'APPROVED',
+        itemKey: itemMap[decision] || 'nationalId',
+        approved: decision === 'APPROVED',
         notes: moderatorNotes,
       });
       return ok(true);

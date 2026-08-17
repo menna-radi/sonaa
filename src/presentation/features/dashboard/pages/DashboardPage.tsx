@@ -14,6 +14,7 @@ import { ModeratorReview } from '../components/ModeratorReview';
 import { LiveActivityPage } from '../../live_activity/pages/LiveActivityPage';
 import { CraftsmenPage } from '../../craftsmen/pages/CraftsmenPage';
 import { TasksPage } from '../../tasks/pages/TasksPage';
+import { ChatPage } from '../../chat/pages/ChatPage';
 import { VerificationPage } from '../../verification/pages/VerificationPage';
 import { ReportsPage } from '../../reports/pages/ReportsPage';
 import { PaymentsPage } from '../../payments/pages/PaymentsPage';
@@ -123,19 +124,19 @@ const OverviewPage: React.FC = () => {
               <h1 style={{ fontSize: '1.8rem', fontWeight: 700, fontFamily: 'var(--font-title)', color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
                 {t('overview_title')}
               </h1>
-              <p style={{ color: '#ffffff', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                 {t('overview_subtitle')}
               </p>
             </div>
 
             <div className="animate-fade-in" style={{ display: 'flex', gap: '8px' }}>
-              <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 <Calendar size={14} />
                 <span>{t('last_7_days')}</span>
               </button>
               <button 
                 onClick={handleExport}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'var(--color-primary)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--bg-base)', cursor: 'pointer', border: 'none' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'var(--color-primary)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', cursor: 'pointer', border: 'none' }}
               >
                 <Download size={14} />
                 <span>{t('btn_export')}</span>
@@ -597,6 +598,8 @@ export const DashboardPage: React.FC = () => {
       return <CraftsmenPage />;
     case 'tasks':
       return <TasksPage />;
+    case 'chat':
+      return <ChatPage />;
     case 'verification':
       return <VerificationPage />;
     case 'reports':

@@ -1,4 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useDependencies } from '../../../../core/di/DependencyProvider';
+import type { NotificationItem as DomainNotificationItem } from '../../../../domain/entities/Notification';
 
 export interface NotificationItem {
   id: string;
@@ -16,81 +18,6 @@ export interface AlertCategory {
   descKey: string;
   subscribed: boolean;
 }
-
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: '1',
-    title: 'SOS triggered in Hittin',
-    subtitle: 'Lina Al-Qahtani · Bathroom pipe burst · Job #SN-2417',
-    time: '34s ago',
-    unread: true,
-    critical: true,
-    category: 'emergency',
-  },
-  {
-    id: '2',
-    title: '129 verification requests pending',
-    subtitle: 'Average SLA 3h 12m · 8 in last hour',
-    time: '4m ago',
-    unread: true,
-    critical: false,
-    category: 'verification',
-  },
-  {
-    id: '3',
-    title: 'Failed payout · 1,200 ILS',
-    subtitle: 'Ahmad Al-Otaibi · Arab Bank · Retry scheduled in 2h',
-    time: '12m ago',
-    unread: true,
-    critical: true,
-    category: 'payments',
-  },
-  {
-    id: '4',
-    title: 'Off-platform payment attempt flagged',
-    subtitle: 'Chat #C-2912 · AI confidence 92%',
-    time: '34m ago',
-    unread: true,
-    critical: true,
-    category: 'fraud',
-  },
-  {
-    id: '5',
-    title: 'Surge in AC Repair tasks · Beit Hanina',
-    subtitle: 'Volume +180% vs baseline · 12 emergencies',
-    time: '1h ago',
-    unread: true,
-    critical: false,
-    category: 'reports',
-  },
-  {
-    id: '6',
-    title: 'Daily reconciliation complete',
-    subtitle: 'GMV 142,820 ILS · Commission 29,135 ILS',
-    time: '2h ago',
-    unread: false,
-    critical: false,
-    category: 'payments',
-  },
-  {
-    id: '7',
-    title: 'Yousef Al-Harbi approved',
-    subtitle: 'Auto-approved · all checks passed',
-    time: '3h ago',
-    unread: false,
-    critical: false,
-    category: 'verification',
-  },
-  {
-    id: '8',
-    title: 'No-show pattern detected',
-    subtitle: 'Hassan Al-Mutairi · 4 no-shows in 7 days · risk 84',
-    time: '4h ago',
-    unread: true,
-    critical: true,
-    category: 'fraud',
-  },
-];
 
 const INITIAL_CATEGORIES: AlertCategory[] = [
   {
@@ -132,26 +59,71 @@ const INITIAL_CATEGORIES: AlertCategory[] = [
 ];
 
 export const useNotifications = () => {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const { dependencies } = useDependencies();
+  const { notificationRepository } = dependencies;
+
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [categories, setCategories] = useState<AlertCategory[]>(INITIAL_CATEGORIES);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'critical'>('all');
+  const [loading, setLoading] = useState(true);
+
+  // Load from repository
+  const loadNotifications = useCallback(async () => {
+    try {
+      const result = await notificationRepository.getNotifications();
+      if (result.success && result.data && result.data.length > 0) {
+        setNotifications(result.data.map((n: DomainNotificationItem) => ({
+          id: n.id,
+          title: n.title,
+          subtitle: n.subtitle,
+          time: n.time,
+          unread: n.unread,
+          critical: n.critical,
+          category: (n.category as any) || 'system',
+        })));
+      }
+    } catch {
+      // Keep existing
+    } finally {
+      setLoading(false);
+    }
+  }, [notificationRepository]);
+
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
 
   // Toggle read status of a specific item
-  const toggleRead = (id: string) => {
+  const toggleRead = async (id: string) => {
     setNotifications((prev) =>
       prev.map((item) => (item.id === id ? { ...item, unread: !item.unread } : item))
     );
+    try {
+      await notificationRepository.toggleRead(id);
+    } catch {
+      // Local state is already updated
+    }
   };
 
   // Mark all unread notifications as read
-  const markAllRead = () => {
+  const markAllRead = async () => {
     setNotifications((prev) => prev.map((item) => ({ ...item, unread: false })));
+    try {
+      await notificationRepository.markAllRead();
+    } catch {
+      // Local state is already updated
+    }
   };
 
   // Delete notification item
-  const deleteNotification = (id: string) => {
+  const deleteNotification = async (id: string) => {
     setNotifications((prev) => prev.filter((item) => item.id !== id));
+    try {
+      await notificationRepository.deleteNotification(id);
+    } catch {
+      // Local state is already updated
+    }
   };
 
   // Toggle toggle switches for notification categories subscriptions
@@ -203,5 +175,9 @@ export const useNotifications = () => {
     deleteNotification,
     toggleCategorySubscription,
     counters,
+    loading,
+    refresh: loadNotifications,
   };
 };
+
+export default useNotifications;

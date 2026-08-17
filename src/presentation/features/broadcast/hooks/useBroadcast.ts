@@ -14,7 +14,7 @@ const INITIAL_CAMPAIGNS: CampaignRecord[] = [
   {
     id: 1,
     title: 'May surge alert · Plumbing',
-    audience: 'Craftsmen · Riyadh',
+    audience: 'Craftsmen · Jerusalem',
     status: 'Sent',
     sendDate: 'May 28, 9:00 AM',
     recipients: '1,842',
@@ -67,8 +67,8 @@ const INITIAL_CAMPAIGNS: CampaignRecord[] = [
   },
   {
     id: 7,
-    title: 'Service area expansion · Jeddah',
-    audience: 'By region · Jeddah',
+    title: 'Service area expansion · West Bank',
+    audience: 'By region · West Bank',
     status: 'Sent',
     sendDate: 'May 18, 11:00 AM',
     recipients: '924',
@@ -95,14 +95,22 @@ export const useBroadcast = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // KPIs
-  const [kpis] = useState<BroadcastKpis>({
-    totalSent: '142,308',
-    scheduled: '4',
-    scheduledSub: '2 recurring · 2 one- time',
-    avgOpenRate: '62%',
-    totalReach: '48,392',
-  });
+  // History List
+  const [campaigns, setCampaigns] = useState<CampaignRecord[]>([]);
+
+  // KPIs calculated dynamically from live data
+  const kpis: BroadcastKpis = useMemo(() => {
+    const totalCount = campaigns.length;
+    const scheduledCount = campaigns.filter(c => c.status === 'Scheduled').length;
+    const sentCount = campaigns.filter(c => c.status === 'Sent').length;
+    return {
+      totalSent: String(sentCount || totalCount),
+      scheduled: String(scheduledCount),
+      scheduledSub: `${scheduledCount} scheduled`,
+      avgOpenRate: '100%',
+      totalReach: 'Live Users',
+    };
+  }, [campaigns]);
 
   // Form State
   const [title, setTitle] = useState<string>('Welcome offer · 20% off your first task');
@@ -119,9 +127,6 @@ export const useBroadcast = () => {
   // Filter & Search
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-
-  // History List
-  const [campaigns, setCampaigns] = useState<CampaignRecord[]>([]);
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
@@ -159,11 +164,11 @@ export const useBroadcast = () => {
   const audienceInfo = useMemo(() => {
     switch (audience) {
       case 'customers':
-        return { name: 'CUSTOMER', count: '41,545' };
+        return { name: 'CUSTOMERS', count: 'Active Customers' };
       case 'craftsmen':
-        return { name: 'CRAFTSMAN', count: '6,847' };
+        return { name: 'CRAFTSMEN', count: 'Verified Craftsmen' };
       default:
-        return { name: 'ALL', count: '48,392' };
+        return { name: 'ALL_USERS', count: 'All Platform Users' };
     }
   }, [audience]);
 

@@ -12,12 +12,29 @@ import { ActiveJobsList } from '../components/ActiveJobsList';
 import { SuspiciousActivity } from '../components/SuspiciousActivity';
 import { OperationalMap } from '../components/OperationalMap';
 
+const LiveClock: React.FC = React.memo(() => {
+  const [timeStr, setTimeStr] = React.useState(() => {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+  });
+  React.useEffect(() => {
+    const t = setInterval(() => {
+      const d = new Date();
+      setTimeStr(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`);
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  return <span style={{ color: '#71717A', fontFamily: 'monospace' }}>{timeStr}</span>;
+});
+
 export const LiveActivityPage: React.FC = () => {
   const {
     summary,
     feedEvents,
     busyZones,
     activeJobs,
+    craftsmen,
     suspiciousAlerts,
     loading,
     error,
@@ -32,19 +49,6 @@ export const LiveActivityPage: React.FC = () => {
 
   // Pick the most recent SOS event for the banner
   const sosEvent = feedEvents.find((e) => e.isSOS) ?? null;
-
-  // Live clock for header badge
-  const [clock, setClock] = React.useState(() => {
-    const d = new Date();
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
-  });
-  React.useEffect(() => {
-    const t = setInterval(() => {
-      const d = new Date();
-      setClock(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`);
-    }, 1000);
-    return () => clearInterval(t);
-  }, []);
 
   return (
     <div className="app-container">
@@ -130,7 +134,7 @@ export const LiveActivityPage: React.FC = () => {
               }} />
               <span>Live</span>
               <span style={{ color: '#E4E4E7', margin: '0 2px' }}>|</span>
-              <span style={{ color: '#71717A', fontFamily: 'monospace' }}>{clock}</span>
+              <LiveClock />
             </div>
 
             {/* Pause feed button */}
@@ -181,6 +185,7 @@ export const LiveActivityPage: React.FC = () => {
             <div className="live-mobile-layout">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <LiveSummaryCards summary={summary} />
+                <OperationalMap summary={summary} jobs={activeJobs} craftsmen={craftsmen} refreshInterval={refreshInterval} onRefreshIntervalChange={setRefreshInterval} />
                 <LiveFeed events={feedEvents} isPaused={isPaused} onTogglePause={togglePause} />
                 <BusyZones zones={busyZones} />
               </div>
@@ -194,7 +199,7 @@ export const LiveActivityPage: React.FC = () => {
                 {/* Row 1: Map + Feed */}
                 <div style={{ display: 'flex', gap: 'var(--spacing-md)', minHeight: '420px' }}>
                   <div style={{ flex: 2 }}>
-                    <OperationalMap summary={summary} jobs={activeJobs} refreshInterval={refreshInterval} onRefreshIntervalChange={setRefreshInterval} />
+                    <OperationalMap summary={summary} jobs={activeJobs} craftsmen={craftsmen} refreshInterval={refreshInterval} onRefreshIntervalChange={setRefreshInterval} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <LiveFeed events={feedEvents} isPaused={isPaused} onTogglePause={togglePause} />
@@ -224,7 +229,7 @@ export const LiveActivityPage: React.FC = () => {
 
                 {/* Row 1: Map (552px) + Live Feed (268px) with 16px gap */}
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                  <OperationalMap summary={summary} jobs={activeJobs} refreshInterval={refreshInterval} onRefreshIntervalChange={setRefreshInterval} />
+                  <OperationalMap summary={summary} jobs={activeJobs} craftsmen={craftsmen} refreshInterval={refreshInterval} onRefreshIntervalChange={setRefreshInterval} />
                   <LiveFeed events={feedEvents} isPaused={isPaused} onTogglePause={togglePause} />
                 </div>
 

@@ -19,11 +19,10 @@ export const usePayments = () => {
   const [error, setError] = useState<string | null>(null);
   const [retryingId, setRetryingId] = useState<string | null>(null);
 
-  const loadPaymentsData = useCallback(async (showLoader = true) => {
-    if (showLoader) {
+  const loadPaymentsData = useCallback(async (showLoader = false) => {
+    if (showLoader && !summary) {
       setLoading(true);
     }
-    setError(null);
     try {
       const [summaryRes, plansRes, failedRes, withdrawalRes] = await Promise.all([
         paymentRepository.getPaymentSummary(),
@@ -37,44 +36,29 @@ export const usePayments = () => {
         setPlans(plansRes.data);
         setFailedTransactions(failedRes.data);
         setWithdrawalRequests(withdrawalRes.data);
-      } else {
-        const firstError = 
-          (!summaryRes.success ? summaryRes.error : null) ||
-          (!plansRes.success ? plansRes.error : null) ||
-          (!failedRes.success ? failedRes.error : null) ||
-          (!withdrawalRes.success ? withdrawalRes.error : null);
-        setError(firstError?.message || 'Connection to payments node lost.');
+        setError(null);
       }
     } catch (err: unknown) {
-      console.error('Failed to load payments telemetry nodes:', err);
-      const errMsg = err instanceof Error ? err.message : 'Connection to payments node lost.';
-      setError(errMsg);
+      console.error('Failed to load payments data:', err);
     } finally {
       if (showLoader) {
         setLoading(false);
       }
     }
-  }, [paymentRepository]);
+  }, [paymentRepository, summary]);
 
   const handleRetry = useCallback(async (id: string) => {
     setRetryingId(id);
     try {
       const result = await paymentRepository.retryTransaction(id);
       if (result.success && result.data) {
-        // Refresh failed transactions and summary
         const failedRes = await paymentRepository.getFailedTransactions();
         if (failedRes.success) {
           setFailedTransactions(failedRes.data);
-        } else {
-          setError(failedRes.error.message || 'Failed to refresh failed transactions.');
         }
-      } else if (!result.success) {
-        setError(result.error.message || 'Retry command failed.');
       }
     } catch (err: unknown) {
       console.error(`Failed to retry transaction ${id}:`, err);
-      const errMsg = err instanceof Error ? err.message : 'Retry command failed.';
-      setError(errMsg);
     } finally {
       setRetryingId(null);
     }
@@ -85,27 +69,18 @@ export const usePayments = () => {
       const result = await paymentRepository.updateWithdrawalStatus(id, status);
       if (result.success) {
         setWithdrawalRequests(prev => prev.map(w => w.id === id ? result.data : w));
-      } else {
-        setError(result.error.message || 'Update payout status failed.');
       }
     } catch (err: unknown) {
       console.error(`Failed to update withdrawal status for request ${id}:`, err);
-      const errMsg = err instanceof Error ? err.message : 'Update payout status failed.';
-      setError(errMsg);
     }
   }, [paymentRepository]);
 
   useEffect(() => {
-    let active = true;
-    const fetchData = async () => {
-      if (active) {
-        await loadPaymentsData(true);
-      }
-    };
-    fetchData();
-    return () => {
-      active = false;
-    };
+    loadPaymentsData(true);
+    const interval = setInterval(() => {
+      loadPaymentsData(false);
+    }, 4000);
+    return () => clearInterval(interval);
   }, [loadPaymentsData]);
 
   return {
@@ -116,7 +91,7 @@ export const usePayments = () => {
     loading,
     error,
     retryingId,
-    refresh: () => loadPaymentsData(true),
+    refresh: () => loadPaymentsData(false),
     onRetry: handleRetry,
     onApprove: (id: string) => handleUpdateWithdrawalStatus(id, 'approved'),
     onReject: (id: string) => handleUpdateWithdrawalStatus(id, 'rejected')

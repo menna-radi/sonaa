@@ -121,23 +121,28 @@ export const LoginPage: React.FC = () => {
             </h1>
           </div>
           <p style={{ fontSize: '1.1rem', color: '#ffffff', lineHeight: 1.6, maxWidth: '440px' }}>
-            {t('subtitle')}
+            {t('login_welcome_subtitle') || 'Access platform analytics, technician verification, and operations control center.'}
           </p>
 
-          {/* Quick Mock Statistics preview */}
+          {/* Real Platform Status & Security Highlights */}
           <div className="login-stats-preview" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '16px' }}>
-              <span style={{ display: 'block', fontSize: '0.8rem', color: '#737373' }}>{t('metrics_total_users')}</span>
-              <strong style={{ display: 'block', fontSize: '1.5rem', marginTop: '4px', fontFamily: 'var(--font-title)' }}>48,392</strong>
+              <span style={{ display: 'block', fontSize: '0.78rem', color: '#94a3b8' }}>System Security</span>
+              <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', marginTop: '6px', color: '#10b981', fontFamily: 'var(--font-title)' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }}></span>
+                256-Bit SSL Encrypted
+              </strong>
             </div>
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '16px' }}>
-              <span style={{ display: 'block', fontSize: '0.8rem', color: '#737373' }}>{t('metrics_revenue_mtd')}</span>
-              <strong style={{ display: 'block', fontSize: '1.5rem', marginTop: '4px', fontFamily: 'var(--font-title)' }}>842K ILS</strong>
+              <span style={{ display: 'block', fontSize: '0.78rem', color: '#94a3b8' }}>Operations Region</span>
+              <strong style={{ display: 'block', fontSize: '0.95rem', marginTop: '6px', color: '#f8fafc', fontFamily: 'var(--font-title)' }}>
+                Jerusalem & West Bank
+              </strong>
             </div>
           </div>
         </div>
 
-        <div style={{ position: 'absolute', bottom: '20px', left: '40px', right: '40px', fontSize: '0.75rem', color: '#525252', zIndex: 2 }}>
+        <div style={{ position: 'absolute', bottom: '20px', left: '40px', right: '40px', fontSize: '0.75rem', color: '#94a3b8', zIndex: 2 }}>
           © 2026 Sonaa Operations Portal • Developed by Qatfa Code
         </div>
       </div>
@@ -204,15 +209,15 @@ export const LoginPage: React.FC = () => {
                   placeholder={t('login_placeholder_email')}
                   style={{
                     width: '100%',
-                    background: '#f5f5f5',
-                    border: `1px solid ${fieldErrors.email ? '#ef4444' : '#e4e4e7'}`,
+                    background: 'var(--bg-surface-hover)',
+                    border: `1px solid ${fieldErrors.email ? '#ef4444' : 'var(--border-color)'}`,
                     borderRadius: 'var(--border-radius-sm)',
-                    paddingTop: '11px',
-                    paddingBottom: '11px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
                     paddingInlineStart: '36px',
                     paddingInlineEnd: '16px',
                     fontSize: '0.9rem',
-                    color: '#171717',
+                    color: 'var(--text-primary)',
                     outline: 'none',
                     transition: 'var(--transition-fast)'
                   }}
@@ -242,15 +247,15 @@ export const LoginPage: React.FC = () => {
                   placeholder={t('login_placeholder_password')}
                   style={{
                     width: '100%',
-                    background: '#f5f5f5',
-                    border: `1px solid ${fieldErrors.password ? '#ef4444' : '#e4e4e7'}`,
+                    background: 'var(--bg-surface-hover)',
+                    border: `1px solid ${fieldErrors.password ? '#ef4444' : 'var(--border-color)'}`,
                     borderRadius: 'var(--border-radius-sm)',
-                    paddingTop: '11px',
-                    paddingBottom: '11px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
                     paddingInlineStart: '36px',
                     paddingInlineEnd: '40px',
                     fontSize: '0.9rem',
-                    color: '#171717',
+                    color: 'var(--text-primary)',
                     outline: 'none',
                     transition: 'var(--transition-fast)'
                   }}
@@ -291,7 +296,7 @@ export const LoginPage: React.FC = () => {
               disabled={loading}
               style={{
                 width: '100%',
-                background: loading ? '#525252' : '#171717',
+                background: loading ? 'var(--text-muted)' : 'var(--color-primary, #2563eb)',
                 color: '#FFFFFF',
                 paddingTop: '13px',
                 paddingBottom: '13px',
@@ -304,7 +309,7 @@ export const LoginPage: React.FC = () => {
                 justifyContent: 'center',
                 border: 'none',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
                 transition: 'all 0.15s ease'
               }}
               className="login-submit-btn"

@@ -6,8 +6,8 @@ import { ValidationError } from '../../../core/errors/AppError';
 
 // Validation Schema using Zod
 const loginSchema = z.object({
-  email: z.string().email({ message: 'Invalid email format' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters long' }),
+  email: z.string().min(3, { message: 'Username or email must be at least 3 characters long' }),
+  password: z.string().min(4, { message: 'Password is required' }),
 });
 
 export class LoginUseCase {

@@ -56,12 +56,12 @@ export const useAnalytics = () => {
 
   // 3. High Demand Zones
   const [zones, setZones] = useState<ZoneData[]>([
-    { name: 'Al Malqa', tasksCount: 412, percentage: 28, trend: '+28%', isPositive: true, barWidth: 92 },
-    { name: 'Al Olaya', tasksCount: 358, percentage: 21, trend: '+21%', isPositive: true, barWidth: 84 },
-    { name: 'Al Nakheel', tasksCount: 287, percentage: 18, trend: '+18%', isPositive: true, barWidth: 71 },
-    { name: 'Hittin', tasksCount: 242, percentage: 14, trend: '+14%', isPositive: true, barWidth: 62 },
-    { name: 'Diplomatic Q', tasksCount: 198, percentage: 9, trend: '+9%', isPositive: true, barWidth: 54 },
-    { name: 'Al Yasmin', tasksCount: 174, percentage: 6, trend: '+6%', isPositive: true, barWidth: 48 }
+    { name: 'Beit Hanina (بيت حنينا)', tasksCount: 412, percentage: 28, trend: '+28%', isPositive: true, barWidth: 92 },
+    { name: 'Old City (البلدة القديمة)', tasksCount: 358, percentage: 21, trend: '+21%', isPositive: true, barWidth: 84 },
+    { name: 'Shuafat (شعفاط)', tasksCount: 287, percentage: 18, trend: '+18%', isPositive: true, barWidth: 71 },
+    { name: 'Sheikh Jarrah (الشيخ جراح)', tasksCount: 242, percentage: 14, trend: '+14%', isPositive: true, barWidth: 62 },
+    { name: 'Silwan (سلوان)', tasksCount: 198, percentage: 9, trend: '+9%', isPositive: true, barWidth: 54 },
+    { name: 'Rehavia (رحافيا)', tasksCount: 174, percentage: 6, trend: '+6%', isPositive: true, barWidth: 48 }
   ]);
 
   // 4. Platform Health KPIs

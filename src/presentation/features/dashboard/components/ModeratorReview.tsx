@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useNavigation } from '../../../context/NavigationContext';
 import { GlassCard } from '../../../components/GlassCard';
 import type { VerificationSubmission } from '../../../../domain/repositories/MetricRepository';
 
@@ -9,6 +10,14 @@ interface ModeratorReviewProps {
 
 export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions }) => {
   const { t, language } = useLanguage();
+  const { navigate } = useNavigation();
+
+  const formatRoleName = (key: string) => {
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+    const clean = key.replace(/^role_/, '').replace(/_/g, ' ');
+    return clean.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  };
 
   return (
     <GlassCard 
@@ -18,8 +27,8 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
         display: 'flex', 
         flexDirection: 'column', 
         textAlign: 'start',
-        background: '#FFFFFF',
-        border: '1px solid #E5E5E5',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-color)',
         borderRadius: '16px',
         padding: '24px',
         boxShadow: '0px 1px 1.5px rgba(0, 0, 0, 0.04)',
@@ -33,7 +42,7 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
         <div>
           <span style={{ 
             fontSize: '12px', 
-            color: '#737373', 
+            color: 'var(--text-muted)', 
             fontWeight: 700, 
             textTransform: 'uppercase',
             letterSpacing: '0.6px'
@@ -44,7 +53,7 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
             fontSize: '14px', 
             fontWeight: 700, 
             marginTop: '2px', 
-            color: '#171717',
+            color: 'var(--text-primary)',
             margin: '2px 0 0 0'
           }}>
             {t('sec_awaiting_moderator')}
@@ -53,7 +62,7 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
         <span style={{ 
           fontSize: '10px', 
           fontWeight: 700, 
-          color: '#171717',
+          color: 'var(--text-primary)',
           marginTop: '2px'
         }}>
           Open queue (129)
@@ -75,8 +84,8 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
             className="moderator-sub-item" 
             style={{
               padding: '16px',
-              background: '#FFFFFF',
-              border: '1px solid #E5E5E5',
+              background: 'var(--bg-surface-hover)',
+              border: '1px solid var(--border-color)',
               borderRadius: '12px',
               height: '101px',
               display: 'flex',
@@ -99,7 +108,7 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
                 <span style={{ 
                   fontSize: '12px', 
                   fontWeight: 700, 
-                  color: '#171717', 
+                  color: 'var(--text-primary)', 
                   whiteSpace: 'nowrap', 
                   textOverflow: 'ellipsis', 
                   overflow: 'hidden',
@@ -110,41 +119,45 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
                 </span>
                 <span style={{ 
                   fontSize: '10px', 
-                  color: '#737373',
+                  color: 'var(--text-muted)',
                   whiteSpace: 'nowrap',
                   textOverflow: 'ellipsis',
                   overflow: 'hidden',
                   width: '100%',
                   marginTop: '1px'
                 }}>
-                  {t(sub.roleKey)}
+                  {formatRoleName(sub.roleKey)}
                 </span>
               </div>
             </div>
 
             {/* Bottom row: Time elapsed & Review link */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <span style={{ fontSize: '10px', color: '#737373', fontWeight: 400 }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 400 }}>
                 {t(sub.timeKey)}
               </span>
 
-              <a
-                href="#"
+              <button
+                type="button"
                 style={{
                   fontSize: '10px',
                   fontWeight: 700,
-                  color: '#171717',
+                  color: 'var(--text-primary)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '2px'
+                  gap: '2px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0
                 }}
-                onClick={(e) => e.preventDefault()}
+                onClick={() => navigate('verification')}
               >
                 <span>{t('btn_review')}</span>
                 <span style={{ transform: language === 'ar' || language === 'he' ? 'scaleX(-1)' : 'none' }}>
                   →
                 </span>
-              </a>
+              </button>
             </div>
           </div>
         ))}

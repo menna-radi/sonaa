@@ -630,7 +630,7 @@ export const ServiceManagementPage: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <span style={{ fontSize: '12px', color: '#737373' }}>{isRtl ? log.timeAr : log.time}</span>
-                  <a href="#view" className="sm-view-activity-link">{isRtl ? 'عرض' : 'View'}</a>
+                  <button type="button" onClick={(e) => e.preventDefault()} className="sm-view-activity-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>{isRtl ? 'عرض' : 'View'}</button>
                 </div>
               </div>
             ))}

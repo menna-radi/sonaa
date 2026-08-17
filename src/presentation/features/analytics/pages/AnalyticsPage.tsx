@@ -38,6 +38,23 @@ export const AnalyticsPage: React.FC = () => {
   const [timeFilter, setTimeFilter] = useState<'7d' | '30d' | '90d' | 'ytd'>('7d');
   const [mobileSection, setMobileSection] = useState<'kpis' | 'cohorts' | 'zones'>('kpis');
 
+  const handleExportCSV = () => {
+    const csvRows = [
+      ['Metric', 'Value', 'Timeframe'],
+      ['User Growth', userGrowth ? String(userGrowth) : '0', timeFilter],
+      ['Active Craftsmen', activeCraftsmen ? String(activeCraftsmen) : '0', timeFilter],
+      ['Conversion Rate', conversionRate ? `${conversionRate}%` : '0%', timeFilter],
+    ];
+    const csvContent = 'data:text/csv;charset=utf-8,' + csvRows.map(e => e.join(',')).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `sonaa_analytics_${timeFilter}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   return (
     <div className="app-container">
@@ -122,7 +139,7 @@ export const AnalyticsPage: React.FC = () => {
                 ))}
               </div>
 
-              <button className="analytics-export-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'var(--color-primary)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--bg-base)', border: 'none', cursor: 'pointer' }}>
+              <button onClick={handleExportCSV} className="analytics-export-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'var(--color-primary)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--bg-base)', border: 'none', cursor: 'pointer' }}>
                 <Download size={14} />
                 <span>{t('btn_export')}</span>
               </button>

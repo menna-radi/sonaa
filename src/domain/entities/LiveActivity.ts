@@ -56,10 +56,21 @@ export interface LiveActivitySummary {
   busyZonesCount: number;
 }
 
+export interface LiveCraftsman {
+  id: string;
+  name: string;
+  title: string;
+  lat: number;
+  lng: number;
+  rating?: number;
+  isAvailable?: boolean;
+}
+
 export interface LiveActivitySnapshot {
   summary: LiveActivitySummary;
   feedEvents: ActivityEvent[];
   busyZones: BusyZone[];
   activeJobs: ActiveJob[];
   suspiciousAlerts: SuspiciousAlert[];
+  craftsmen?: LiveCraftsman[];
 }

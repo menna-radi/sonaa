@@ -13,7 +13,14 @@ export interface PaymentSummary {
 export interface SubscriptionPlan {
   id: string;
   name: string;
+  nameEn?: string;
+  nameAr?: string;
+  key?: string;
+  durationMonths?: number;
   price: number;
+  featuresEn?: string[];
+  featuresAr?: string[];
+  isPopular?: boolean;
   subscribersCount: number;
 }
 

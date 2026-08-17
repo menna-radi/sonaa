@@ -79,13 +79,13 @@ export class ApiCategoryRepository implements CategoryRepository {
 
   public async createSubcategory(categoryId: string, name: string): Promise<Result<Subcategory>> {
     try {
+      const payload: any = {
+        nameEn: name,
+        nameAr: name,
+      };
       const response = await apiClient.post<any>(
         API_ENDPOINTS.categories.createSubcategory(categoryId),
-        {
-          nameEn: name,
-          nameAr: name,
-          imageUrl: '',
-        }
+        payload
       );
       return ok(CategoryMapper.subToDomain(response));
     } catch (error) {

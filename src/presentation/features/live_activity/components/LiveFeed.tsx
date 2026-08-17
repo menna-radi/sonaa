@@ -119,7 +119,37 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePa
 
       {/* Event list */}
       <div style={{ overflowY: 'auto', flexGrow: 1, maxHeight: '420px' }}>
-        {events.filter(e => !e.isSOS && e.type !== 'sos_triggered').map((event) => (
+        {events.filter(e => !e.isSOS && e.type !== 'sos_triggered').length === 0 ? (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '48px 24px',
+            textAlign: 'center',
+            color: 'var(--text-muted)'
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'var(--bg-surface-hover)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '12px'
+            }}>
+              <Zap size={20} color="var(--color-primary)" />
+            </div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+              Monitoring Operations
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: '240px', lineHeight: 1.4 }}>
+              Listening for real-time task creations, status updates, and craftsman dispatches...
+            </div>
+          </div>
+        ) : (
+          events.filter(e => !e.isSOS && e.type !== 'sos_triggered').map((event) => (
           <div
             key={event.id}
             style={{
@@ -230,7 +260,8 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePa
               {event.ageLabel}
             </span>
           </div>
-        ))}
+        ))
+        )}
       </div>
     </div>
   );

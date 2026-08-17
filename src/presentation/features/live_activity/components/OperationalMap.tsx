@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Search, LocateFixed, Maximize2, Minimize2, MapPin } from 'lucide-react';
-import type { LiveActivitySummary, ActiveJob } from '../../../../domain/entities/LiveActivity';
+import type { LiveActivitySummary, ActiveJob, LiveCraftsman } from '../../../../domain/entities/LiveActivity';
 
 interface OperationalMapProps {
   summary: LiveActivitySummary | null;
   jobs?: ActiveJob[];
+  craftsmen?: LiveCraftsman[];
   refreshInterval?: number;
   onRefreshIntervalChange?: (intervalMs: number) => void;
 }
@@ -12,6 +13,7 @@ interface OperationalMapProps {
 export const OperationalMap: React.FC<OperationalMapProps> = ({
   summary,
   jobs = [],
+  craftsmen = [],
   refreshInterval = 12000,
   onRefreshIntervalChange,
 }) => {
@@ -115,24 +117,50 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
 
     const layerGroup = layerGroupRef.current;
 
+    const isValidCoords = (coords: any): coords is [number, number] => {
+      return (
+        Array.isArray(coords) &&
+        coords.length === 2 &&
+        typeof coords[0] === 'number' &&
+        !isNaN(coords[0]) &&
+        isFinite(coords[0]) &&
+        typeof coords[1] === 'number' &&
+        !isNaN(coords[1]) &&
+        isFinite(coords[1])
+      );
+    };
+
+    if (mapInstanceRef.current) {
+      try {
+        mapInstanceRef.current.invalidateSize();
+      } catch (e) {
+        // Ignore
+      }
+    }
+
     // Smoothly clear layers in-memory (Map container stays 100% active and still)
     layerGroup.clearLayers();
 
     // Render District Coverage & Demand Capacity Circles when overlay is active
     if (showZonesOverlay) {
       districts.filter(d => d.key !== 'ALL').forEach(d => {
-        L.circle(d.coords, {
-          color: '#3b82f6',
-          fillColor: '#3b82f6',
-          fillOpacity: 0.12,
-          radius: 1200,
-          weight: 1.5
-        }).addTo(layerGroup).bindPopup(`
-          <div style="font-family: system-ui; padding: 4px;">
-            <strong style="font-size: 12px; color: #1e3a8a;">${d.name} Zone Overlay</strong>
-            <span style="display: block; font-size: 11px; color: #475569; margin-top: 2px;">Active service coverage area & demand ring.</span>
-          </div>
-        `);
+        if (!isValidCoords(d.coords)) return;
+        try {
+          L.circle(d.coords, {
+            color: '#3b82f6',
+            fillColor: '#3b82f6',
+            fillOpacity: 0.12,
+            radius: 1200,
+            weight: 1.5
+          }).addTo(layerGroup).bindPopup(`
+            <div style="font-family: system-ui; padding: 4px;">
+              <strong style="font-size: 12px; color: #1e3a8a;">${d.name} Zone Overlay</strong>
+              <span style="display: block; font-size: 11px; color: #475569; margin-top: 2px;">Active service coverage area & demand ring.</span>
+            </div>
+          `);
+        } catch (err) {
+          console.warn('Skipped circle overlay:', err);
+        }
       });
     }
 
@@ -154,17 +182,22 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
       ];
 
       routes.forEach(r => {
-        L.polyline([r.from, r.to], {
-          color: r.color,
-          weight: 3.5,
-          dashArray: '8, 8',
-          opacity: 0.85
-        }).addTo(layerGroup).bindPopup(`
-          <div style="font-family: system-ui; padding: 4px;">
-            <strong style="font-size: 12px; color: ${r.color};">${r.label}</strong>
-            <span style="display: block; font-size: 11px; color: #475569; margin-top: 2px;">Active technician route vector line in Jerusalem.</span>
-          </div>
-        `);
+        if (!isValidCoords(r.from) || !isValidCoords(r.to)) return;
+        try {
+          L.polyline([r.from, r.to], {
+            color: r.color,
+            weight: 3.5,
+            dashArray: '8, 8',
+            opacity: 0.85
+          }).addTo(layerGroup).bindPopup(`
+            <div style="font-family: system-ui; padding: 4px;">
+              <strong style="font-size: 12px; color: ${r.color};">${r.label}</strong>
+              <span style="display: block; font-size: 11px; color: #475569; margin-top: 2px;">Active technician route vector line in Jerusalem.</span>
+            </div>
+          `);
+        } catch (err) {
+          console.warn('Skipped polyline route:', err);
+        }
       });
     }
 
@@ -175,12 +208,14 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
       const radius = 0.007 + (index % 4) * 0.005;
       const latOffset = Math.sin(angle) * radius;
       const lngOffset = Math.cos(angle) * radius;
-      const baseLat = j.lat && j.lat !== 31.7683 ? j.lat : 31.7683 + latOffset;
-      const baseLng = j.lng && j.lng !== 35.2137 ? j.lng : 35.2137 + lngOffset;
+      const rawLat = Number(j.lat);
+      const rawLng = Number(j.lng);
+      const baseLat = !isNaN(rawLat) && rawLat !== 0 && rawLat !== 31.7683 ? rawLat : 31.7683 + latOffset;
+      const baseLng = !isNaN(rawLng) && rawLng !== 0 && rawLng !== 35.2137 ? rawLng : 35.2137 + lngOffset;
 
       return {
         id: j.id,
-        coords: [baseLat, baseLng],
+        coords: [baseLat, baseLng] as [number, number],
         title: `${statusMeta.label.split(' ')[0]} ${j.title} (${j.jobNumber})`,
         desc: `Customer: ${j.customer} · Craftsman: ${j.craftsman} · Status: ${j.status || 'IN_PROGRESS'} · ${j.amountSAR} ILS`,
         color: statusMeta.color,
@@ -189,33 +224,49 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
       };
     });
 
-    const craftsmanMarkers = [
-      {
-        id: 'craft-1',
-        coords: [31.8080, 35.2330],
-        title: '🟣 Online Craftsman — Ahmad Al-Otaibi',
-        desc: 'Electrician & HVAC Tech · Active in Shuafat Zone',
-        color: '#8b5cf6',
-        type: 'Online craftsmen',
-        status: 'ONLINE'
-      },
-      {
-        id: 'craft-2',
-        coords: [31.8260, 35.2150],
-        title: '🟣 Online Craftsman — Yousef H.',
-        desc: 'Master Plumber · Active in Beit Hanina Zone',
-        color: '#8b5cf6',
-        type: 'Online craftsmen',
-        status: 'ONLINE'
-      }
-    ];
+    const craftsmanMarkers = craftsmen.length > 0 
+      ? craftsmen.map((c, idx) => {
+          const rawLat = Number(c.lat);
+          const rawLng = Number(c.lng);
+          const cLat = !isNaN(rawLat) && rawLat !== 0 ? rawLat : 31.7683;
+          const cLng = !isNaN(rawLng) && rawLng !== 0 ? rawLng : 35.2137;
+          return {
+            id: `craft-${c.id || idx}`,
+            coords: [cLat, cLng] as [number, number],
+            title: `🟣 Online Craftsman — ${c.name}`,
+            desc: `${c.title} · Rating: ${c.rating || 5.0}⭐ · Jerusalem Zone`,
+            color: '#8b5cf6',
+            type: 'Online craftsmen',
+            status: c.isAvailable !== false ? 'ONLINE' : 'BUSY'
+          };
+        })
+      : [
+          {
+            id: 'craft-1',
+            coords: [31.8080, 35.2330] as [number, number],
+            title: '🟣 Online Craftsman — Ahmad Al-Otaibi',
+            desc: 'Electrician & HVAC Tech · Active in Shuafat Zone',
+            color: '#8b5cf6',
+            type: 'Online craftsmen',
+            status: 'ONLINE'
+          },
+          {
+            id: 'craft-2',
+            coords: [31.8260, 35.2150] as [number, number],
+            title: '🟣 Online Craftsman — Yousef H.',
+            desc: 'Master Plumber · Active in Beit Hanina Zone',
+            color: '#8b5cf6',
+            type: 'Online craftsmen',
+            status: 'ONLINE'
+          }
+        ];
 
     const dynamicJobMarkers = jobs.length > 0 
       ? [...taskMarkers, ...craftsmanMarkers] 
       : [
           {
             id: 'jobs-in-progress',
-            coords: [31.8260, 35.2260],
+            coords: [31.8260, 35.2260] as [number, number],
             title: '🟢 Working (In Progress) — Beit Hanina',
             desc: 'Craftsman active on-site · Plumbing Repair #SN-1021',
             color: '#10b981',
@@ -224,7 +275,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
           },
           {
             id: 'jobs-accepted',
-            coords: [31.7800, 35.2150],
+            coords: [31.7800, 35.2150] as [number, number],
             title: '🔵 Accepted & En Route — Jerusalem Center',
             desc: 'Craftsman accepted offer · Electrical Wiring #SN-1024',
             color: '#3b82f6',
@@ -233,7 +284,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
           },
           {
             id: 'jobs-pending',
-            coords: [31.7767, 35.2345],
+            coords: [31.7767, 35.2345] as [number, number],
             title: '🟡 New / Unfinished Task — Old City',
             desc: 'Customer posted job · Awaiting craftsman acceptance #SN-1029',
             color: '#f59e0b',
@@ -245,6 +296,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
 
     // Filter and add high-visibility markers (pane: markerPane at z-index 600 above blue rings)
     dynamicJobMarkers.forEach(marker => {
+      if (!isValidCoords(marker.coords)) return;
       if (activeFilter !== 'All activity' && marker.type !== activeFilter) return;
 
       // Layer visibility toggles
@@ -258,56 +310,60 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
         if (!matches) return;
       }
 
-      // Draw high-visibility marker inside markerPane (z-index: 600 above all circle overlays)
-      const customIcon = L.divIcon({
-        className: 'custom-map-marker-pin',
-        html: `
-          <div style="
-            width: 22px;
-            height: 22px;
-            background: ${marker.color};
-            border: 3px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 10px ${marker.color}, 0 2px 8px rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-          ">
-            <div style="width: 6px; height: 6px; background: #ffffff; border-radius: 50%;"></div>
-          </div>
-        `,
-        iconSize: [22, 22],
-        iconAnchor: [11, 11]
-      });
-
-      const markerObj = L.marker(marker.coords, { icon: customIcon, pane: 'markerPane' })
-        .addTo(layerGroup)
-        .bindPopup(`
-          <div style="color: #171717; font-family: system-ui, -apple-system, sans-serif; padding: 10px; text-align: start; direction: ltr; min-width: 220px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-              <span style="font-size: 10px; font-weight: 700; background: ${marker.color}22; color: ${marker.color}; border: 1px solid ${marker.color}44; padding: 2px 6px; border-radius: 12px; text-transform: uppercase;">
-                ${marker.status || 'ACTIVE'}
-              </span>
-              <span style="font-size: 10px; color: #71717a; font-weight: 600;">Jerusalem Zone</span>
+      try {
+        // Draw high-visibility marker inside markerPane (z-index: 600 above all circle overlays)
+        const customIcon = L.divIcon({
+          className: 'custom-map-marker-pin',
+          html: `
+            <div style="
+              width: 22px;
+              height: 22px;
+              background: ${marker.color};
+              border: 3px solid #ffffff;
+              border-radius: 50%;
+              box-shadow: 0 0 10px ${marker.color}, 0 2px 8px rgba(0,0,0,0.5);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+            ">
+              <div style="width: 6px; height: 6px; background: #ffffff; border-radius: 50%;"></div>
             </div>
-            <strong style="display: block; font-size: 13px; margin-bottom: 6px; color: #09090b; line-height: 1.3;">
-              ${marker.title}
-            </strong>
-            <div style="font-size: 11px; color: #52525b; line-height: 1.5; margin-bottom: 10px; background: #f4f4f5; padding: 6px 8px; border-radius: 6px;">
-              ${marker.desc}
-            </div>
-            <button 
-              onclick="window.location.hash='tasks'" 
-              style="width: 100%; padding: 6px 10px; background: #171717; color: #ffffff; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;"
-            >
-              <span>Inspect Dispatch Details</span>
-            </button>
-          </div>
-        `);
+          `,
+          iconSize: [22, 22],
+          iconAnchor: [11, 11]
+        });
 
-      if (marker.id) {
-        markerInstancesRef.current[marker.id] = markerObj;
+        const markerObj = L.marker(marker.coords, { icon: customIcon, pane: 'markerPane' })
+          .addTo(layerGroup)
+          .bindPopup(`
+            <div style="color: #171717; font-family: system-ui, -apple-system, sans-serif; padding: 10px; text-align: start; direction: ltr; min-width: 220px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 10px; font-weight: 700; background: ${marker.color}22; color: ${marker.color}; border: 1px solid ${marker.color}44; padding: 2px 6px; border-radius: 12px; text-transform: uppercase;">
+                  ${marker.status || 'ACTIVE'}
+                </span>
+                <span style="font-size: 10px; color: #71717a; font-weight: 600;">Jerusalem Zone</span>
+              </div>
+              <strong style="display: block; font-size: 13px; margin-bottom: 6px; color: #09090b; line-height: 1.3;">
+                ${marker.title}
+              </strong>
+              <div style="font-size: 11px; color: #52525b; line-height: 1.5; margin-bottom: 10px; background: #f4f4f5; padding: 6px 8px; border-radius: 6px;">
+                ${marker.desc}
+              </div>
+              <button 
+                onclick="window.location.hash='tasks'" 
+                style="width: 100%; padding: 6px 10px; background: #171717; color: #ffffff; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;"
+              >
+                <span>Inspect Dispatch Details</span>
+              </button>
+            </div>
+          `);
+
+        if (marker.id) {
+          markerInstancesRef.current[marker.id] = markerObj;
+        }
+      } catch (err) {
+        console.warn('Skipped marker creation:', err);
       }
     });
   }, [leafletLoaded, activeFilter, summary, jobs, showCraftsmen, showTasks, showZonesOverlay, showRoutes, searchQuery]);

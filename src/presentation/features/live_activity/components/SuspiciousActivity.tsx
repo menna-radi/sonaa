@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import type { SuspiciousAlert, AlertSeverity } from '../../../../domain/entities/LiveActivity';
+import { useNavigation } from '../../../context/NavigationContext';
 
 interface SuspiciousActivityProps {
   alerts: SuspiciousAlert[];
@@ -13,6 +14,7 @@ const SEVERITY_STYLE: Record<AlertSeverity, { bg: string; text: string; label: s
 };
 
 export const SuspiciousActivity: React.FC<SuspiciousActivityProps> = ({ alerts }) => {
+  const { navigate } = useNavigation();
   const unresolvedCount = alerts.length;
 
   return (
@@ -88,18 +90,21 @@ export const SuspiciousActivity: React.FC<SuspiciousActivityProps> = ({ alerts }
                 <span style={{ fontSize: '0.68rem', color: 'var(--text-disabled)' }}>
                   {alert.minutesAgo === 0 ? 'Just now' : `${alert.minutesAgo}m ago`}
                 </span>
-                <button style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: 'var(--color-primary)',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}>
+                <button
+                  onClick={() => navigate('reports')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: 'var(--color-primary)',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
                   Investigate <ArrowRight size={12} />
                 </button>
               </div>

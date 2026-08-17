@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useNavigation } from '../../../context/NavigationContext';
 import { Sidebar } from '../../../../presentation/layouts/Sidebar';
 import { Header } from '../../../../presentation/layouts/Header';
 import { MobileBottomTabs } from '../../../../presentation/layouts/MobileBottomTabs';
@@ -70,7 +71,8 @@ import { useDependencies } from '../../../../core/di/DependencyProvider';
 import { useEffect, useCallback } from 'react';
 
 export const ReportsPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { navigate } = useNavigation();
   const { dependencies } = useDependencies();
   const { safetyReportRepository } = dependencies;
 
@@ -1035,7 +1037,7 @@ export const ReportsPage: React.FC = () => {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   type="button"
-                  onClick={() => window.open('/tasks', '_blank')}
+                  onClick={() => { setShowTaskModal(false); navigate('tasks'); }}
                   style={{ flex: 1, padding: '10px', background: '#171717', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <span>Open Tasks Center</span>

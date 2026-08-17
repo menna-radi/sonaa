@@ -157,11 +157,16 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
 
   const getLocalizedValue = (id: string, value: number, unit: string, lang: string) => {
     if (id === 'revenue') {
+      const formattedVal = value >= 1000000 
+        ? `${(value / 1000000).toFixed(1)}M` 
+        : value >= 1000 
+        ? `${Math.floor(value / 1000)}K` 
+        : `${value.toLocaleString()}`;
       return (
-        <>
-          <span className="value-number">{Math.floor(value / 1000)}K</span>
-          <span className="currency-unit" style={{ marginInlineStart: '4px' }}>ILS</span>
-        </>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', whiteSpace: 'nowrap' }}>
+          <span className="value-number">{formattedVal}</span>
+          <span className="currency-unit">ILS</span>
+        </div>
       );
     }
     return <span className="value-number">{value.toLocaleString()}</span>;
@@ -228,8 +233,8 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
         .stat-metric-card {
           flex: 1;
           height: 203px;
-          background: #FFFFFF !important;
-          border: 1px solid #E5E5E5 !important;
+          background: var(--bg-surface, #FFFFFF) !important;
+          border: 1px solid var(--border-color, #E5E5E5) !important;
           border-radius: 16px !important;
           padding: 20px !important;
           box-shadow: 0px 1px 1.5px rgba(0, 0, 0, 0.04) !important;
@@ -256,14 +261,14 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
         }
 
         .metric-card-icon-wrapper {
-          background: #F5F5F5;
+          background: var(--bg-surface-hover, #F5F5F5);
           border-radius: 8px;
           width: 32px;
           height: 32px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #171717;
+          color: var(--text-primary, #171717);
         }
 
         .metric-card-trend-wrapper {
@@ -293,7 +298,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
           text-transform: uppercase;
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted, #737373);
           letter-spacing: 0.5px;
           line-height: 15px;
         }
@@ -306,27 +311,40 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
           margin-top: 4px;
           height: 60px;
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
+          align-items: baseline;
+          gap: 6px;
           justify-content: flex-start;
           text-align: start;
         }
 
-        .metric-card-value-container .currency-unit,
         .metric-card-value-container .value-number {
-          display: block;
+          display: inline-block;
           font-size: 24px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary, #171717);
           letter-spacing: -0.48px;
           line-height: 30px;
           font-family: var(--font-sans);
+          white-space: nowrap;
+        }
+
+        .metric-card-value-container .currency-unit {
+          display: inline-block;
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--text-secondary, #737373);
+          letter-spacing: -0.2px;
+          line-height: 24px;
+          font-family: var(--font-sans);
+          white-space: nowrap;
         }
 
         .metric-card-subtext-container {
           margin-top: 4px;
           height: 15px;
           font-size: 10px;
-          color: #A3A3A3;
+          color: var(--text-disabled, #A3A3A3);
           text-align: start;
           line-height: 15px;
           font-family: var(--font-sans);

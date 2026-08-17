@@ -14,12 +14,13 @@ export const useLiveActivity = () => {
   const [feedEvents,        setFeedEvents]         = useState<ActivityEvent[]>([]);
   const [busyZones,         setBusyZones]          = useState<BusyZone[]>([]);
   const [activeJobs,        setActiveJobs]         = useState<ActiveJob[]>([]);
+  const [craftsmen,         setCraftsmen]          = useState<any[]>([]);
   const [suspiciousAlerts,  setSuspiciousAlerts]   = useState<SuspiciousAlert[]>([]);
   const [loading,           setLoading]            = useState(true);
   const [error,             setError]              = useState<string | null>(null);
   const [isPaused,          setIsPaused]           = useState(false);
 
-  const [refreshInterval, setRefreshInterval] = useState<number>(12000); // Default 12s
+  const [refreshInterval, setRefreshInterval] = useState<number>(3000); // 3s real-time auto-polling
 
   // ── Event batching buffer (useRef — no re-render on push) ─────────────────
   const pendingEventsRef = useRef<ActivityEvent[]>([]);
@@ -37,6 +38,7 @@ export const useLiveActivity = () => {
         setFeedEvents(result.data.feedEvents);
         setBusyZones(result.data.busyZones);
         setActiveJobs(result.data.activeJobs);
+        setCraftsmen(result.data.craftsmen || []);
         setSuspiciousAlerts(result.data.suspiciousAlerts);
       } else if (!isBackground) {
         const errResult = result as { success: false; error: { message: string } };
@@ -107,6 +109,7 @@ export const useLiveActivity = () => {
     feedEvents,
     busyZones,
     activeJobs,
+    craftsmen,
     suspiciousAlerts,
     loading,
     error,

@@ -16,6 +16,7 @@ import type { SafetyReportRepository } from '../../domain/repositories/SafetyRep
 import type { BroadcastRepository } from '../../domain/repositories/BroadcastRepository';
 import type { AdRepository } from '../../domain/repositories/AdRepository';
 import type { DisputeRepository } from '../../domain/repositories/DisputeRepository';
+import type { ChatRepository } from '../../domain/repositories/ChatRepository';
 
 // Mock Repositories
 import { MockMetricRepository } from '../../data/repositories/MockMetricRepository';
@@ -31,6 +32,7 @@ import { MockSafetyReportRepository } from '../../data/repositories/MockSafetyRe
 import { MockBroadcastRepository } from '../../data/repositories/MockBroadcastRepository';
 import { MockAdRepository } from '../../data/repositories/MockAdRepository';
 import { MockDisputeRepository } from '../../data/repositories/MockDisputeRepository';
+import { MockChatRepository } from '../../data/repositories/MockChatRepository';
 
 // Api Repositories
 import { ApiMetricRepository } from '../../data/repositories/ApiMetricRepository';
@@ -40,12 +42,13 @@ import { ApiTaskRepository } from '../../data/repositories/ApiTaskRepository';
 import { ApiPaymentRepository } from '../../data/repositories/ApiPaymentRepository';
 import { ApiCategoryRepository } from '../../data/repositories/ApiCategoryRepository';
 import { ApiCraftsmanRepository } from '../../data/repositories/ApiCraftsmanRepository';
-import { MockNotificationRepository as ApiNotificationRepository } from '../../data/repositories/MockNotificationRepository'; // Fallback for notifications
+import { ApiNotificationRepository } from '../../data/repositories/ApiNotificationRepository';
 import { ApiVerificationRepository } from '../../data/repositories/ApiVerificationRepository';
 import { ApiSafetyReportRepository } from '../../data/repositories/ApiSafetyReportRepository';
 import { ApiBroadcastRepository } from '../../data/repositories/ApiBroadcastRepository';
 import { ApiAdRepository } from '../../data/repositories/ApiAdRepository';
 import { ApiDisputeRepository } from '../../data/repositories/ApiDisputeRepository';
+import { ApiChatRepository } from '../../data/repositories/ApiChatRepository';
 
 // Use Cases
 import { LoginUseCase } from '../../domain/use_cases/auth/LoginUseCase';
@@ -81,6 +84,7 @@ interface Repositories {
   broadcastRepository: BroadcastRepository;
   adRepository: AdRepository;
   disputeRepository: DisputeRepository;
+  chatRepository: ChatRepository;
 }
 
 interface UseCases {
@@ -152,6 +156,9 @@ const apiAdRepository = new ApiAdRepository();
 const mockDisputeRepository = new MockDisputeRepository();
 const apiDisputeRepository = new ApiDisputeRepository();
 
+const mockChatRepository = new MockChatRepository();
+const apiChatRepository = new ApiChatRepository();
+
 export const DependencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isApiMode = !ENV.USE_MOCK;
 
@@ -169,6 +176,7 @@ export const DependencyProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     broadcastRepository: isApiMode ? apiBroadcastRepository : mockBroadcastRepository,
     adRepository: isApiMode ? apiAdRepository : mockAdRepository,
     disputeRepository: isApiMode ? apiDisputeRepository : mockDisputeRepository,
+    chatRepository: isApiMode ? apiChatRepository : mockChatRepository,
   };
 
   // Bind Use Cases with appropriate repository dependencies

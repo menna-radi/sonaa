@@ -12,6 +12,14 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
   const { t } = useLanguage();
   const maxTasks = 2843;
 
+  const formatCategoryName = (key: string) => {
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+    const clean = key.replace(/^cat_/, '').replace(/_/g, ' ');
+    if (clean === 'ac tech') return 'AC Repair';
+    return clean.charAt(0).toUpperCase() + clean.slice(1);
+  };
+
   return (
     <GlassCard 
       className="top-categories-card" 
@@ -21,7 +29,7 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
         <div>
           <span style={{ 
             fontSize: '12px', 
-            color: '#737373', 
+            color: 'var(--text-muted)', 
             fontWeight: 700, 
             textTransform: 'uppercase',
             letterSpacing: '0.6px'
@@ -32,13 +40,13 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
             fontSize: '14px', 
             fontWeight: 700, 
             marginTop: '2px', 
-            color: '#171717',
+            color: 'var(--text-primary)',
             margin: '2px 0 0 0'
           }}>
             {t('sec_by_volume')}
           </h3>
         </div>
-        <button style={{ color: '#171717', display: 'flex', padding: '4px', cursor: 'pointer' }}>
+        <button style={{ background: 'none', border: 'none', color: 'var(--text-primary)', display: 'flex', padding: '4px', cursor: 'pointer' }}>
           <MoreHorizontal size={16} />
         </button>
       </div>
@@ -50,13 +58,13 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
             <div key={idx} className="category-progress-row" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <div className="flex-between" style={{ fontSize: '12px' }}>
                 {/* Category Name */}
-                <span style={{ fontWeight: 600, color: '#171717' }}>
-                  {t(cat.nameKey)}
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {formatCategoryName(cat.nameKey)}
                 </span>
                 
                 {/* Count and Trend pill (Desktop/Tablet only) */}
                 <div className="category-details-desktop" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ color: '#737373', fontWeight: 400, fontSize: '10px' }}>
+                  <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '10px' }}>
                     {cat.tasksCount.toLocaleString()} tasks
                   </span>
                   <span style={{ 
@@ -73,7 +81,7 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
                   <span style={{ 
                     fontSize: '12px', 
                     fontWeight: 700, 
-                    color: '#171717'
+                    color: 'var(--text-primary)'
                   }}>
                     {cat.percentage}%
                   </span>
@@ -84,7 +92,7 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
               <div style={{ 
                 width: '100%', 
                 height: '6px', 
-                background: '#F5F5F5', 
+                background: 'var(--bg-surface-hover)', 
                 borderRadius: '9999px',
                 overflow: 'hidden'
               }}>
@@ -92,7 +100,7 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
                   width: barWidth,
                   maxWidth: '100%',
                   height: '100%', 
-                  background: '#171717', 
+                  background: 'var(--color-primary)', 
                   borderRadius: '9999px'
                 }} />
               </div>
@@ -106,8 +114,8 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
           display: flex;
           flex-direction: column;
           text-align: start;
-          background: #FFFFFF !important;
-          border: 1px solid #E5E5E5 !important;
+          background: var(--bg-surface) !important;
+          border: 1px solid var(--border-color) !important;
           border-radius: 16px !important;
           padding: 24px !important;
           box-shadow: 0px 1px 1.5px rgba(0, 0, 0, 0.04) !important;

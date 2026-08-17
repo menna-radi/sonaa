@@ -18,8 +18,8 @@ export const CohortVelocity: React.FC<CohortVelocityProps> = ({ data }) => {
         display: 'flex', 
         flexDirection: 'column', 
         textAlign: 'start',
-        background: '#FFFFFF',
-        border: '1px solid #E5E5E5',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-color)',
         borderRadius: '16px',
         padding: '24px',
         boxShadow: '0px 1px 1.5px rgba(0, 0, 0, 0.04)',
@@ -33,7 +33,7 @@ export const CohortVelocity: React.FC<CohortVelocityProps> = ({ data }) => {
         <div>
           <span style={{ 
             fontSize: '12px', 
-            color: '#737373', 
+            color: 'var(--text-muted)', 
             fontWeight: 700, 
             textTransform: 'uppercase',
             letterSpacing: '0.6px'
@@ -44,7 +44,7 @@ export const CohortVelocity: React.FC<CohortVelocityProps> = ({ data }) => {
             fontSize: '16px', 
             fontWeight: 700, 
             marginTop: '2px', 
-            color: '#171717',
+            color: 'var(--text-primary)',
             margin: '2px 0 0 0'
           }}>
             {t('sec_weekly_cohort')}
@@ -52,17 +52,17 @@ export const CohortVelocity: React.FC<CohortVelocityProps> = ({ data }) => {
         </div>
 
         {/* Custom checkboxes legend keys */}
-        <div style={{ display: 'flex', gap: '12px', fontSize: '10px', fontWeight: 400, color: '#737373', marginTop: '4px' }}>
+        <div style={{ display: 'flex', gap: '12px', fontSize: '10px', fontWeight: 400, color: 'var(--text-muted)', marginTop: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ width: '8px', height: '8px', background: '#171717', borderRadius: '2px' }} />
+            <span style={{ width: '8px', height: '8px', background: 'var(--text-primary)', borderRadius: '2px' }} />
             <span>Users</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ width: '8px', height: '8px', background: '#737373', borderRadius: '2px' }} />
+            <span style={{ width: '8px', height: '8px', background: 'var(--text-muted)', borderRadius: '2px' }} />
             <span>Craftsmen</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ width: '8px', height: '8px', background: '#D4D4D4', borderRadius: '2px' }} />
+            <span style={{ width: '8px', height: '8px', background: 'var(--border-color)', borderRadius: '2px' }} />
             <span>Tasks</span>
           </div>
         </div>
@@ -76,7 +76,7 @@ export const CohortVelocity: React.FC<CohortVelocityProps> = ({ data }) => {
         height: '176px',
         width: '100%',
         paddingTop: '12px',
-        borderBottom: '1px solid #F5F5F5',
+        borderBottom: '1px solid var(--border-color)',
         paddingBottom: '8px'
       }}>
         {data.map((week, idx) => (
@@ -102,7 +102,7 @@ export const CohortVelocity: React.FC<CohortVelocityProps> = ({ data }) => {
                 style={{ 
                   width: '12px', 
                   height: `${week.users}%`, 
-                  background: '#171717', 
+                  background: 'var(--text-primary)', 
                   borderTopLeftRadius: '4px',
                   borderTopRightRadius: '4px'
                 }} 
@@ -113,7 +113,7 @@ export const CohortVelocity: React.FC<CohortVelocityProps> = ({ data }) => {
                 style={{ 
                   width: '12px', 
                   height: `${week.craftsmen}%`, 
-                  background: '#737373', 
+                  background: 'var(--text-muted)', 
                   borderTopLeftRadius: '4px',
                   borderTopRightRadius: '4px'
                 }} 
@@ -124,7 +124,7 @@ export const CohortVelocity: React.FC<CohortVelocityProps> = ({ data }) => {
                 style={{ 
                   width: '12px', 
                   height: `${week.tasks}%`, 
-                  background: '#D4D4D4', 
+                  background: 'var(--border-color)', 
                   borderTopLeftRadius: '4px',
                   borderTopRightRadius: '4px'
                 }} 
@@ -133,7 +133,7 @@ export const CohortVelocity: React.FC<CohortVelocityProps> = ({ data }) => {
             </div>
 
             {/* Label under bar cluster */}
-            <span style={{ fontSize: '10px', color: '#A3A3A3', marginTop: '8px', fontWeight: 500 }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-disabled)', marginTop: '8px', fontWeight: 500 }}>
               {week.week}
             </span>
           </div>

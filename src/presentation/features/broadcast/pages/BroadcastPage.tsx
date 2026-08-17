@@ -299,7 +299,7 @@ export const BroadcastPage: React.FC = () => {
               <div className="card-header-with-action">
                 <div style={{ textAlign: 'start' }}>
                   <h3 className="card-section-title">{t('broadcast_new_broadcast') || 'New broadcast'}</h3>
-                  <p className="card-section-subtitle">Compose your message and pick </p>
+                  <p className="card-section-subtitle">{t('broadcast_compose_subtitle') || 'Compose your message, choose target channels, and schedule delivery.'}</p>
                 </div>
                 <button className="text-action-btn" onClick={handleSaveDraft}>Save draft</button>
               </div>
@@ -438,7 +438,7 @@ export const BroadcastPage: React.FC = () => {
                     onClick={() => setAudience('all')}
                   >
                     <strong>All users</strong>
-                    <span>48,392</span>
+                    <span>All active accounts</span>
                   </button>
 
                   <button
@@ -446,7 +446,7 @@ export const BroadcastPage: React.FC = () => {
                     onClick={() => setAudience('customers')}
                   >
                     <strong>Customers only</strong>
-                    <span>41,545</span>
+                    <span>Customer accounts</span>
                   </button>
 
                   <button
@@ -454,7 +454,7 @@ export const BroadcastPage: React.FC = () => {
                     onClick={() => setAudience('craftsmen')}
                   >
                     <strong>Craftsmen only</strong>
-                    <span>6,847</span>
+                    <span>Verified technicians</span>
                   </button>
 
                   <button

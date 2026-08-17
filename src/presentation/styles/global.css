@@ -609,8 +609,8 @@ button {
 /* Unified Desktop & Tablet Page Header Background */
 @media (min-width: 769px) {
   .desktop-tablet-page-header {
-    background: #FFFFFF !important;
-    border-bottom: 1px solid #E5E5E5 !important;
+    background: var(--bg-surface) !important;
+    border-bottom: 1px solid var(--border-color) !important;
     padding-top: 24px !important;
     padding-bottom: 24px !important;
     padding-inline-start: var(--spacing-lg) !important;
@@ -634,7 +634,7 @@ button {
     justify-content: space-between !important;
     align-items: center !important;
     height: 96px !important;
-    background: #FFFFFF !important;
+    background: var(--bg-surface) !important;
     padding: 48px 20px 12px 20px !important;
     border-bottom: none !important;
     box-sizing: border-box !important;
@@ -773,7 +773,7 @@ button {
 
 /* Page Title Styling overrides */
 .desktop-tablet-page-header h1 {
-  color: #171717 !important;
+  color: var(--text-primary) !important;
   font-feature-settings: 'dlig' on !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 28px !important;

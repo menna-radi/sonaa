@@ -560,20 +560,20 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
         return {
           title: 'Scheduled Campaigns',
           subtitle: 'Campaigns queued to launch in the future',
-          icon: <Calendar size={20} style={{ color: '#171717' }} />
+          icon: <Calendar size={20} style={{ color: 'var(--text-primary)' }} />
         };
       case 'Expired':
         return {
           title: 'Expired Campaigns',
           subtitle: 'Past advertisement campaigns that have ended',
-          icon: <Clock size={20} style={{ color: '#171717' }} />
+          icon: <Clock size={20} style={{ color: 'var(--text-primary)' }} />
         };
       case 'Active':
       default:
         return {
           title: 'Active Campaigns',
           subtitle: 'Currently running advertisements across the marketplace',
-          icon: <Megaphone size={20} style={{ color: '#171717' }} />
+          icon: <Megaphone size={20} style={{ color: 'var(--text-primary)' }} />
         };
     }
   }, [activeTab]);
@@ -630,14 +630,14 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
         <div className="desktop-tablet-page-header desktop-tablet-only">
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
             {/* Title Icon matching figma */}
-            <div className="page-title-icon-wrap" style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '12px', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0px 2px 4px rgba(0,0,0,0.02)' }}>
+            <div className="page-title-icon-wrap" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)' }}>
               {pageMeta.icon}
             </div>
             <div style={{ textAlign: 'start' }}>
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600, letterSpacing: '-0.7px', color: '#171717' }}>
+              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600, letterSpacing: '-0.7px', color: 'var(--text-primary)' }}>
                 {pageMeta.title}
               </h1>
-              <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
+              <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '14px' }}>
                 {pageMeta.subtitle}
               </p>
             </div>
@@ -660,7 +660,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           </div>
 
           {/* Segmented Tabbing Selection Row */}
-          <div className="segmented-tabs-wrapper" style={{ borderBottom: '1px solid #E5E7EB', display: 'flex', gap: '24px', position: 'relative' }}>
+          <div className="segmented-tabs-wrapper" style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '24px', position: 'relative' }}>
             {(['Active', 'Scheduled', 'Expired'] as const).map(tab => {
               const count = tabCounts[tab];
               const isActive = activeTab === tab;
@@ -675,8 +675,8 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                     padding: '12px 4px',
                     fontSize: '13px',
                     fontWeight: 500,
-                    color: isActive ? '#171717' : '#6B7280',
-                    borderBottom: isActive ? '2px solid #171717' : '2px solid transparent',
+                    color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                    borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -688,8 +688,8 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                   <span
                     className="tab-count-badge"
                     style={{
-                      background: isActive ? '#171717' : '#F4F4F5',
-                      color: isActive ? '#FFFFFF' : '#6B7280',
+                      background: isActive ? 'var(--color-primary)' : 'var(--bg-surface-hover)',
+                      color: isActive ? '#FFFFFF' : 'var(--text-muted)',
                       fontSize: '11px',
                       fontWeight: 500,
                       padding: '2px 8px',
@@ -717,12 +717,12 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                   width: '100%',
                   padding: '10px 12px 10px 38px',
                   boxSizing: 'border-box',
-                  border: '1px solid #E5E7EB',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '8px',
                   fontSize: '13px',
-                  color: '#171717',
+                  color: 'var(--text-primary)',
                   outline: 'none',
-                  background: '#FFFFFF'
+                  background: 'var(--bg-surface-hover)'
                 }}
               />
               <Search
@@ -732,7 +732,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                   top: '50%',
                   left: '12px',
                   transform: 'translateY(-50%)',
-                  color: '#9CA3AF'
+                  color: 'var(--text-muted)'
                 }}
               />
             </div>
@@ -1124,12 +1124,12 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           justify-content: space-between;
           gap: 12px;
           padding: 10px 14px;
-          border: 1px solid #E5E7EB;
-          background: #FFFFFF;
+          border: 1px solid var(--border-color);
+          background: var(--bg-surface-hover);
           border-radius: 8px;
           font-size: 13px;
           font-weight: 500;
-          color: #171717;
+          color: var(--text-primary);
           box-sizing: border-box;
           height: 41.5px;
           white-space: nowrap;
@@ -1164,9 +1164,9 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           flex-direction: column;
           width: 100%;
           box-sizing: border-box;
-          border: 1px solid #E5E7EB;
-          background: #FFFFFF;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+          border: 1px solid var(--border-color);
+          background: var(--bg-surface);
+          box-shadow: var(--shadow-sm);
         }
 
         .table-scroll-container {
@@ -1184,18 +1184,18 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
         .campaigns-table th {
           font-size: 13px;
           font-weight: 500;
-          color: #6B7280;
+          color: var(--text-muted);
           padding: 14px 16px;
-          border-bottom: 1px solid #E5E7EB;
-          background: #F9FAFB;
+          border-bottom: 1px solid var(--border-color);
+          background: var(--bg-surface-hover);
           white-space: nowrap;
         }
 
         .campaigns-table td {
           padding: 14px 16px;
           font-size: 13px;
-          border-bottom: 1px solid #E5E7EB;
-          color: #171717;
+          border-bottom: 1px solid var(--border-color);
+          color: var(--text-primary);
           vertical-align: middle;
           white-space: nowrap;
         }
@@ -1205,13 +1205,13 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
         }
 
         .campaigns-table tr:hover td {
-          background: #FAFAFA;
+          background: var(--bg-surface-hover);
         }
 
         .empty-table-cell {
           text-align: center;
           padding: 48px !important;
-          color: #6B7280;
+          color: var(--text-muted);
           font-size: 14px;
           white-space: normal;
         }
@@ -1221,7 +1221,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           height: 16px;
           border-radius: 3px;
           cursor: pointer;
-          accent-color: #171717;
+          accent-color: var(--color-primary);
         }
 
         /* ── Status Pills ── */
@@ -1246,14 +1246,14 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           flex-shrink: 0;
         }
 
-        .status-pill.active    { background: #DCFCE7; color: #166534; }
-        .status-pill.active::before  { background: #16A34A; }
-        .status-pill.paused    { background: #F3F4F6; color: #4B5563; }
-        .status-pill.paused::before  { background: #9CA3AF; }
-        .status-pill.scheduled { background: #FEF3C7; color: #92400E; }
-        .status-pill.scheduled::before { background: #D97706; }
-        .status-pill.expired   { background: #FEE2E2; color: #991B1B; }
-        .status-pill.expired::before { background: #DC2626; }
+        .status-pill.active    { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .status-pill.active::before  { background: #22c55e; }
+        .status-pill.paused    { background: var(--bg-surface-hover); color: var(--text-muted); }
+        .status-pill.paused::before  { background: var(--text-muted); }
+        .status-pill.scheduled { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .status-pill.scheduled::before { background: #f59e0b; }
+        .status-pill.expired   { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .status-pill.expired::before { background: #ef4444; }
 
         /* ── Action Buttons ── */
         .action-icon-btn {
@@ -1263,24 +1263,24 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           width: 28px;
           height: 28px;
           border-radius: 6px;
-          border: 1px solid #E5E7EB;
-          background: #FFFFFF;
-          color: #6B7280;
+          border: 1px solid var(--border-color);
+          background: var(--bg-surface-hover);
+          color: var(--text-muted);
           cursor: pointer;
           transition: all 0.15s ease;
           flex-shrink: 0;
         }
 
         .action-icon-btn:hover {
-          background: #F4F4F5;
-          color: #171717;
-          border-color: #D1D5DB;
+          background: var(--bg-surface);
+          color: var(--text-primary);
+          border-color: var(--border-color);
         }
 
         .action-icon-btn.delete:hover {
-          background: #FEE2E2;
-          color: #EF4444;
-          border-color: #FCA5A5;
+          background: rgba(239, 68, 68, 0.15);
+          color: #ef4444;
+          border-color: rgba(239, 68, 68, 0.3);
         }
 
         /* ── Pagination ── */
@@ -1288,9 +1288,9 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           width: 32px;
           height: 32px;
           border-radius: 6px;
-          border: 1px solid #E5E7EB;
-          background: #FFFFFF;
-          color: #6B7280;
+          border: 1px solid var(--border-color);
+          background: var(--bg-surface-hover);
+          color: var(--text-muted);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1308,7 +1308,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           align-items: center;
           gap: 8px;
           padding: 9px 16px;
-          background: #171717;
+          background: var(--color-primary);
           color: #FFFFFF;
           border: none;
           border-radius: 8px;
@@ -1327,9 +1327,9 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           align-items: center;
           gap: 8px;
           padding: 9px 16px;
-          background: #FFFFFF;
-          color: #171717;
-          border: 1px solid #E5E7EB;
+          background: var(--bg-surface);
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
           border-radius: 8px;
           font-size: 13px;
           font-weight: 600;
@@ -1338,13 +1338,13 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           flex-shrink: 0;
         }
 
-        .ads-secondary-btn:hover { background: #F9FAFB; }
+        .ads-secondary-btn:hover { background: var(--bg-surface-hover); }
 
         /* ── Modal ── */
         .modal-backdrop {
           position: fixed;
           inset: 0;
-          background: rgba(0,0,0,0.45);
+          background: rgba(0,0,0,0.65);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1359,10 +1359,11 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           max-height: 90vh;
           overflow-y: auto;
           border-radius: 16px;
-          background: #FFFFFF;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           padding: 24px;
           box-sizing: border-box;
-          box-shadow: 0 24px 48px rgba(0,0,0,0.18);
+          box-shadow: var(--shadow-sm);
         }
 
         .modal-header {
@@ -1376,15 +1377,15 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
           width: 32px;
           height: 32px;
           border-radius: 8px;
-          border: 1px solid #E5E7EB;
+          border: 1px solid var(--border-color);
           background: transparent;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #6B7280;
+          color: var(--text-muted);
         }
-        .modal-close-btn:hover { background: #F4F4F5; }
+        .modal-close-btn:hover { background: var(--bg-surface-hover); }
 
         .modal-form {
           display: flex;
@@ -1401,15 +1402,15 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
         .form-label {
           font-size: 12px;
           font-weight: 600;
-          color: #4B5563;
+          color: var(--text-secondary);
         }
 
         .form-input, .form-select {
           width: 100%;
           padding: 10px 12px;
-          border: 1px solid #E5E7EB;
-          background: #FFFFFF;
-          color: #171717;
+          border: 1px solid var(--border-color);
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
           font-size: 13px;
           border-radius: 8px;
           outline: none;
@@ -1418,7 +1419,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
         }
 
         .form-input:focus, .form-select:focus {
-          border-color: #171717;
+          border-color: var(--color-primary);
         }
 
         .modal-actions-row {
@@ -1431,7 +1432,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
         .card-title {
           font-size: 15px;
           font-weight: 600;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0;
         }
 

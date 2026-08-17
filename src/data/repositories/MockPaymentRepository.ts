@@ -58,14 +58,25 @@ export class MockPaymentRepository implements PaymentRepository {
   }
 
   public async createSubscriptionPlan(data: Partial<SubscriptionPlan>): Promise<Result<SubscriptionPlan>> {
+    await new Promise(resolve => setTimeout(resolve, 250));
     const newPlan: SubscriptionPlan = {
       id: `p-${Date.now()}`,
-      name: data.name || 'Custom Plan',
-      price: data.price || 49,
+      name: data.name || 'New Plan',
+      price: data.price || 99,
       subscribersCount: 0,
     };
     this.plans.push(newPlan);
     return ok(newPlan);
+  }
+
+  public async updateSubscriptionPlan(id: string, data: any): Promise<Result<SubscriptionPlan>> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const idx = this.plans.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      this.plans[idx] = { ...this.plans[idx], ...data };
+      return ok(this.plans[idx]);
+    }
+    return fail({ message: 'Plan not found' } as any);
   }
 
   public async getSubscribers(): Promise<Result<any[]>> {
@@ -121,6 +132,36 @@ export class MockPaymentRepository implements PaymentRepository {
 
     req.status = status;
     return ok({ ...req });
+  }
+
+  public async deleteSubscriptionPlan(id: string): Promise<Result<boolean>> {
+    this.plans = this.plans.filter(p => p.id !== id);
+    return ok(true);
+  }
+
+  public async getSubscriptionRequests(): Promise<Result<any[]>> {
+    return ok([]);
+  }
+
+  public async approveSubscriptionRequest(): Promise<Result<boolean>> {
+    return ok(true);
+  }
+
+  public async rejectSubscriptionRequest(): Promise<Result<boolean>> {
+    return ok(true);
+  }
+
+  public async getBitSettings(): Promise<Result<Record<string, string>>> {
+    return ok({
+      BIT_PHONE_NUMBER: '+972 54 888 9999',
+      BIT_RECIPIENT_NAME: 'Sonaa Services (صنّاع)',
+      BIT_INSTRUCTIONS_EN: 'Send payment via Bit app.',
+      BIT_INSTRUCTIONS_AR: 'قم بتحويل قيمة الاشتراك عبر تطبيق Bit.',
+    });
+  }
+
+  public async updateBitSettings(settings: Record<string, string>): Promise<Result<Record<string, string>>> {
+    return ok(settings);
   }
 }
 export default MockPaymentRepository;

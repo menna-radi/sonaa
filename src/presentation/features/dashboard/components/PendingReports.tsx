@@ -18,38 +18,38 @@ export const PendingReports: React.FC<PendingReportsProps> = ({ reports }) => {
       case 'report_service_dispute':
         return {
           icon: <Scale size={11} />,
-          bg: '#171717',
-          color: '#FFFFFF'
+          bg: 'var(--bg-surface-hover)',
+          color: 'var(--text-primary)'
         };
       case 'report_payment_issue':
         return {
           icon: <CreditCard size={11} />,
-          bg: '#E5E5E5',
-          color: '#171717'
+          bg: 'var(--bg-surface-hover)',
+          color: 'var(--text-primary)'
         };
       case 'report_quality_concern':
         return {
           icon: <ShieldAlert size={11} />,
-          bg: '#F5F5F5',
-          color: '#171717'
+          bg: 'var(--bg-surface-hover)',
+          color: 'var(--text-primary)'
         };
       case 'report_no_show':
         return {
           icon: <UserX size={11} />,
-          bg: '#E5E5E5',
-          color: '#171717'
+          bg: 'var(--bg-surface-hover)',
+          color: 'var(--text-primary)'
         };
       case 'report_inappropriate_conduct':
         return {
           icon: <AlertTriangle size={11} />,
-          bg: '#171717',
-          color: '#FFFFFF'
+          bg: 'var(--bg-surface-hover)',
+          color: 'var(--text-primary)'
         };
       default:
         return {
           icon: <AlertTriangle size={11} />,
-          bg: '#171717',
-          color: '#FFFFFF'
+          bg: 'var(--bg-surface-hover)',
+          color: 'var(--text-primary)'
         };
     }
   };
@@ -62,8 +62,8 @@ export const PendingReports: React.FC<PendingReportsProps> = ({ reports }) => {
         display: 'flex', 
         flexDirection: 'column', 
         textAlign: 'start',
-        background: '#FFFFFF',
-        border: '1px solid #E5E5E5',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-color)',
         borderRadius: '16px',
         padding: '24px',
         boxShadow: '0px 1px 1.5px rgba(0, 0, 0, 0.04)',
@@ -77,7 +77,7 @@ export const PendingReports: React.FC<PendingReportsProps> = ({ reports }) => {
         <div>
           <span style={{ 
             fontSize: '12px', 
-            color: '#737373', 
+            color: 'var(--text-muted)', 
             fontWeight: 700, 
             textTransform: 'uppercase',
             letterSpacing: '0.6px'
@@ -88,7 +88,7 @@ export const PendingReports: React.FC<PendingReportsProps> = ({ reports }) => {
             fontSize: '14px', 
             fontWeight: 700, 
             marginTop: '2px', 
-            color: '#171717',
+            color: 'var(--text-primary)',
             margin: '2px 0 0 0'
           }}>
             5 require review
@@ -99,7 +99,7 @@ export const PendingReports: React.FC<PendingReportsProps> = ({ reports }) => {
           style={{ 
             fontSize: '12px', 
             fontWeight: 700, 
-            color: '#171717',
+            color: 'var(--text-primary)',
             marginTop: '2px'
           }} 
           onClick={(e) => {
@@ -148,17 +148,17 @@ export const PendingReports: React.FC<PendingReportsProps> = ({ reports }) => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#171717', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                     {t(report.typeKey)}
                   </span>
-                  <span style={{ fontSize: '10px', color: '#737373', marginTop: '2px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                     {report.details}
                   </span>
                 </div>
               </div>
 
               {/* Time label */}
-              <span style={{ fontSize: '10px', color: '#A3A3A3', flexShrink: 0, marginLeft: '8px' }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-disabled)', flexShrink: 0, marginLeft: '8px' }}>
                 {t(report.timeKey)}
               </span>
             </div>
@@ -168,7 +168,7 @@ export const PendingReports: React.FC<PendingReportsProps> = ({ reports }) => {
 
       <style>{`
         .report-list-row:hover {
-          background: #F5F5F5 !important;
+          background: var(--bg-surface-hover) !important;
         }
         @media (max-width: 768px) {
           .pending-reports-card {

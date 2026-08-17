@@ -412,7 +412,7 @@ export const AdsPage: React.FC = () => {
               <Plus size={16} />
               <span>{t('ads_new_campaign') || 'New Campaign'}</span>
             </button>
-            <button className="ads-secondary-btn" style={{ flex: 1 }}>
+            <button className="ads-secondary-btn" style={{ flex: 1 }} onClick={handleExportCSV}>
               <Download size={14} />
               <span>{t('ads_export') || 'Export'}</span>
             </button>

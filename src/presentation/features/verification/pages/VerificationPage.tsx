@@ -35,6 +35,8 @@ interface Submission {
   role: string;
   submittedAgo: string;
   avatar?: string;
+  idFrontUrl?: string;
+  selfieUrl?: string;
   verificationId: string;
   faceScore: number;
   docsCount: string;
@@ -59,23 +61,61 @@ type VerificationTab = 'profile_info' | 'national_id' | 'face_match' | 'portfoli
 
 
 
-// ── Avatar Component ──────────────────────────────────────────────────────────
+const getInitials = (name: string): string => {
+  if (!name) return '??';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '??';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 const AvatarCircle: React.FC<{ name: string; src?: string; size?: number; borderRadius?: string | number }> = ({ name, src, size = 36, borderRadius = '50%' }) => {
-  return src ? (
-    <img
-      src={src}
-      alt={name}
+  const [imgError, setImgError] = useState(false);
+  const initials = React.useMemo(() => getInitials(name), [name]);
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [src]);
+
+  if (src && !imgError) {
+    return (
+      <img
+        src={src}
+        alt=""
+        onError={() => setImgError(true)}
+        style={{
+          width: typeof size === 'number' ? `${size}px` : size,
+          height: typeof size === 'number' ? `${size}px` : size,
+          borderRadius,
+          objectFit: 'cover',
+          overflow: 'hidden',
+          display: 'block',
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+
+  return (
+    <div
       style={{
-        width: size, height: size, borderRadius, objectFit: 'cover',
-        flexShrink: 0, background: '#D1D6DB'
+        width: typeof size === 'number' ? `${size}px` : size,
+        height: typeof size === 'number' ? `${size}px` : size,
+        borderRadius,
+        background: 'linear-gradient(135deg, #475569, #334155)',
+        color: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: typeof size === 'number' ? (size <= 36 ? '0.75rem' : '0.95rem') : '0.85rem',
+        fontWeight: 700,
+        overflow: 'hidden',
+        userSelect: 'none',
+        flexShrink: 0,
       }}
-    />
-  ) : (
-    <div style={{
-      width: size, height: size, borderRadius, background: '#D1D5DB',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      flexShrink: 0
-    }} />
+    >
+      {initials}
+    </div>
   );
 };
 
@@ -88,7 +128,7 @@ const IdCardPreview: React.FC<{
 }> = ({ imageUrl, hasUploadedDoc = false, craftsmanName, docType = 'National ID' }) => {
   if (imageUrl) {
     return (
-      <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 12, overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-surface-hover)', borderRadius: 12, padding: 12, overflow: 'hidden' }}>
         <img
           src={imageUrl}
           alt={docType}
@@ -101,8 +141,8 @@ const IdCardPreview: React.FC<{
   if (!hasUploadedDoc) {
     return (
       <div style={{
-        background: '#FFFBEB',
-        border: '1px dashed #F59E0B',
+        background: 'rgba(245, 158, 11, 0.12)',
+        border: '1px dashed rgba(245, 158, 11, 0.3)',
         borderRadius: 12,
         padding: '20px 16px',
         display: 'flex',
@@ -112,9 +152,9 @@ const IdCardPreview: React.FC<{
         gap: 8,
         minHeight: 140
       }}>
-        <AlertCircle size={28} style={{ color: '#D97706' }} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#92400E' }}>No Document Uploaded</span>
-        <span style={{ fontSize: 11, color: '#B45309', textAlign: 'center', lineHeight: 1.4 }}>
+        <AlertCircle size={28} style={{ color: '#fbbf24' }} />
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b' }}>No Document Uploaded</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.4 }}>
           {craftsmanName ? `${craftsmanName} has not submitted their ${docType} document yet.` : `Document has not been uploaded yet.`}
         </span>
       </div>
@@ -122,31 +162,31 @@ const IdCardPreview: React.FC<{
   }
 
   return (
-    <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 12, overflow: 'hidden' }}>
+    <div style={{ background: 'var(--bg-surface-hover)', borderRadius: 12, padding: 12, overflow: 'hidden' }}>
       <div style={{
-        background: '#FFFFFF',
+        background: 'var(--bg-surface)',
         borderRadius: 8,
         padding: 16,
-        border: '1px solid #E5E5E5',
+        border: '1px solid var(--border-color)',
         display: 'flex',
         flexDirection: 'column',
         gap: 12
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', letterSpacing: '0.5px' }}>
-            Saudi Arabia — {docType}
+          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
+            Jerusalem — {docType}
           </span>
-          <span style={{ fontSize: 10, background: '#DCFCE7', color: '#166534', padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>
+          <span style={{ fontSize: 10, background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>
             Submitted
           </span>
         </div>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-          <div style={{ width: 52, height: 64, background: '#E5E7EB', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <User size={30} style={{ color: '#9CA3AF' }} />
+          <div style={{ width: 52, height: 64, background: 'var(--bg-surface-hover)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <User size={30} style={{ color: 'var(--text-muted)' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{craftsmanName || 'Craftsman Name'}</span>
-            <span style={{ fontSize: 11, color: '#6B7280' }}>Document Status: Verification Pending</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{craftsmanName || 'Craftsman Name'}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Document Status: Verification Pending</span>
           </div>
         </div>
       </div>
@@ -192,73 +232,73 @@ const ProfileInfoContent: React.FC<{ submission?: Submission }> = ({ submission 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Contact & General Info */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: 12, padding: 20 }}>
-        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: '#171717', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <User size={16} style={{ color: '#2563EB' }} />
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <User size={16} style={{ color: '#3b82f6' }} />
           Contact & Personal Details
         </h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Full Name</span>
-            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600 }}>{submission.name}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Full Name</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission.name}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Phone Number</span>
-            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Phone size={13} style={{ color: '#16A34A' }} />
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Phone Number</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Phone size={13} style={{ color: '#22c55e' }} />
               {submission.phoneNumber || '+972 54 123 4567'}
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Email Address</span>
-            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Mail size={13} style={{ color: '#2563EB' }} />
-              {submission.email || `${submission.name.toLowerCase().replace(/\s+/g, '.')}@sonaa.sa`}
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Email Address</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Mail size={13} style={{ color: '#3b82f6' }} />
+              {submission.email || `${submission.name.toLowerCase().replace(/\s+/g, '.')}@sonaa.ps`}
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>City & Region</span>
-            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <MapPin size={13} style={{ color: '#DC2626' }} />
-              {submission.city || 'Riyadh, Saudi Arabia'}
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>City & Region</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MapPin size={13} style={{ color: '#ef4444' }} />
+              {submission.city || 'Jerusalem (القدس)'}
             </span>
           </div>
         </div>
       </div>
 
       {/* System Diagnostics & Device Info */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: 12, padding: 20 }}>
-        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: '#171717', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Smartphone size={16} style={{ color: '#9333EA' }} />
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Smartphone size={16} style={{ color: '#a855f7' }} />
           Device & System Diagnostics
         </h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Device Operating System</span>
-            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600 }}>{submission.deviceOs || 'Android 14 (SDK 34)'}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Device Operating System</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission.deviceOs || 'Android 14 (SDK 34)'}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>App Build Version</span>
-            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600 }}>{submission.appVersion || 'Sonaa Partner v2.4.1'}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>App Build Version</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission.appVersion || 'Sonaa Partner v2.4.1'}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Registration Date</span>
-            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Calendar size={13} style={{ color: '#4F46E5' }} />
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Registration Date</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Calendar size={13} style={{ color: '#6366f1' }} />
               {submission.registeredDate || 'Jul 21, 2026'}
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>Verification Reference ID</span>
-            <span style={{ fontSize: 13, color: '#171717', fontWeight: 600, fontFamily: 'monospace' }}>#{submission.verificationId}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Verification Reference ID</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>#{submission.verificationId}</span>
           </div>
         </div>
       </div>
 
       {/* Complete Verification Badges */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: 12, padding: 20 }}>
-        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: '#171717', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ShieldCheck size={16} style={{ color: '#16A34A' }} />
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <ShieldCheck size={16} style={{ color: '#22c55e' }} />
           Verification Compliance Audit
         </h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
@@ -278,15 +318,15 @@ const ProfileInfoContent: React.FC<{ submission?: Submission }> = ({ submission 
                 justifyContent: 'space-between',
                 padding: '10px 14px',
                 borderRadius: 8,
-                background: item.ok ? '#F0FDF4' : '#FEF2F2',
-                border: `1px solid ${item.ok ? '#DCFCE7' : '#FEE2E2'}`
+                background: item.ok ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                border: `1px solid ${item.ok ? 'rgba(34, 197, 94, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`
               }}
             >
-              <span style={{ fontSize: 12, fontWeight: 600, color: item.ok ? '#166534' : '#991B1B' }}>{item.label}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: item.ok ? '#4ade80' : '#f87171' }}>{item.label}</span>
               {item.ok ? (
-                <CheckCircle size={15} style={{ color: '#16A34A' }} />
+                <CheckCircle size={15} style={{ color: '#22c55e' }} />
               ) : (
-                <XCircle size={15} style={{ color: '#DC2626' }} />
+                <XCircle size={15} style={{ color: '#ef4444' }} />
               )}
             </div>
           ))}
@@ -305,8 +345,8 @@ const FaceMatchContent: React.FC<{ submission?: Submission }> = ({ submission })
       <div className="vr-fm-card">
         <span className="vr-fm-card-title">{t('vr_id_photo') || 'ID photo'}</span>
         <div className="vr-fm-photo-container">
-          {submission?.avatar ? (
-            <img src={submission.avatar} alt={submission.name} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 8 }} />
+          {(submission?.idFrontUrl || submission?.avatar) ? (
+            <img src={submission.idFrontUrl || submission.avatar} alt={submission.name} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 8 }} />
           ) : (
             <div className="vr-id-mockup">
               <div className="vr-id-photo-badge">ID</div>
@@ -321,8 +361,8 @@ const FaceMatchContent: React.FC<{ submission?: Submission }> = ({ submission })
       <div className="vr-fm-card">
         <span className="vr-fm-card-title">{t('vr_selfie_liveness') || 'Selfie · liveness check'}</span>
         <div className="vr-fm-photo-container">
-          {submission?.avatar ? (
-            <img src={submission.avatar} alt="Selfie" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 8 }} />
+          {(submission?.selfieUrl || submission?.avatar) ? (
+            <img src={submission.selfieUrl || submission.avatar} alt="Selfie" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 8 }} />
           ) : (
             <div className="vr-selfie-mockup">
               <div className="vr-selfie-photo-avatar">
@@ -1066,20 +1106,20 @@ export const VerificationPage: React.FC = () => {
           width: 100%;
         }
         .vr-fm-card {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 20px;
           display: flex;
           flex-direction: column;
           gap: 12px;
-          box-shadow: 0px 1px 1.5px rgba(0,0,0,0.04);
+          box-shadow: var(--shadow-sm);
           position: relative;
         }
         .vr-fm-card-title {
           font-size: 12px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           text-align: start;
         }
         .vr-fm-photo-container {
@@ -1087,8 +1127,8 @@ export const VerificationPage: React.FC = () => {
           min-height: 260px;
           padding: 16px;
           box-sizing: border-box;
-          background: #FAFAFA;
-          border: 1px dashed #E5E5E5;
+          background: var(--bg-surface-hover);
+          border: 1px dashed var(--border-color);
           border-radius: 12px;
           overflow: hidden;
           display: flex;
@@ -1109,8 +1149,9 @@ export const VerificationPage: React.FC = () => {
           position: absolute;
           top: 12px;
           left: 12px;
-          background: #171717;
-          color: #FFFFFF;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
           font-size: 9px;
           font-weight: 700;
           padding: 2px 6px;
@@ -1124,8 +1165,8 @@ export const VerificationPage: React.FC = () => {
           width: 80px;
           height: 80px;
           border-radius: 50%;
-          background: #F3F4F6;
-          border: 2px solid #E5E7EB;
+          background: var(--bg-surface-hover);
+          border: 2px solid var(--border-color);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1140,7 +1181,7 @@ export const VerificationPage: React.FC = () => {
         }
         .vr-id-line-short, .vr-id-line-medium, .vr-id-line-long {
           height: 6px;
-          background: #E5E5E5;
+          background: var(--border-color);
           border-radius: 3px;
         }
         .vr-id-line-short { width: 40%; }
@@ -1151,8 +1192,8 @@ export const VerificationPage: React.FC = () => {
           width: 90px;
           height: 90px;
           border-radius: 50%;
-          background: #E5E7EB;
-          border: 2px solid #D1D5DB;
+          background: var(--bg-surface-hover);
+          border: 2px solid var(--border-color);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1161,9 +1202,9 @@ export const VerificationPage: React.FC = () => {
         .vr-selfie-liveness-indicator {
           position: absolute;
           bottom: 12px;
-          background: rgba(22, 163, 74, 0.1);
-          color: #16A34A;
-          border: 1px solid rgba(22, 163, 74, 0.2);
+          background: rgba(22, 163, 74, 0.15);
+          color: #4ade80;
+          border: 1px solid rgba(22, 163, 74, 0.3);
           font-size: 10px;
           font-weight: 700;
           padding: 4px 10px;
@@ -1176,10 +1217,11 @@ export const VerificationPage: React.FC = () => {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #16A34A;
+          background: #22c55e;
         }
         .vr-score-overlay {
-          background: #171717;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 14px 16px;
           display: flex;
@@ -1196,43 +1238,43 @@ export const VerificationPage: React.FC = () => {
         .vr-score-label {
           font-size: 10px;
           font-weight: 700;
-          color: #A3A3A3;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
         .vr-score-value {
           font-size: 16px;
           font-weight: 700;
-          color: #FFFFFF;
+          color: var(--text-primary);
         }
         .vr-score-progress-track {
           height: 4px;
-          background: rgba(255, 255, 255, 0.2);
+          background: var(--border-color);
           border-radius: 2px;
           overflow: hidden;
           width: 100%;
         }
         .vr-score-progress-bar {
           height: 100%;
-          background: #FFFFFF;
+          background: var(--color-primary);
           border-radius: 2px;
         }
 
         /* ── Portfolio Styles ── */
         .vr-portfolio-card {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 20px;
           display: flex;
           flex-direction: column;
           gap: 16px;
-          box-shadow: 0px 1px 1.5px rgba(0,0,0,0.04);
+          box-shadow: var(--shadow-sm);
         }
         .vr-portfolio-title {
           font-size: 12px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           text-align: start;
         }
         .vr-portfolio-grid {
@@ -1243,7 +1285,8 @@ export const VerificationPage: React.FC = () => {
         }
         .vr-portfolio-item {
           aspect-ratio: 1 / 1;
-          background: #F5F5F5;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           cursor: pointer;
           position: relative;
@@ -1255,12 +1298,12 @@ export const VerificationPage: React.FC = () => {
         }
         .vr-portfolio-item:hover {
           transform: scale(1.02);
-          box-shadow: 0px 4px 6px rgba(0,0,0,0.05);
+          box-shadow: var(--shadow-md);
         }
         .vr-portfolio-overlay {
           position: absolute;
           inset: 0;
-          background: rgba(0,0,0,0.4);
+          background: rgba(0,0,0,0.5);
           opacity: 0;
           display: flex;
           align-items: center;
@@ -1274,19 +1317,19 @@ export const VerificationPage: React.FC = () => {
 
         /* ── Skills Styles ── */
         .vr-skills-card {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 20px;
           display: flex;
           flex-direction: column;
           gap: 16px;
-          box-shadow: 0px 1px 1.5px rgba(0,0,0,0.04);
+          box-shadow: var(--shadow-sm);
         }
         .vr-skills-title {
           font-size: 12px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           text-align: start;
         }
         .vr-skills-list {
@@ -1300,14 +1343,15 @@ export const VerificationPage: React.FC = () => {
           justify-content: space-between;
           align-items: center;
           padding: 14px 16px;
-          border: 1px solid #E5E5E5;
+          border: 1px solid var(--border-color);
           border-radius: 12px;
-          background: #FFFFFF;
+          background: var(--bg-surface);
           gap: 16px;
           transition: border-color 0.2s ease;
         }
         .vr-skills-item:hover {
-          border-color: #D4D4D4;
+          border-color: var(--border-color);
+          background: var(--bg-surface-hover);
         }
         .vr-skills-item-left {
           display: flex;
@@ -1317,13 +1361,13 @@ export const VerificationPage: React.FC = () => {
           flex: 1;
         }
         .vr-skill-icon {
-          color: #737373;
+          color: var(--text-muted);
           flex-shrink: 0;
         }
         .vr-skill-label {
           font-size: 12.5px;
           font-weight: 600;
-          color: #171717;
+          color: var(--text-primary);
           text-align: start;
           white-space: nowrap;
           overflow: hidden;
@@ -1341,12 +1385,12 @@ export const VerificationPage: React.FC = () => {
           flex-shrink: 0;
         }
         .vr-skill-status-badge.verified {
-          background: #F0FDF4;
-          color: #15803D;
+          background: rgba(22, 163, 74, 0.15);
+          color: #4ade80;
         }
         .vr-skill-status-badge.missing {
-          background: #FFFBEB;
-          color: #B45309;
+          background: rgba(245, 158, 11, 0.15);
+          color: #fbbf24;
         }
 
         /* ── Desktop Page Header ── */
@@ -1380,17 +1424,17 @@ export const VerificationPage: React.FC = () => {
           align-items: center;
           gap: 4px;
           font-size: 0.75rem;
-          color: #737373;
+          color: var(--text-muted);
           padding-bottom: 2px;
         }
         .vr-queue-count {
           font-size: 0.75rem;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
         .vr-queue-meta {
           font-size: 0.75rem;
-          color: #737373;
+          color: var(--text-muted);
         }
 
         /* ── Content Split Layout ── */
@@ -1407,10 +1451,10 @@ export const VerificationPage: React.FC = () => {
         .vr-queue-panel {
           width: 280px;
           flex-shrink: 0;
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 20px;
-          box-shadow: 0px 1px 3px rgba(0,0,0,0.02), 0px 8px 24px rgba(0,0,0,0.03);
+          box-shadow: var(--shadow-sm);
           overflow: hidden;
           display: flex;
           flex-direction: column;
@@ -1425,13 +1469,13 @@ export const VerificationPage: React.FC = () => {
         .vr-queue-header-label {
           font-size: 11px;
           font-weight: 500;
-          color: #8E8E93;
+          color: var(--text-muted);
           white-space: nowrap;
         }
         .vr-queue-header-sub {
           font-size: 16px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1455,10 +1499,10 @@ export const VerificationPage: React.FC = () => {
           width: 100%;
         }
         .vr-queue-item:hover {
-          background: #F8F8F9;
+          background: var(--bg-surface-hover);
         }
         .vr-queue-item.selected {
-          background: #F4F4F5;
+          background: var(--bg-surface-hover);
         }
         .vr-queue-item.approved {
           opacity: 0.6;
@@ -1476,14 +1520,14 @@ export const VerificationPage: React.FC = () => {
         .vr-queue-item-name {
           font-size: 14px;
           font-weight: 600;
-          color: #171717;
+          color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
         .vr-queue-item-meta {
           font-size: 11px;
-          color: #8E8E93;
+          color: var(--text-muted);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1510,10 +1554,10 @@ export const VerificationPage: React.FC = () => {
 
         /* ── Profile Card ── */
         .vr-profile-card {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
-          box-shadow: 0px 1px 1.5px rgba(0,0,0,0.04);
+          box-shadow: var(--shadow-sm);
           overflow: hidden;
         }
         .vr-profile-top {
@@ -1523,7 +1567,7 @@ export const VerificationPage: React.FC = () => {
           padding: 20px;
           gap: 16px;
           flex-wrap: wrap;
-          border-bottom: 1px solid #F5F5F5;
+          border-bottom: 1px solid var(--border-color);
         }
         .vr-profile-left {
           display: flex;
@@ -1541,14 +1585,14 @@ export const VerificationPage: React.FC = () => {
         .vr-profile-name {
           font-size: 16px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
         .vr-profile-meta {
           font-size: 12px;
-          color: #737373;
+          color: var(--text-secondary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1574,23 +1618,23 @@ export const VerificationPage: React.FC = () => {
           min-width: 60px;
         }
         .vr-btn-flag {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
-          color: #171717;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
         }
         .vr-btn-flag:hover {
-          background: #F5F5F5;
+          background: var(--bg-surface);
         }
         .vr-btn-reject {
-          background: #FEF2F2;
-          border: none;
-          color: #B91C1C;
+          background: rgba(239, 68, 68, 0.12);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          color: #f87171;
         }
         .vr-btn-reject:hover {
-          background: #FEE2E2;
+          background: rgba(239, 68, 68, 0.2);
         }
         .vr-btn-approve {
-          background: #171717;
+          background: var(--color-primary);
           border: none;
           color: #FFFFFF;
           flex-direction: row;
@@ -1598,7 +1642,7 @@ export const VerificationPage: React.FC = () => {
           min-width: 110px;
         }
         .vr-btn-approve:hover {
-          background: #404040;
+          opacity: 0.9;
         }
 
         /* ── Tabs ── */
@@ -1620,7 +1664,7 @@ export const VerificationPage: React.FC = () => {
           border-radius: 8px;
           font-size: 12px;
           font-weight: 600;
-          color: #737373;
+          color: var(--text-secondary);
           background: transparent;
           border: none;
           cursor: pointer;
@@ -1628,19 +1672,19 @@ export const VerificationPage: React.FC = () => {
           transition: all var(--transition-fast);
         }
         .vr-tab:hover {
-          color: #171717;
-          background: #F5F5F5;
+          color: var(--text-primary);
+          background: var(--bg-surface-hover);
         }
         .vr-tab.active {
-          background: #171717;
+          background: var(--color-primary);
           color: #FFFFFF;
         }
         .vr-tab-num {
           width: 16px;
           height: 16px;
           border-radius: 50%;
-          background: #E5E5E5;
-          color: #737373;
+          background: var(--bg-surface-hover);
+          color: var(--text-muted);
           font-size: 9px;
           font-weight: 700;
           display: flex;
@@ -1650,7 +1694,7 @@ export const VerificationPage: React.FC = () => {
         }
         .vr-tab-num.active {
           background: #FFFFFF;
-          color: #171717;
+          color: var(--color-primary);
         }
 
         /* ── Document Cards ── */
@@ -1663,10 +1707,10 @@ export const VerificationPage: React.FC = () => {
           gap: 16px;
         }
         .vr-doc-card {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
-          box-shadow: 0px 1px 1.5px rgba(0,0,0,0.04);
+          box-shadow: var(--shadow-sm);
           padding: 20px;
           display: flex;
           flex-direction: column;
@@ -1680,12 +1724,12 @@ export const VerificationPage: React.FC = () => {
         .vr-doc-card-title {
           font-size: 12px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
         .vr-zoom-btn {
           background: transparent;
           border: none;
-          color: #A3A3A3;
+          color: var(--text-muted);
           cursor: pointer;
           padding: 2px;
           display: flex;
@@ -1693,7 +1737,7 @@ export const VerificationPage: React.FC = () => {
           transition: color var(--transition-fast);
         }
         .vr-zoom-btn:hover {
-          color: #171717;
+          color: var(--text-primary);
         }
         .vr-doc-fields {
           display: flex;
@@ -1707,19 +1751,19 @@ export const VerificationPage: React.FC = () => {
           font-size: 12px;
         }
         .vr-doc-field-label {
-          color: #737373;
+          color: var(--text-muted);
           font-weight: 400;
         }
         .vr-doc-field-value {
-          color: #171717;
+          color: var(--text-primary);
           font-weight: 600;
           text-align: end;
         }
 
         /* ── Placeholder Tabs ── */
         .vr-placeholder-tab {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 48px 20px;
           display: flex;
@@ -1732,17 +1776,17 @@ export const VerificationPage: React.FC = () => {
         .vr-placeholder-tab-text {
           font-size: 14px;
           font-weight: 700;
-          color: #404040;
+          color: var(--text-primary);
         }
         .vr-placeholder-tab-sub {
           font-size: 12px;
-          color: #A3A3A3;
+          color: var(--text-muted);
         }
 
         /* ── Moderator Notes ── */
         .vr-notes-card {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 20px;
           display: flex;
@@ -1752,14 +1796,14 @@ export const VerificationPage: React.FC = () => {
         .vr-notes-label {
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
         .vr-notes-textarea {
           width: 100%;
-          background: #FAFAFA;
-          border: 1px solid transparent;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 12px;
           font-size: 12px;
@@ -1772,10 +1816,10 @@ export const VerificationPage: React.FC = () => {
           transition: border var(--transition-fast);
         }
         .vr-notes-textarea:focus {
-          border-color: var(--border-color);
+          border-color: var(--color-primary);
         }
         .vr-notes-textarea::placeholder {
-          color: #9CA3AF;
+          color: var(--text-muted);
         }
 
         /* ── Responsive: Desktop/Tablet label ── */
@@ -2111,7 +2155,7 @@ export const VerificationPage: React.FC = () => {
           /* Mobile Queue styles */
           .mobile-filter-pills {
             display: flex !important;
-            background: #F5F5F5;
+            background: var(--bg-surface-hover);
             border-radius: 9999px;
             padding: 2px !important;
             width: 100%;
@@ -2133,7 +2177,7 @@ export const VerificationPage: React.FC = () => {
             border-radius: 9999px;
             font-size: 10px;
             font-weight: 700;
-            color: #737373;
+            color: var(--text-muted);
             background: transparent;
             border: none;
             cursor: pointer;
@@ -2141,9 +2185,9 @@ export const VerificationPage: React.FC = () => {
           }
 
           .mobile-filter-pill.active {
-            background: #FFFFFF;
-            color: #171717;
-            box-shadow: 0px 1px 1px rgba(0,0,0,0.05);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
           }
 
           .mobile-pill-badge {
@@ -2153,15 +2197,15 @@ export const VerificationPage: React.FC = () => {
             height: 17.5px;
             padding: 0 6px;
             border-radius: 4px;
-            background: #E5E5E5;
-            color: #737373;
+            background: var(--border-color);
+            color: var(--text-muted);
             font-size: 9px;
             font-weight: 700;
             min-width: 14px;
           }
 
           .mobile-pill-badge.active {
-            background: #171717;
+            background: var(--color-primary);
             color: #FFFFFF;
           }
 
@@ -2173,14 +2217,14 @@ export const VerificationPage: React.FC = () => {
           }
 
           .mobile-craftsman-card {
-            background: #FFFFFF;
-            border: 1px solid #E5E5E5;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            box-shadow: 0px 1px 1.5px rgba(0,0,0,0.03);
+            box-shadow: var(--shadow-sm);
             text-align: start;
             box-sizing: border-box;
           }

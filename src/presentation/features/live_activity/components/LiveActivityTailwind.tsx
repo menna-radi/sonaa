@@ -376,7 +376,7 @@ export default function LiveActivityTailwind() {
                       <p className="leading-[16px]">Map</p>
                     </div>
                     <div className="absolute left-0 text-[#171717] text-[16px] top-[36px]" data-node-id="59:1701" style={{ fontFeatureSettings: '"dlig"' }}>
-                      <p className="leading-[24px] mb-0">Riyadh · Live</p>
+                      <p className="leading-[24px] mb-0">Jerusalem · Live</p>
                       <p className="leading-[24px]">dispatch</p>
                     </div>
                   </div>

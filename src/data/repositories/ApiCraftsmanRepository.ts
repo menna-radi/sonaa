@@ -18,13 +18,6 @@ interface ApiCraftsmanDTO {
 }
 
 interface PaginatedCraftsmenResponse {
-  results: ApiCraftsmanDTO[];
-  totalResults: number;
-  currentPage: number;
-  totalPages: number;
-}
-
-interface PaginatedCraftsmenResponse {
   total: number;
   page: number;
   limit: number;

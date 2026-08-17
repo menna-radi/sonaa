@@ -152,14 +152,32 @@ export class LiveActivityMapper {
         amountSAR: Number(t.budgetAmount || 350),
         progressPercent: t.status === 'IN_PROGRESS' ? 65 : t.status === 'ACCEPTED' ? 25 : 10,
         status: t.status || 'IN_PROGRESS',
-        lat: t.lat || loc.lat,
-        lng: t.lng || loc.lng,
+        lat: Number(t.lat) || loc.lat,
+        lng: Number(t.lng) || loc.lng,
       };
     });
 
-    const rawActiveJobs = Array.isArray(model.active_job_list) ? model.active_job_list.map(LiveActivityMapper.toActiveJob) : activeJobsFromBackend;
+    const rawActiveJobs = Array.isArray(model.active_job_list) ? model.active_job_list.map((j: any) => {
+      const mapped = LiveActivityMapper.toActiveJob(j);
+      return {
+        ...mapped,
+        lat: Number(j.lat || j.locationLat) || undefined,
+        lng: Number(j.lng || j.locationLng) || undefined,
+      };
+    }) : activeJobsFromBackend;
     const rawBusyZones = Array.isArray(model.busy_zones) ? model.busy_zones.map(LiveActivityMapper.toBusyZone) : [];
     const rawSuspicious = Array.isArray(model.suspicious_alerts) ? model.suspicious_alerts.map(LiveActivityMapper.toSuspiciousAlert) : [];
+
+    // Map active craftsmen from backend
+    const craftsmenFromBackend = activeCraftsmen.map((c: any) => ({
+      id: String(c.id || c.craftsmanId),
+      name: String(c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Craftsman'),
+      title: String(c.title || 'Technician'),
+      lat: Number(c.lat || c.latitude || 31.7683),
+      lng: Number(c.lng || c.longitude || 35.2137),
+      rating: Number(c.rating || 5.0),
+      isAvailable: c.isAvailable ?? true,
+    }));
 
     return {
       summary: {
@@ -172,6 +190,7 @@ export class LiveActivityMapper {
       busyZones: rawBusyZones,
       activeJobs: rawActiveJobs,
       suspiciousAlerts: rawSuspicious,
+      craftsmen: craftsmenFromBackend,
     };
   }
 }

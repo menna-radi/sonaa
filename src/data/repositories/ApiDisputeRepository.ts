@@ -36,19 +36,21 @@ export class ApiDisputeRepository implements DisputeRepository {
       const response = await apiClient.get<any>(API_ENDPOINTS.admin.disputes);
       
       const mapped: Dispute[] = (response.items || []).map((d: any) => {
-        const customerName = d.task?.customer 
-          ? `${d.task.customer.firstName} ${d.task.customer.lastName}`
+        const customerObj = d.task?.customerProfile || d.task?.customer;
+        const craftsmanObj = d.task?.craftsmanProfile || d.task?.craftsman;
+        const customerName = customerObj 
+          ? `${customerObj.firstName} ${customerObj.lastName}`.trim()
           : 'Customer';
-        const craftsmanName = d.task?.craftsman
-          ? `${d.task.craftsman.firstName} ${d.task.craftsman.lastName}`
+        const craftsmanName = craftsmanObj
+          ? `${craftsmanObj.firstName} ${craftsmanObj.lastName}`.trim()
           : 'Craftsman';
           
         return {
           id: d.id,
-          jobId: `#JOB-${d.taskId.substring(0, 4)}`,
+          jobId: d.task?.displayId || `#JOB-${d.taskId.substring(0, 4)}`,
           customerName,
           craftsmanName,
-          amount: d.task?.amountSar || 0,
+          amount: Number(d.task?.budgetAmount || d.task?.amountSar || 0),
           reason: d.reason,
           status: d.status,
           createdAt: new Date(d.createdAt).toLocaleDateString(),
@@ -68,8 +70,13 @@ export class ApiDisputeRepository implements DisputeRepository {
     notes: string
   ): Promise<Result<boolean>> {
     try {
+      const resolutionMap: Record<string, string> = {
+        refund_customer: 'REFUND_CLIENT',
+        pay_craftsman: 'PAY_CRAFTSMAN',
+        split_split: 'SPLIT_PAYMENT',
+      };
       await apiClient.post<void>(API_ENDPOINTS.admin.resolveDispute(id), {
-        resolution,
+        resolution: resolutionMap[resolution] || 'REFUND_CLIENT',
         notes,
       });
       return ok(true);

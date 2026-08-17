@@ -23,7 +23,8 @@ import {
   Settings,
   Wrench,
   ChevronDown,
-  Globe
+  Globe,
+  MessageSquare
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -86,6 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       items: [
         { key: 'nav_craftsmen', pageKey: 'craftsmen', label: t('nav_craftsmen') || 'Craftsmen', icon: <Users size={16} /> },
         { key: 'nav_tasks', pageKey: 'tasks', label: t('nav_tasks') || 'Tasks', icon: <CheckSquare size={16} /> },
+        { key: 'nav_chat', pageKey: 'chat', label: t('nav_chat') || 'Live Support & Chat', icon: <MessageSquare size={16} />, badge: 'LIVE', isPulse: true },
         { key: 'nav_verification', pageKey: 'verification', label: t('nav_verification') || 'Verification', icon: <ShieldCheck size={16} />, badge: '129' },
         { key: 'nav_reports', pageKey: 'reports', label: t('nav_reports') || 'Reports', icon: <FileText size={16} />, badge: '42' },
       ]

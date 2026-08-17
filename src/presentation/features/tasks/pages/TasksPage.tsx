@@ -45,14 +45,10 @@ export const TasksPage: React.FC = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedDetailTask, setSelectedDetailTask] = useState<Task | null>(null);
-  const [showDispatchConfirm, setShowDispatchConfirm] = useState(false);
   const [showFilterPopover, setShowFilterPopover] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
-  const [emergencyIndex, setEmergencyIndex] = useState(0);
 
-  const emergencyTasksList = useMemo(() => tasks.filter(t => t.status === 'emergency'), [tasks]);
-  const activeEmergency = emergencyTasksList[emergencyIndex % (emergencyTasksList.length || 1)];
   const displayedTasks = useMemo(() => {
     return tasks.filter(t => {
       if (selectedCategory !== 'All') {
@@ -61,7 +57,6 @@ export const TasksPage: React.FC = () => {
         if (!titleLower.includes(catLower)) return false;
       }
       if (selectedStatus !== 'All') {
-        if (selectedStatus === 'Emergency' && t.status !== 'emergency') return false;
         if (selectedStatus === 'Live' && t.status === 'completed') return false;
         if (selectedStatus === 'Completed' && t.status !== 'completed') return false;
         if (selectedStatus === 'Disputed' && t.status !== 'disputed') return false;
@@ -250,7 +245,7 @@ export const TasksPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="animate-fade-in" style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+            <div className="animate-fade-in" style={{ display: 'flex', gap: '8px', position: 'relative', zIndex: 100 }}>
               <button 
                 onClick={() => setShowFilterPopover(!showFilterPopover)}
                 className="header-action-btn"
@@ -263,47 +258,47 @@ export const TasksPage: React.FC = () => {
               {showFilterPopover && (
                 <div style={{
                   position: 'absolute',
-                  top: '40px',
-                  right: '80px',
-                  background: '#ffffff',
+                  top: '44px',
+                  right: isRtl ? 'auto' : '0',
+                  left: isRtl ? '0' : 'auto',
+                  background: 'var(--bg-surface)',
                   border: '1px solid var(--border-color)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
-                  zIndex: 100,
-                  width: '220px',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  boxShadow: 'var(--shadow-lg)',
+                  zIndex: 1000,
+                  width: '240px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px',
+                  gap: '14px',
                   textAlign: 'start'
                 }}>
                   <div>
-                    <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Status</label>
+                    <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Status</label>
                     <select 
                       value={selectedStatus} 
                       onChange={(e) => setSelectedStatus(e.target.value)}
-                      style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-surface-hover)', color: 'var(--text-primary)', fontSize: '0.82rem', fontWeight: 600, outline: 'none' }}
                     >
-                      <option value="All">All Statuses</option>
-                      <option value="Emergency">Emergency</option>
-                      <option value="Live">Live / Active</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Disputed">Disputed</option>
-                      <option value="Frozen">Frozen</option>
+                      <option value="All" style={{ background: '#1e293b', color: '#f8fafc' }}>All Statuses</option>
+                      <option value="Live" style={{ background: '#1e293b', color: '#f8fafc' }}>Live / Active</option>
+                      <option value="Completed" style={{ background: '#1e293b', color: '#f8fafc' }}>Completed</option>
+                      <option value="Disputed" style={{ background: '#1e293b', color: '#f8fafc' }}>Disputed</option>
+                      <option value="Frozen" style={{ background: '#1e293b', color: '#f8fafc' }}>Frozen</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Category</label>
+                    <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Category</label>
                     <select 
                       value={selectedCategory} 
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-surface-hover)', color: 'var(--text-primary)', fontSize: '0.82rem', fontWeight: 600, outline: 'none' }}
                     >
-                      <option value="All">All Categories</option>
-                      <option value="Plumbing">Plumbing</option>
-                      <option value="Cleaning">Cleaning</option>
-                      <option value="Electrical">Electrical</option>
-                      <option value="Repair">Repair</option>
+                      <option value="All" style={{ background: '#1e293b', color: '#f8fafc' }}>All Categories</option>
+                      <option value="Plumbing" style={{ background: '#1e293b', color: '#f8fafc' }}>Plumbing</option>
+                      <option value="Cleaning" style={{ background: '#1e293b', color: '#f8fafc' }}>Cleaning</option>
+                      <option value="Electrical" style={{ background: '#1e293b', color: '#f8fafc' }}>Electrical</option>
+                      <option value="Repair" style={{ background: '#1e293b', color: '#f8fafc' }}>Repair</option>
                     </select>
                   </div>
                   <button 
@@ -312,7 +307,7 @@ export const TasksPage: React.FC = () => {
                       setSelectedCategory('All');
                       setShowFilterPopover(false);
                     }}
-                    style={{ background: 'transparent', border: 'none', color: '#dc2626', fontSize: '0.75rem', fontWeight: 600, padding: 0, cursor: 'pointer', alignSelf: 'flex-start' }}
+                    style={{ background: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.78rem', fontWeight: 700, padding: 0, cursor: 'pointer', alignSelf: 'flex-start' }}
                   >
                     Reset Filters
                   </button>
@@ -419,7 +414,7 @@ export const TasksPage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="filter-tabs" style={{ display: 'flex', width: '100%', overflowX: 'auto', gap: '2px', padding: '2px', background: '#F5F5F5', borderRadius: '8px' }}>
+                  <div className="filter-tabs" style={{ display: 'flex', width: '100%', overflowX: 'auto', gap: '2px', padding: '2px', background: 'var(--bg-surface-hover)', borderRadius: '8px' }}>
                     {(['all', 'live', 'emergency', 'disputed', 'completed'] as const).map((filterKey) => {
                       const isActive = activeFilter === filterKey;
                       const count = filterCounts ? filterCounts[filterKey] : 0;
@@ -445,9 +440,9 @@ export const TasksPage: React.FC = () => {
                             gap: '6px',
                             padding: '6px 12px',
                             borderRadius: '6px',
-                            background: isActive ? '#FFFFFF' : 'transparent',
-                            color: isActive ? '#171717' : '#737373',
-                            boxShadow: isActive ? '0px 1px 1px rgba(0, 0, 0, 0.05)' : 'none',
+                            background: isActive ? 'var(--bg-surface)' : 'transparent',
+                            color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                            boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
                             fontSize: '10px',
                             fontWeight: 700,
                             cursor: 'pointer',
@@ -579,28 +574,6 @@ export const TasksPage: React.FC = () => {
 
                 {/* Mobile Task Cards List */}
                 <div className="tasks-mobile-list mobile-only">
-                  {/* Mobile Emergency Alert SOS Banner */}
-                  {tasks.some(t => t.status === 'emergency') && (
-                    <div className="mobile-emergency-banner animate-pulse">
-                      <div className="mobile-emergency-left">
-                        <div className="mobile-emergency-icon">
-                          <AlertTriangle size={14} />
-                        </div>
-                        <div className="mobile-emergency-content">
-                          <strong className="mobile-emergency-title">
-                            {tasks.filter(t => t.status === 'emergency').length} {t('emergency_in_progress') || 'emergency in progress'}
-                          </strong>
-                          <span className="mobile-emergency-text">
-                            {tasks.find(t => t.status === 'emergency')?.title} · {tasks.find(t => t.status === 'emergency')?.zone}
-                          </span>
-                        </div>
-                      </div>
-                      <button className="mobile-emergency-btn" onClick={() => setShowDispatchConfirm(true)}>
-                        {t('dispatch') || 'Dispatch'}
-                      </button>
-                    </div>
-                  )}
-
                   {displayedTasks.length === 0 ? (
                     <div className="no-data-mobile">
                       No tasks match the active filters.
@@ -612,8 +585,6 @@ export const TasksPage: React.FC = () => {
                         switch (task.status) {
                           case 'in_progress':
                             return <span className="mobile-badge-live">{t('mobile_badge_live')}</span>;
-                          case 'emergency':
-                            return <span className="mobile-badge-sos">{t('mobile_badge_sos')}</span>;
                           case 'disputed':
                             return <span className="mobile-badge-disputed">{t('status_disputed') || 'Disputed'}</span>;
                           case 'frozen':
@@ -621,7 +592,7 @@ export const TasksPage: React.FC = () => {
                           case 'completed':
                             return <span className="mobile-badge-completed">{t('status_completed') || 'Completed'}</span>;
                           default:
-                            return null;
+                            return <span className="mobile-badge-live">{task.status}</span>;
                         }
                       };
 
@@ -629,18 +600,17 @@ export const TasksPage: React.FC = () => {
                       const getProgressPercentage = () => {
                         switch (task.status) {
                           case 'in_progress': return 65;
-                          case 'emergency': return 30;
                           case 'disputed': return 50;
                           case 'frozen': return 15;
                           case 'completed': return 100;
-                          default: return 0;
+                          default: return 40;
                         }
                       };
 
                       return (
                         <div 
                           key={task.id} 
-                          className={`task-mobile-card ${task.status === 'emergency' ? 'card-emergency' : ''}`}
+                          className="task-mobile-card"
                           onClick={() => setSelectedDetailTask(task)}
                           style={{ cursor: 'pointer' }}
                         >
@@ -693,7 +663,7 @@ export const TasksPage: React.FC = () => {
                           <div className="card-progress-bar-row">
                             <div className="progress-bar-track">
                               <div 
-                                className={`progress-bar-fill ${task.status === 'emergency' ? 'fill-danger' : ''}`} 
+                                className="progress-bar-fill" 
                                 style={{ width: `${getProgressPercentage()}%` }} 
                               />
                             </div>
@@ -724,58 +694,7 @@ export const TasksPage: React.FC = () => {
                     })
                   )}
                 </div>
-
               </div>
-
-              {/* Emergency Alert SOS Banner */}
-              {emergencyTasksList.length > 0 && activeEmergency && (
-                <div className="emergency-alert-banner">
-                  <div className="emergency-alert-left">
-                    <div className="emergency-icon-wrapper">
-                      <AlertTriangle size={18} />
-                    </div>
-                    <div className="emergency-details">
-                      <div className="emergency-title-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="emergency-title">
-                          Emergency in progress ({emergencyTasksList.length} Active SOS)
-                        </span>
-                        <span className="emergency-badge">SOS</span>
-                        {emergencyTasksList.length > 1 && (
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '8px' }}>
-                            <button 
-                              onClick={() => setEmergencyIndex(prev => (prev > 0 ? prev - 1 : emergencyTasksList.length - 1))}
-                              style={{ background: '#fee2e2', border: 'none', borderRadius: '4px', color: '#dc2626', cursor: 'pointer', padding: '2px 6px', fontSize: '0.7rem', fontWeight: 700 }}
-                            >
-                              ◀
-                            </button>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#991b1b' }}>
-                              {emergencyIndex + 1} of {emergencyTasksList.length}
-                            </span>
-                            <button 
-                              onClick={() => setEmergencyIndex(prev => (prev + 1) % emergencyTasksList.length)}
-                              style={{ background: '#fee2e2', border: 'none', borderRadius: '4px', color: '#dc2626', cursor: 'pointer', padding: '2px 6px', fontSize: '0.7rem', fontWeight: 700 }}
-                            >
-                              ▶
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      <span className="emergency-text">
-                        {activeEmergency.title} · {activeEmergency.zone} · Customer: {activeEmergency.customer} · Craftsman: {activeEmergency.craftsman}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="emergency-actions">
-                    <button className="emergency-btn emergency-btn-secondary" onClick={() => setSelectedDetailTask(activeEmergency)}>
-                      View Details
-                    </button>
-                    <button className="emergency-btn emergency-btn-primary" onClick={() => setShowDispatchConfirm(true)}>
-                      {t('dispatch_backup') || 'Dispatch backup'}
-                    </button>
-                  </div>
-                </div>
-              )}
-
             </div>
           )}
 
@@ -802,60 +721,61 @@ export const TasksPage: React.FC = () => {
             padding: '16px'
           }} onClick={() => setSelectedDetailTask(null)}>
             <div style={{
-              background: '#ffffff',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-color)',
               borderRadius: '12px',
               width: '100%',
               maxWidth: '500px',
               padding: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              boxShadow: 'var(--shadow-md)',
               textAlign: 'start',
               position: 'relative'
             }} onClick={(e) => e.stopPropagation()}>
               <button 
                 onClick={() => setSelectedDetailTask(null)}
-                style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#71717a' }}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--text-muted)' }}
               >
                 ×
               </button>
               
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 700, color: '#171717' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {selectedDetailTask.title}
               </h3>
-              <span style={{ fontSize: '0.8rem', color: '#71717a', fontWeight: 600 }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
                 Job #{selectedDetailTask.jobNumber}
               </span>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px', borderTop: '1px solid #f4f4f5', paddingTop: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                  <span style={{ color: '#71717a' }}>Customer</span>
-                  <strong style={{ color: '#171717' }}>{selectedDetailTask.customer}</strong>
+                  <span style={{ color: 'var(--text-secondary)' }}>Customer</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{selectedDetailTask.customer}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                  <span style={{ color: '#71717a' }}>Craftsman</span>
-                  <strong style={{ color: '#171717' }}>{selectedDetailTask.craftsman}</strong>
+                  <span style={{ color: 'var(--text-secondary)' }}>Craftsman</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{selectedDetailTask.craftsman}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                  <span style={{ color: '#71717a' }}>Zone / Location</span>
-                  <strong style={{ color: '#171717' }}>{selectedDetailTask.zone}</strong>
+                  <span style={{ color: 'var(--text-secondary)' }}>Zone / Location</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{selectedDetailTask.zone}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                  <span style={{ color: '#71717a' }}>Budget Amount</span>
-                  <strong style={{ color: '#171717' }}>{selectedDetailTask.amountSAR} ILS</strong>
+                  <span style={{ color: 'var(--text-secondary)' }}>Budget Amount</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{selectedDetailTask.amountSAR} ILS</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                  <span style={{ color: '#71717a' }}>ETA Status</span>
-                  <strong style={{ color: '#171717' }}>{formatEta(selectedDetailTask.eta)}</strong>
+                  <span style={{ color: 'var(--text-secondary)' }}>ETA Status</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{formatEta(selectedDetailTask.eta)}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', alignItems: 'center' }}>
-                  <span style={{ color: '#71717a' }}>Status</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>Status</span>
                   {renderStatusBadge(selectedDetailTask.status)}
                 </div>
               </div>
               
-              <div style={{ display: 'flex', gap: '10px', marginTop: '24px', borderTop: '1px solid #f4f4f5', paddingTop: '16px' }}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '24px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
                 <button 
                   onClick={() => setSelectedDetailTask(null)}
-                  style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e4e4e7', background: '#ffffff', color: '#171717', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-surface-hover)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
                 >
                   Close Details
                 </button>
@@ -863,7 +783,7 @@ export const TasksPage: React.FC = () => {
                   selectedDetailTask.status === 'frozen' ? (
                     <button 
                       onClick={() => { handleUnfreeze(selectedDetailTask.id); setSelectedDetailTask(null); }}
-                      style={{ flex: 1.2, padding: '10px', borderRadius: '6px', border: 'none', background: '#171717', color: '#ffffff', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                      style={{ flex: 1.2, padding: '10px', borderRadius: '6px', border: 'none', background: 'var(--color-primary)', color: '#ffffff', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
                     >
                       Unfreeze Task
                     </button>
@@ -876,74 +796,6 @@ export const TasksPage: React.FC = () => {
                     </button>
                   )
                 )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 2. SOS Dispatch Confirmation Dialog */}
-        {showDispatchConfirm && (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1001,
-            padding: '16px'
-          }} onClick={() => setShowDispatchConfirm(false)}>
-            <div style={{
-              background: '#ffffff',
-              borderRadius: '12px',
-              width: '100%',
-              maxWidth: '400px',
-              padding: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
-              textAlign: 'center',
-              position: 'relative'
-            }} onClick={(e) => e.stopPropagation()}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                background: '#fef3c7',
-                color: '#d97706',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px auto'
-              }}>
-                <AlertTriangle size={24} />
-              </div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', fontWeight: 700, color: '#171717' }}>
-                Dispatch Backup Craftsman?
-              </h3>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#71717a', lineHeight: '1.4' }}>
-                This will trigger automated fallback dispatch to assign the nearest available registered technician in Jerusalem.
-              </p>
-              
-              <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
-                <button 
-                  onClick={() => setShowDispatchConfirm(false)}
-                  style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e4e4e7', background: '#ffffff', color: '#171717', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={async () => {
-                    try {
-                      await repositories.taskRepository.dispatchBackup(selectedDetailTask?.id || 't1');
-                      alert('Backup craftsman dispatch successfully initiated for Jerusalem district!');
-                    } catch (e) {
-                      alert('Backup dispatch sent.');
-                    }
-                    setShowDispatchConfirm(false);
-                  }}
-                  style={{ flex: 1.5, padding: '10px', borderRadius: '6px', border: 'none', background: '#171717', color: '#ffffff', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
-                >
-                  Confirm Dispatch
-                </button>
               </div>
             </div>
           </div>
@@ -975,11 +827,19 @@ export const TasksPage: React.FC = () => {
         }
         .header-action-btn.primary-btn {
           background: var(--color-primary);
-          color: var(--bg-base);
+          color: #ffffff !important;
           border: none;
         }
         .header-action-btn.primary-btn:hover {
           opacity: 0.9;
+        }
+        .desktop-tablet-page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: var(--spacing-lg);
+          position: relative;
+          z-index: 100;
         }
 
         .tasks-content-layout {
@@ -999,11 +859,11 @@ export const TasksPage: React.FC = () => {
         .stat-card {
           flex: 1;
           height: 97px;
-          background: #FFFFFF !important;
-          border: 1px solid #E5E5E5 !important;
+          background: var(--bg-surface) !important;
+          border: 1px solid var(--border-color) !important;
           border-radius: 16px !important;
           padding: 20px !important;
-          box-shadow: 0px 1px 1.5px rgba(0, 0, 0, 0.04) !important;
+          box-shadow: var(--shadow-sm) !important;
           display: flex !important;
           flex-direction: column !important;
           justify-content: space-between !important;
@@ -1011,13 +871,13 @@ export const TasksPage: React.FC = () => {
           overflow: hidden !important;
         }
         .stat-card-emergency {
-          background: #FEF2F2 !important;
-          border: 1px solid #FEE2E2 !important;
+          background: rgba(239, 68, 68, 0.08) !important;
+          border: 1px solid rgba(239, 68, 68, 0.25) !important;
         }
         .stat-label {
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
           letter-spacing: 0.5px;
           text-transform: uppercase;
         }
@@ -1030,7 +890,8 @@ export const TasksPage: React.FC = () => {
         .stat-val {
           font-size: 24px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
+        }
           letter-spacing: -0.48px;
         }
         .stat-val.val-danger {
@@ -1053,10 +914,10 @@ export const TasksPage: React.FC = () => {
 
         /* Container list */
         .tasks-list-container {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
-          box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.04);
+          box-shadow: var(--shadow-sm);
           overflow: hidden;
           width: 100%;
           box-sizing: border-box;
@@ -1067,7 +928,7 @@ export const TasksPage: React.FC = () => {
           justify-content: space-between;
           align-items: center;
           padding: 20px;
-          border-bottom: 1px solid #F5F5F5;
+          border-bottom: 1px solid var(--border-color);
           gap: var(--spacing-md);
           flex-wrap: wrap;
         }
@@ -1075,7 +936,7 @@ export const TasksPage: React.FC = () => {
         /* Tabs */
         .filter-tabs {
           display: flex;
-          background: #F5F5F5;
+          background: var(--bg-surface-hover);
           padding: 2px;
           border-radius: 8px;
           gap: 2px;
@@ -1085,16 +946,16 @@ export const TasksPage: React.FC = () => {
           border-radius: 6px;
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-secondary);
           background: transparent;
           border: none;
           cursor: pointer;
           transition: background var(--transition-fast), color var(--transition-fast);
         }
         .filter-tab.active {
-          background: #FFFFFF;
-          color: #171717;
-          box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.05);
+          background: var(--bg-surface);
+          color: var(--text-primary);
+          box-shadow: var(--shadow-sm);
         }
 
         /* Search input */
@@ -1107,14 +968,14 @@ export const TasksPage: React.FC = () => {
           inset-inline-start: 12px;
           top: 50%;
           transform: translateY(-50%);
-          color: #9CA3AF;
+          color: var(--text-muted);
           pointer-events: none;
         }
         .search-input {
           width: 100%;
           height: 32px;
-          background: #FAFAFA;
-          border: 1px solid transparent;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           border-radius: 8px;
           padding-inline-start: 36px;
           padding-inline-end: 12px;
@@ -1125,7 +986,7 @@ export const TasksPage: React.FC = () => {
           transition: border var(--transition-fast);
         }
         .search-input:focus {
-          border-color: var(--border-color);
+          border-color: var(--color-primary);
         }
 
         /* Table */
@@ -1139,27 +1000,27 @@ export const TasksPage: React.FC = () => {
           text-align: start;
         }
         .tasks-table th {
-          background: #FAFAFA;
+          background: var(--bg-surface-hover);
           padding: 12px 20px;
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.5px;
-          border-bottom: 1px solid #F5F5F5;
+          border-bottom: 1px solid var(--border-color);
         }
         .tasks-table td {
           padding: 14px 20px;
           font-size: 12px;
-          color: #404040;
-          border-bottom: 1px solid #F5F5F5;
+          color: var(--text-primary);
+          border-bottom: 1px solid var(--border-color);
           vertical-align: middle;
         }
         .tasks-table tr:last-child td {
           border-bottom: none;
         }
         .tasks-table tr:hover td {
-          background: #FAFAFA;
+          background: var(--bg-surface-hover);
         }
         .tasks-table tr.row-emergency td {
           background: rgba(254, 242, 242, 0.3);
@@ -1175,27 +1036,27 @@ export const TasksPage: React.FC = () => {
         .task-title {
           display: block;
           font-weight: 600;
-          color: #171717;
+          color: var(--text-primary);
           line-height: 1.3;
         }
         .task-id {
           display: block;
           font-family: monospace;
           font-size: 10px;
-          color: #A3A3A3;
+          color: var(--text-muted);
           margin-top: 2px;
         }
         .zone-cell {
           display: flex;
           align-items: center;
           gap: 6px;
-          color: #737373;
+          color: var(--text-secondary);
         }
         .eta-cell {
           display: flex;
           align-items: center;
           gap: 6px;
-          color: #737373;
+          color: var(--text-secondary);
         }
         .text-danger {
           color: #DC2626 !important;
@@ -1214,24 +1075,28 @@ export const TasksPage: React.FC = () => {
           white-space: nowrap;
         }
         .badge-progress {
-          background: #E5E5E5;
-          color: #171717;
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
         }
         .badge-emergency {
-          background: #FEE2E2;
-          color: #B91C1C;
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.3);
         }
         .badge-disputed {
-          background: #FEF3C7;
-          color: #B45309;
+          background: rgba(245, 158, 11, 0.15);
+          color: #fbbf24;
+          border: 1px solid rgba(245, 158, 11, 0.3);
         }
         .badge-frozen {
-          background: #171717;
-          color: #FFFFFF;
+          background: rgba(147, 51, 234, 0.15);
+          color: #c084fc;
+          border: 1px solid rgba(147, 51, 234, 0.3);
         }
         .badge-completed {
-          background: #DCFCE7;
-          color: #15803D;
+          background: rgba(34, 197, 94, 0.15);
+          color: #4ade80;
+          border: 1px solid rgba(34, 197, 94, 0.3);
         }
 
         /* Actions cell buttons */
@@ -1246,7 +1111,7 @@ export const TasksPage: React.FC = () => {
           border-radius: 4px;
           background: transparent;
           border: none;
-          color: #737373;
+          color: var(--text-secondary);
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -1254,14 +1119,14 @@ export const TasksPage: React.FC = () => {
           transition: background var(--transition-fast), color var(--transition-fast);
         }
         .action-icon-btn:hover {
-          background: #F5F5F5;
-          color: #171717;
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
         }
         .action-icon-btn.active {
           color: #B91C1C;
         }
         .action-icon-btn.active:hover {
-          background: #FEF2F2;
+          background: rgba(239, 68, 68, 0.1);
         }
 
         /* Sync Telemetry Button */
@@ -1280,7 +1145,8 @@ export const TasksPage: React.FC = () => {
           transition: background var(--transition-fast);
         }
         .sync-telemetry-btn:hover {
-          background: #E5E5E5;
+          background: var(--bg-surface);
+          color: var(--text-primary);
         }
 
         /* Mobile task card */
@@ -1291,18 +1157,14 @@ export const TasksPage: React.FC = () => {
           gap: 12px;
         }
         .task-mobile-card {
-          background: #FFFFFF;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 16px;
-          box-shadow: 0px 1px 2px rgba(0,0,0,0.02);
+          box-shadow: var(--shadow-sm);
           display: flex;
           flex-direction: column;
           gap: 12px;
-        }
-        .task-mobile-card.card-emergency {
-          border-color: #FEE2E2;
-          background: rgba(254, 242, 242, 0.2);
         }
         .card-top {
           display: flex;
@@ -1312,13 +1174,13 @@ export const TasksPage: React.FC = () => {
         .mobile-task-title {
           font-size: 13px;
           font-weight: 600;
-          color: #171717;
+          color: var(--text-primary);
           line-height: 1.3;
         }
         .mobile-task-id {
           font-family: monospace;
           font-size: 10px;
-          color: #A3A3A3;
+          color: var(--text-muted);
           margin-top: 1px;
         }
         .card-mid {
@@ -1326,8 +1188,8 @@ export const TasksPage: React.FC = () => {
           flex-direction: column;
           gap: 6px;
           padding: 8px 0;
-          border-top: 1px solid #FAFAFA;
-          border-bottom: 1px solid #FAFAFA;
+          border-top: 1px solid var(--border-color);
+          border-bottom: 1px solid var(--border-color);
         }
         .info-row {
           display: flex;
@@ -1335,10 +1197,10 @@ export const TasksPage: React.FC = () => {
           font-size: 11px;
         }
         .info-label {
-          color: #737373;
+          color: var(--text-secondary);
         }
         .info-value {
-          color: #171717;
+          color: var(--text-primary);
           font-weight: 500;
           display: flex;
           align-items: center;
@@ -1356,17 +1218,17 @@ export const TasksPage: React.FC = () => {
           gap: 4px;
           height: 32px;
           border-radius: 8px;
-          background: #FAFAFA;
-          border: 1px solid #E5E5E5;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           font-size: 11px;
           font-weight: 600;
-          color: #404040;
+          color: var(--text-secondary);
           cursor: pointer;
         }
         .mobile-action-btn-text.active {
-          color: #B91C1C;
-          background: #FEF2F2;
-          border-color: #FEE2E2;
+          color: #ef4444;
+          background: rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.2);
         }
 
         .no-data-cell {
@@ -1378,101 +1240,6 @@ export const TasksPage: React.FC = () => {
           text-align: center;
           color: var(--text-muted);
           padding: 40px 20px;
-        }
-
-
-
-        /* Emergency Alert Banner */
-        .emergency-alert-banner {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: #FEF2F2;
-          border: 1px solid #FEE2E2;
-          border-radius: 16px;
-          padding: 20px;
-          margin-top: 16px;
-          box-sizing: border-box;
-          gap: 16px;
-          text-align: start;
-        }
-        .emergency-alert-left {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex: 1;
-        }
-        .emergency-icon-wrapper {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(239, 68, 68, 0.1);
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
-          color: #B91C1C;
-          flex-shrink: 0;
-        }
-        .emergency-details {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .emergency-title-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .emergency-title {
-          font-size: 14px;
-          font-weight: 700;
-          color: #B91C1C;
-        }
-        .emergency-badge {
-          background: #FEE2E2;
-          color: #B91C1C;
-          font-size: 10px;
-          font-weight: 700;
-          padding: 2px 6px;
-          border-radius: 4px;
-        }
-        .emergency-text {
-          font-size: 12px;
-          color: #DC2626;
-          line-height: 1.4;
-        }
-        .emergency-actions {
-          display: flex;
-          gap: 8px;
-          flex-shrink: 0;
-        }
-        .emergency-btn {
-          height: 48px;
-          padding: 0 16px;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all var(--transition-fast);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .emergency-btn-secondary {
-          background: #FFFFFF;
-          border: 1px solid #FECACA;
-          color: #B91C1C;
-        }
-        .emergency-btn-secondary:hover {
-          background: #FFF5F5;
-        }
-        .emergency-btn-primary {
-          background: #DC2626;
-          border: none;
-          color: #FFFFFF;
-        }
-        .emergency-btn-primary:hover {
-          background: #B91C1C;
         }
 
         /* ── Responsive Viewport Adjustments ── */
@@ -1559,8 +1326,8 @@ export const TasksPage: React.FC = () => {
             padding: 16px 20px !important;
             flex-direction: column !important;
             align-items: stretch !important;
-            background: #FFFFFF;
-            border-top: 1px solid #F5F5F5;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-color);
             gap: 12px !important;
           }
           .filter-tabs {
