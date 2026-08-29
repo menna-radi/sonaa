@@ -7,6 +7,6 @@ export const ENV = {
   API_TIMEOUT:  Number(import.meta.env.VITE_API_TIMEOUT ?? 10_000),
   /** true  → use in-memory mock repositories (development / demo)
    *  false → use real API repositories */
-  USE_MOCK: import.meta.env.VITE_USE_MOCK !== 'false',
+  USE_MOCK: import.meta.env.VITE_USE_MOCK === 'true',
   IS_DEV:   import.meta.env.DEV === true,
 } as const;
