@@ -143,7 +143,7 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <div style={{ position: 'absolute', bottom: '20px', left: '40px', right: '40px', fontSize: '0.75rem', color: '#94a3b8', zIndex: 2 }}>
-          © 2026 Sonaa Operations Portal • Developed by Qatfa Code
+          © 2026 AROX Operations Portal • Developed by Qatfa Code
         </div>
       </div>
 
@@ -159,8 +159,8 @@ export const LoginPage: React.FC = () => {
         <div style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
           {/* Brand header for mobile screens */}
           <div className="mobile-login-logo" style={{ display: 'none', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-lg)' }}>
-            <img src="/sonaa logo.svg" alt="Sonaa Logo" style={{ width: '32px', height: '32px', borderRadius: '6px', flexShrink: 0 }} />
-            <h2 style={{ fontFamily: 'var(--font-title)', fontWeight: 700 }}>Sonaa</h2>
+            <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: '32px', height: '32px', borderRadius: '6px', flexShrink: 0 }} />
+            <h2 style={{ fontFamily: 'var(--font-title)', fontWeight: 700 }}>Arox</h2>
           </div>
 
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
