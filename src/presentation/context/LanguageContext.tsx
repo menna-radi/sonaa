@@ -644,7 +644,12 @@ export const translations: TranslationDict = {
   broadcast_new_broadcast: {
     en: 'New broadcast',
     ar: 'بث جديد',
-    he: 'שידור חדش'
+    he: 'שידור חדש'
+  },
+  broadcast_compose_subtitle: {
+    en: 'Compose your message, choose target channels, and schedule delivery.',
+    ar: 'قم بصياغة رسالتك، واختيار قنوات الإرسال وجدولة موعد التسليم.',
+    he: 'חבר את ההודעה שלך, בחר ערוצי יעד ותזמן מסירה.'
   },
   broadcast_history: {
     en: 'Broadcast history',
@@ -1395,6 +1400,11 @@ export const translations: TranslationDict = {
     en: 'Approve all',
     ar: 'قبول الكل',
     he: 'אשר הכל'
+  },
+  vr_tab_profile_info: {
+    en: 'Profile Info',
+    ar: 'الملف الشخصي',
+    he: 'פרופיל אישי'
   },
   vr_tab_national_id: {
     en: 'National ID',

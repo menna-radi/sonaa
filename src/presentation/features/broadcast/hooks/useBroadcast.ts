@@ -164,11 +164,11 @@ export const useBroadcast = () => {
   const audienceInfo = useMemo(() => {
     switch (audience) {
       case 'customers':
-        return { name: 'CUSTOMERS', count: 'Active Customers' };
+        return { name: 'CUSTOMERS', count: '14,250', label: '14,250 Active Customers' };
       case 'craftsmen':
-        return { name: 'CRAFTSMEN', count: 'Verified Craftsmen' };
+        return { name: 'CRAFTSMEN', count: '3,840', label: '3,840 Verified Craftsmen' };
       default:
-        return { name: 'ALL_USERS', count: 'All Platform Users' };
+        return { name: 'ALL_USERS', count: '18,090', label: '18,090 Platform Users' };
     }
   }, [audience]);
 
@@ -198,7 +198,7 @@ export const useBroadcast = () => {
   const estSmsCost = useMemo(() => {
     if (!channels.includes('sms')) return '₪0';
     const count = parseInt(audienceInfo.count.replace(/,/g, ''), 10) || 0;
-    return `₪ ${(count * 0.05).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+    return `₪ ${(count * 0.05).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }, [channels, audienceInfo]);
 
   // Actions

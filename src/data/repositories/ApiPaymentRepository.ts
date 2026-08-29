@@ -246,15 +246,15 @@ export class ApiPaymentRepository implements PaymentRepository {
       const profile = response.balance?.craftsmanProfile;
       const name = profile ? `${profile.firstName} ${profile.lastName}` : 'Craftsman';
       
-      let mappedStatus: WithdrawalRequest['status'] = 'pending';
-      if (response.status === 'COMPLETED') {
+      let mappedStatus: WithdrawalRequest['status'] = status;
+      if (response.status === 'COMPLETED' || response.status === 'approved') {
         mappedStatus = 'approved';
-      } else if (response.status === 'FAILED') {
+      } else if (response.status === 'FAILED' || response.status === 'rejected') {
         mappedStatus = 'rejected';
       }
       
       return ok({
-        id: response.id,
+        id: response.id || id,
         name,
         bank: response.payoutAccount?.bankName || response.payoutAccount?.type || 'Bank Payout',
         timeAgo: response.createdAt ? new Date(response.createdAt).toLocaleDateString() : 'Recent',

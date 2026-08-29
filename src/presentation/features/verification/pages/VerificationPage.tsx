@@ -290,7 +290,9 @@ const ProfileInfoContent: React.FC<{ submission?: Submission }> = ({ submission 
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Verification Reference ID</span>
-            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>#{submission.verificationId}</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600, fontFamily: 'monospace' }} dir="ltr">
+              {submission.verificationId.startsWith('#') ? submission.verificationId : `#${submission.verificationId}`}
+            </span>
           </div>
         </div>
       </div>
@@ -686,43 +688,25 @@ export const VerificationPage: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              {/* Big Auto Verification Button */}
+              {/* Modernized Auto Verification Toggle */}
               <button
                 onClick={handleToggleAutoVerify}
                 disabled={togglingAutoVerify}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '10px 20px',
-                  borderRadius: '14px',
-                  border: autoVerifyEnabled ? '1.5px solid #86efac' : '1.5px solid #fde68a',
-                  background: autoVerifyEnabled
-                    ? 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)'
-                    : 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-                  color: autoVerifyEnabled ? '#15803d' : '#b45309',
-                  fontWeight: 700,
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                  transition: 'all 0.2s ease',
-                  opacity: togglingAutoVerify ? 0.7 : 1,
-                  fontFamily: 'inherit'
-                }}
+                className={`vr-auto-toggle-btn ${autoVerifyEnabled ? 'enabled' : 'disabled'}`}
+                title="Toggle automatic craftsman approval"
               >
-                <div
-                  style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    background: autoVerifyEnabled ? '#22c55e' : '#f59e0b',
-                    boxShadow: autoVerifyEnabled ? '0 0 8px #22c55e' : '0 0 8px #f59e0b'
-                  }}
-                />
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <span>{autoVerifyEnabled ? '⚡ Auto Verification: ENABLED' : '🔒 Auto Verification: DISABLED'}</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, opacity: 0.85 }}>
-                    {autoVerifyEnabled ? 'Craftsmen auto-approved on submit' : 'Requires manual admin approval'}
+                <div className="vr-toggle-pill-icon">
+                  <div className={`vr-live-dot ${autoVerifyEnabled ? 'active' : ''}`} />
+                </div>
+                <div className="vr-toggle-texts">
+                  <div className="vr-toggle-title">
+                    <span>{autoVerifyEnabled ? 'Auto-Verification' : 'Manual Approval'}</span>
+                    <span className={`vr-status-badge ${autoVerifyEnabled ? 'badge-on' : 'badge-off'}`}>
+                      {autoVerifyEnabled ? 'AUTO' : 'MANUAL'}
+                    </span>
+                  </div>
+                  <span className="vr-toggle-hint">
+                    {autoVerifyEnabled ? 'Auto-approves submissions' : 'Requires admin review'}
                   </span>
                 </div>
               </button>
@@ -998,7 +982,7 @@ export const VerificationPage: React.FC = () => {
                             hasUploadedDoc={selected.isVerifiedId}
                             craftsmanName={selected.name}
                             fields={[
-                              { label: t('vr_doc_type') || 'Document type', value: 'Saudi National ID' },
+                              { label: t('vr_doc_type') || 'Document type', value: 'Jerusalem / Palestinian ID' },
                               { label: 'Craftsman Full Name', value: selected.name },
                               { label: 'Verification Status', value: selected.isVerifiedId ? 'Verified' : 'Pending Upload / Review', valueColor: selected.isVerifiedId ? '#16A34A' : '#D97706' },
                               { label: t('vr_ocr_confidence') || 'OCR confidence', value: selected.isVerifiedId ? '98.4%' : 'N/A', valueColor: selected.isVerifiedId ? '#16A34A' : '#6B7280' },
@@ -1009,7 +993,7 @@ export const VerificationPage: React.FC = () => {
                             hasUploadedDoc={selected.isVerifiedId}
                             craftsmanName={selected.name}
                             fields={[
-                              { label: t('vr_doc_type') || 'Document type', value: 'Saudi National ID' },
+                              { label: t('vr_doc_type') || 'Document type', value: 'Jerusalem / Palestinian ID' },
                               { label: 'Craftsman Full Name', value: selected.name },
                               { label: 'Verification Status', value: selected.isVerifiedId ? 'Verified' : 'Pending Upload / Review', valueColor: selected.isVerifiedId ? '#16A34A' : '#D97706' },
                               { label: t('vr_expiry') || 'Expiry', value: selected.isVerifiedId ? 'Mar 2031' : 'N/A' },
@@ -1094,8 +1078,98 @@ export const VerificationPage: React.FC = () => {
           height: calc(100vh - var(--header-height) - var(--spacing-xl));
           overflow: visible;
         }
-        .vr-page-body .desktop-tablet-page-header {
-          align-items: flex-end !important;
+        /* ── Modern Auto Verification Switch ── */
+        .vr-auto-toggle-btn {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 8px 16px;
+          border-radius: 12px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: var(--shadow-sm);
+          font-family: inherit;
+          text-align: start;
+        }
+
+        .vr-auto-toggle-btn:hover {
+          border-color: var(--color-primary);
+          background: var(--bg-surface-hover);
+          transform: translateY(-1px);
+        }
+
+        .vr-auto-toggle-btn.enabled {
+          border-color: rgba(16, 185, 129, 0.35);
+          background: rgba(16, 185, 129, 0.08);
+        }
+
+        .vr-auto-toggle-btn.disabled {
+          border-color: rgba(245, 158, 11, 0.35);
+          background: rgba(245, 158, 11, 0.08);
+        }
+
+        .vr-toggle-pill-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .vr-live-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #f59e0b;
+          box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+          transition: all 0.2s ease;
+        }
+
+        .vr-live-dot.active {
+          background: #10b981;
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+        }
+
+        .vr-toggle-texts {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .vr-toggle-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+
+        .vr-status-badge {
+          font-size: 9.5px;
+          font-weight: 800;
+          padding: 1px 6px;
+          border-radius: 4px;
+          letter-spacing: 0.5px;
+        }
+
+        .vr-status-badge.badge-on {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+          border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        .vr-status-badge.badge-off {
+          background: rgba(245, 158, 11, 0.2);
+          color: #fbbf24;
+          border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        .vr-toggle-hint {
+          font-size: 11px;
+          color: var(--text-muted);
+          font-weight: 400;
         }
 
         /* ── Face Match Styles ── */
@@ -2328,7 +2402,7 @@ export const VerificationPage: React.FC = () => {
           /* Bottom Actions Row */
           .mobile-card-actions-row {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 8px;
             width: 100%;
             margin-top: 4px;

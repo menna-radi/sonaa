@@ -28,8 +28,8 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
 
   const [showCraftsmen, setShowCraftsmen] = useState(true);
   const [showTasks, setShowTasks] = useState(true);
-  const [showZonesOverlay, setShowZonesOverlay] = useState(true);
-  const [showRoutes, setShowRoutes] = useState(true);
+  const [showZonesOverlay, setShowZonesOverlay] = useState(false);
+  const [showRoutes, setShowRoutes] = useState(false);
 
   // Jerusalem Districts Coordinates
   const districts = [
@@ -92,8 +92,10 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
         attributionControl: false
       }).setView([31.7683, 35.2137], 13); // Centered in Jerusalem, Palestine (القدس)
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
+      // High performance Dark Matter map tiles
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
       }).addTo(map);
 
       const layerGroup = L.layerGroup().addTo(map);
@@ -165,21 +167,15 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
     }
 
     // Render Craftsman Live Path Tracking & Motion Vector Lines when routes layer is active
-    if (showRoutes) {
-      const routes = [
-        {
-          from: [31.8080, 35.2330],
-          to: [31.8260, 35.2260],
-          color: '#10b981',
-          label: '⚡ Live Transit: Ahmad Al-Otaibi → Beit Hanina (1.8 km · 5 min)'
-        },
-        {
-          from: [31.8260, 35.2150],
-          to: [31.7800, 35.2150],
-          color: '#3b82f6',
-          label: '⚡ Live Transit: Yousef H. → Jerusalem Center (4.2 km · 9 min)'
-        }
-      ];
+    if (showRoutes && jobs.length > 0) {
+      const routes = jobs
+        .filter(j => (j.status === 'ACCEPTED' || j.status === 'IN_PROGRESS') && j.lat && j.lng)
+        .map(j => ({
+          from: [31.7683, 35.2137] as [number, number],
+          to: [Number(j.lat), Number(j.lng)] as [number, number],
+          color: j.status === 'IN_PROGRESS' ? '#10b981' : '#3b82f6',
+          label: `⚡ Live Transit: ${j.craftsman} → ${j.zone || 'Jerusalem'}`
+        }));
 
       routes.forEach(r => {
         if (!isValidCoords(r.from) || !isValidCoords(r.to)) return;
@@ -201,7 +197,7 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
       });
     }
 
-    // Build dynamic markers from real/mock jobs list
+    // Build dynamic markers from real jobs list
     const taskMarkers = jobs.map((j, index) => {
       const statusMeta = getStatusColor(j.status);
       const angle = (index + 1) * 1.8;
@@ -224,75 +220,23 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
       };
     });
 
-    const craftsmanMarkers = craftsmen.length > 0 
-      ? craftsmen.map((c, idx) => {
-          const rawLat = Number(c.lat);
-          const rawLng = Number(c.lng);
-          const cLat = !isNaN(rawLat) && rawLat !== 0 ? rawLat : 31.7683;
-          const cLng = !isNaN(rawLng) && rawLng !== 0 ? rawLng : 35.2137;
-          return {
-            id: `craft-${c.id || idx}`,
-            coords: [cLat, cLng] as [number, number],
-            title: `🟣 Online Craftsman — ${c.name}`,
-            desc: `${c.title} · Rating: ${c.rating || 5.0}⭐ · Jerusalem Zone`,
-            color: '#8b5cf6',
-            type: 'Online craftsmen',
-            status: c.isAvailable !== false ? 'ONLINE' : 'BUSY'
-          };
-        })
-      : [
-          {
-            id: 'craft-1',
-            coords: [31.8080, 35.2330] as [number, number],
-            title: '🟣 Online Craftsman — Ahmad Al-Otaibi',
-            desc: 'Electrician & HVAC Tech · Active in Shuafat Zone',
-            color: '#8b5cf6',
-            type: 'Online craftsmen',
-            status: 'ONLINE'
-          },
-          {
-            id: 'craft-2',
-            coords: [31.8260, 35.2150] as [number, number],
-            title: '🟣 Online Craftsman — Yousef H.',
-            desc: 'Master Plumber · Active in Beit Hanina Zone',
-            color: '#8b5cf6',
-            type: 'Online craftsmen',
-            status: 'ONLINE'
-          }
-        ];
+    const craftsmanMarkers = craftsmen.map((c, idx) => {
+      const rawLat = Number(c.lat);
+      const rawLng = Number(c.lng);
+      const cLat = !isNaN(rawLat) && rawLat !== 0 ? rawLat : 31.7683;
+      const cLng = !isNaN(rawLng) && rawLng !== 0 ? rawLng : 35.2137;
+      return {
+        id: `craft-${c.id || idx}`,
+        coords: [cLat, cLng] as [number, number],
+        title: `🟣 Online Craftsman — ${c.name}`,
+        desc: `${c.title} · Rating: ${c.rating || 5.0}⭐ · Jerusalem Zone`,
+        color: '#8b5cf6',
+        type: 'Online craftsmen',
+        status: c.isAvailable !== false ? 'ONLINE' : 'BUSY'
+      };
+    });
 
-    const dynamicJobMarkers = jobs.length > 0 
-      ? [...taskMarkers, ...craftsmanMarkers] 
-      : [
-          {
-            id: 'jobs-in-progress',
-            coords: [31.8260, 35.2260] as [number, number],
-            title: '🟢 Working (In Progress) — Beit Hanina',
-            desc: 'Craftsman active on-site · Plumbing Repair #SN-1021',
-            color: '#10b981',
-            type: 'Active jobs',
-            status: 'IN_PROGRESS'
-          },
-          {
-            id: 'jobs-accepted',
-            coords: [31.7800, 35.2150] as [number, number],
-            title: '🔵 Accepted & En Route — Jerusalem Center',
-            desc: 'Craftsman accepted offer · Electrical Wiring #SN-1024',
-            color: '#3b82f6',
-            type: 'Active jobs',
-            status: 'ACCEPTED'
-          },
-          {
-            id: 'jobs-pending',
-            coords: [31.7767, 35.2345] as [number, number],
-            title: '🟡 New / Unfinished Task — Old City',
-            desc: 'Customer posted job · Awaiting craftsman acceptance #SN-1029',
-            color: '#f59e0b',
-            type: 'Active jobs',
-            status: 'PENDING'
-          },
-          ...craftsmanMarkers
-        ];
+    const dynamicJobMarkers = [...taskMarkers, ...craftsmanMarkers];
 
     // Filter and add high-visibility markers (pane: markerPane at z-index 600 above blue rings)
     dynamicJobMarkers.forEach(marker => {
@@ -699,12 +643,12 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
       </div>
 
       {/* Interactive Map Wrapper */}
-      <div style={{ flex: 1, position: 'relative', minHeight: '320px', display: 'flex' }}>
+      <div style={{ flex: 1, position: 'relative', minHeight: '320px', display: 'flex', background: '#121214' }}>
         {!leafletLoaded && (
           <div style={{
             position: 'absolute',
             inset: 0,
-            background: 'var(--bg-surface-hover)',
+            background: 'var(--bg-surface)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -721,10 +665,33 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
             width: '100%', 
             height: '100%', 
             minHeight: '320px',
-            background: '#f4f4f5',
+            background: '#121214',
             zIndex: 1 
           }} 
         />
+        {jobs.length === 0 && (
+          <div style={{
+            position: 'absolute',
+            bottom: '16px',
+            right: '16px',
+            background: 'rgba(24, 24, 27, 0.85)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid var(--border-color)',
+            padding: '6px 12px',
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            zIndex: 400,
+            fontSize: '0.72rem',
+            color: 'var(--text-secondary)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+            pointerEvents: 'none'
+          }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+            <span>0 Active Tasks · Standing by for dispatches</span>
+          </div>
+        )}
       </div>
 
       {/* Map Status Legend Footer */}

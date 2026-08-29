@@ -743,10 +743,10 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
               <div className="filter-select-wrapper">
                 <div className="filter-button-overlay">
                   <div className="filter-button-overlay-left">
-                    <Filter size={15} style={{ color: '#171717' }} />
+                    <Filter size={15} style={{ color: 'var(--text-secondary)' }} />
                     <span>{selectedPlacement === 'All' ? 'Placement' : selectedPlacement}</span>
                   </div>
-                  <ChevronDown size={14} style={{ color: '#171717' }} />
+                  <ChevronDown size={14} style={{ color: 'var(--text-secondary)' }} />
                 </div>
                 <select
                   value={selectedPlacement}
@@ -767,10 +767,10 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
               <div className="filter-select-wrapper">
                 <div className="filter-button-overlay">
                   <div className="filter-button-overlay-left">
-                    <Filter size={15} style={{ color: '#171717' }} />
+                    <Filter size={15} style={{ color: 'var(--text-secondary)' }} />
                     <span>{selectedCategory === 'All' ? 'Category' : selectedCategory}</span>
                   </div>
-                  <ChevronDown size={14} style={{ color: '#171717' }} />
+                  <ChevronDown size={14} style={{ color: 'var(--text-secondary)' }} />
                 </div>
                 <select
                   value={selectedCategory}
@@ -778,24 +778,23 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                   className="real-select"
                 >
                   <option value="All">All Categories</option>
-                  <option value="AC Repair">AC Repair</option>
                   <option value="Plumbing">Plumbing</option>
-                  <option value="Cleaning">Cleaning</option>
-                  <option value="Moving">Moving</option>
-                  <option value="Electricians">Electricians</option>
+                  <option value="Electricity">Electricity</option>
+                  <option value="Carpentry">Carpentry</option>
                   <option value="Painting">Painting</option>
-                  <option value="Carpenters">Carpenters</option>
-                  <option value="Maintenance">Maintenance</option>
+                  <option value="AC & Heating">AC & Heating</option>
+                  <option value="Cleaning">Cleaning</option>
                 </select>
               </div>
 
-              {/* Sort selector */}
+              {/* Sort By Dropdown */}
               <div className="filter-select-wrapper">
                 <div className="filter-button-overlay">
                   <div className="filter-button-overlay-left">
-                    <ArrowUpDown size={15} style={{ color: '#171717' }} />
+                    <ArrowUpDown size={15} style={{ color: 'var(--text-secondary)' }} />
                     <span>{sortBy === 'default' ? 'Sort' : sortBy === 'name' ? 'Name' : sortBy === 'spend' ? 'Spend' : 'Impressions'}</span>
                   </div>
+                  <ChevronDown size={14} style={{ color: 'var(--text-secondary)' }} />
                 </div>
                 <select
                   value={sortBy}
@@ -845,25 +844,25 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                         </td>
                         <td style={{ textAlign: 'start' }}>
                           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            <div className="campaign-avatar" style={{ background: '#F4F4F5', border: '1px solid #E5E7EB', borderRadius: '8px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <div style={{ width: '20px', height: '12px', background: '#D1D5DB', borderRadius: '2px' }} />
+                            <div className="campaign-avatar" style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: '8px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ width: '20px', height: '12px', background: 'var(--border-color)', borderRadius: '2px' }} />
                             </div>
                             <div style={{ textAlign: 'start' }}>
-                              <div style={{ fontSize: '13px', fontWeight: 600, color: '#171717' }}>{camp.name}</div>
-                              <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>{camp.objective}</div>
+                              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{camp.name}</div>
+                              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{camp.objective}</div>
                             </div>
                           </div>
                         </td>
-                        <td style={{ textAlign: 'start', color: '#6B7280', fontSize: '13px' }}>{camp.placement}</td>
-                        <td style={{ textAlign: 'start', color: '#6B7280', fontSize: '13px' }}>{camp.audience}</td>
+                        <td style={{ textAlign: 'start', color: 'var(--text-secondary)', fontSize: '13px' }}>{camp.placement}</td>
+                        <td style={{ textAlign: 'start', color: 'var(--text-secondary)', fontSize: '13px' }}>{camp.audience}</td>
                         <td style={{ textAlign: 'start' }}>
-                          <div style={{ fontSize: '13px', color: '#171717' }}>{camp.startDate} &rarr; {camp.endDate}</div>
+                          <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{camp.startDate} &rarr; {camp.endDate}</div>
                           {camp.status === 'Scheduled' && camp.startsInDays !== undefined ? (
-                            <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>starts in {camp.startsInDays}d</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>starts in {camp.startsInDays}d</div>
                           ) : camp.status === 'Expired' && camp.endedText !== undefined ? (
-                            <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>{camp.endedText}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{camp.endedText}</div>
                           ) : camp.daysLeft !== undefined ? (
-                            <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>{camp.daysLeft} days left</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{camp.daysLeft} days left</div>
                           ) : null}
                         </td>
                         <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
@@ -936,9 +935,9 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                 </button>
                 <button
                   style={{
-                    border: 'none',
-                    background: '#F4F4F5',
-                    color: '#171717',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-surface-hover)',
+                    color: 'var(--text-primary)',
                     borderRadius: '6px',
                     padding: '7px 12px',
                     fontSize: '13px',
@@ -1086,7 +1085,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
         }
 
         .tab-item-btn:hover {
-          color: #171717 !important;
+          color: var(--text-primary) !important;
         }
 
         /* ── Controls Row ── */

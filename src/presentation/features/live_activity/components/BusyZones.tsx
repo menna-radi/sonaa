@@ -48,44 +48,50 @@ export const BusyZones: React.FC<BusyZonesProps> = ({ zones }) => {
       </div>
 
       {/* 2. Representation of Busy Zones list - Height 102px */}
-      <div className="busy-zones-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '102px', overflow: 'hidden' }}>
-        {zones.slice(0, 3).map((zone, idx) => (
-          <div key={zone.name} style={{ textAlign: 'start' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{
-                  width: '6px', height: '6px',
-                  borderRadius: '50%',
-                  background: ZONE_COLORS[idx] ?? 'var(--text-muted)',
-                  flexShrink: 0,
-                }} />
-                <span className="busy-zone-name" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
-                  {zone.name}
+      {zones.length === 0 ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '102px', color: 'var(--text-muted)', fontSize: '0.75rem', textAlign: 'center' }}>
+          All zones normal · No pending load
+        </div>
+      ) : (
+        <div className="busy-zones-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '102px', overflow: 'hidden' }}>
+          {zones.slice(0, 3).map((zone, idx) => (
+            <div key={zone.name} style={{ textAlign: 'start' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{
+                    width: '6px', height: '6px',
+                    borderRadius: '50%',
+                    background: ZONE_COLORS[idx] ?? 'var(--text-muted)',
+                    flexShrink: 0,
+                  }} />
+                  <span className="busy-zone-name" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
+                    {zone.name}
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  {zone.activeJobs}
                 </span>
               </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                {zone.activeJobs}
-              </span>
-            </div>
 
-            {/* Progress bar */}
-            <div style={{
-              height: '3px',
-              background: 'var(--bg-surface-hover)',
-              borderRadius: '2px',
-              overflow: 'hidden',
-            }}>
+              {/* Progress bar */}
               <div style={{
-                height: '100%',
-                width: `${zone.fillPercentage}%`,
-                background: ZONE_COLORS[idx] ?? '#171717',
+                height: '3px',
+                background: 'var(--bg-surface-hover)',
                 borderRadius: '2px',
-                transition: 'width 0.6s ease',
-              }} />
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%',
+                  width: `${zone.fillPercentage}%`,
+                  background: ZONE_COLORS[idx] ?? '#171717',
+                  borderRadius: '2px',
+                  transition: 'width 0.6s ease',
+                }} />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* 3. Divider - border-top-width: 1px */}
       <div className="busy-zones-divider" style={{ borderTop: '1px solid var(--border-color)', margin: '16px 0' }} />

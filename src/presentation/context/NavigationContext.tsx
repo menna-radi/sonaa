@@ -31,8 +31,9 @@ const VALID_PAGES: PageKey[] = [
 ];
 
 const getInitialPage = (): PageKey => {
-  const hash = window.location.hash.replace('#', '') as PageKey;
-  return VALID_PAGES.includes(hash) ? hash : 'overview';
+  const rawHash = window.location.hash.replace('#', '').trim();
+  const normalizedHash = rawHash.replace(/-/g, '_') as PageKey;
+  return VALID_PAGES.includes(normalizedHash) ? normalizedHash : 'overview';
 };
 
 interface NavigationContextType {
@@ -57,10 +58,11 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Support browser back / forward navigation
   useEffect(() => {
     const onHashChange = () => {
-      const hash = window.location.hash.replace('#', '') as PageKey;
+      const rawHash = window.location.hash.replace('#', '').trim();
+      const normalizedHash = rawHash.replace(/-/g, '_') as PageKey;
       setSearchQuery(''); // Reset search query on page navigation
-      if (VALID_PAGES.includes(hash)) {
-        setCurrentPage(hash);
+      if (VALID_PAGES.includes(normalizedHash)) {
+        setCurrentPage(normalizedHash);
       } else {
         setCurrentPage('overview');
       }

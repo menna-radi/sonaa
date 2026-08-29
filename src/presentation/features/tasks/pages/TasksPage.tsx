@@ -891,7 +891,6 @@ export const TasksPage: React.FC = () => {
           font-size: 24px;
           font-weight: 700;
           color: var(--text-primary);
-        }
           letter-spacing: -0.48px;
         }
         .stat-val.val-danger {

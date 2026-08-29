@@ -349,15 +349,15 @@ export const CreateAdPage: React.FC = () => {
               width: '40px',
               height: '40px',
               borderRadius: '50%',
-              border: '1px solid #E5E7EB',
-              background: '#FFFFFF',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-surface)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: '#171717',
+              color: 'var(--text-primary)',
               transition: 'background-color 0.2s ease, border-color 0.2s ease',
-              boxShadow: '0px 1px 2px rgba(0,0,0,0.05)',
+              boxShadow: 'var(--shadow-sm)',
               padding: 0,
               flexShrink: 0
             }}
@@ -366,10 +366,10 @@ export const CreateAdPage: React.FC = () => {
           </button>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'start' }}>
-            <h1 className="create-ad-title" style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#171717', lineHeight: '1.2' }}>
+            <h1 className="create-ad-title" style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: '1.2' }}>
               Create Advertisement
             </h1>
-            <p className="create-ad-subtitle" style={{ margin: 0, fontSize: '14px', color: '#6B7280' }}>
+            <p className="create-ad-subtitle" style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)' }}>
               Set up a new ad campaign
             </p>
           </div>
@@ -386,15 +386,15 @@ export const CreateAdPage: React.FC = () => {
                 width: '40px',
                 height: '40px',
                 borderRadius: '50%',
-                border: '1px solid #E5E7EB',
-                background: '#FFFFFF',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-surface)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                color: '#171717',
+                color: 'var(--text-primary)',
                 transition: 'background-color 0.2s ease, border-color 0.2s ease',
-                boxShadow: '0px 1px 2px rgba(0,0,0,0.05)',
+                boxShadow: 'var(--shadow-sm)',
                 padding: 0,
                 flexShrink: 0
               }}
@@ -403,10 +403,10 @@ export const CreateAdPage: React.FC = () => {
             </button>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'start' }}>
-              <h1 className="create-ad-title" style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#171717', lineHeight: '1.2' }}>
+              <h1 className="create-ad-title" style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: '1.2' }}>
                 Create Advertisement
               </h1>
-              <p className="create-ad-subtitle" style={{ margin: 0, fontSize: '12px', color: '#6B7280' }}>
+              <p className="create-ad-subtitle" style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>
                 Set up a new ad campaign
               </p>
             </div>
@@ -667,9 +667,9 @@ export const CreateAdPage: React.FC = () => {
                       onChange={(e) => setEndDate(e.target.value)}
                       className="form-text-input icon-padding"
                       style={{ 
-                        backgroundColor: runContinuously ? '#F4F4F5' : '#FFFFFF',
-                        borderColor: runContinuously ? '#E5E7EB' : '#D1D5DB',
-                        color: runContinuously ? '#A1A1AA' : '#171717',
+                        backgroundColor: runContinuously ? 'var(--bg-surface-hover)' : 'var(--bg-base)',
+                        borderColor: 'var(--border-color)',
+                        color: runContinuously ? 'var(--text-muted)' : 'var(--text-primary)',
                         cursor: runContinuously ? 'not-allowed' : 'text'
                       }}
                     />
@@ -940,13 +940,13 @@ export const CreateAdPage: React.FC = () => {
           .create-ad-title {
             font-size: 24px;
             font-weight: 700;
-            color: #171717;
+            color: var(--text-primary);
             margin: 0 0 4px 0;
           }
 
           .create-ad-subtitle {
             font-size: 14px;
-            color: #6B7280;
+            color: var(--text-muted);
             margin: 0;
           }
 
@@ -956,7 +956,7 @@ export const CreateAdPage: React.FC = () => {
             gap: 8px;
             background: none;
             border: none;
-            color: #6B7280;
+            color: var(--text-muted);
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
@@ -965,7 +965,7 @@ export const CreateAdPage: React.FC = () => {
           }
 
           .back-nav-btn:hover {
-            color: #171717;
+            color: var(--text-primary);
           }
 
           .create-ad-layout {
@@ -984,24 +984,25 @@ export const CreateAdPage: React.FC = () => {
 
           /* Cards styling */
           .form-card {
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
             padding: 24px;
             margin-bottom: 24px;
             box-sizing: border-box;
+            box-shadow: var(--shadow-sm);
           }
 
           .form-card-title {
             font-size: 16px;
             font-weight: 600;
-            color: #171717;
+            color: var(--text-primary);
             margin: 0 0 4px 0;
           }
 
           .form-card-subtitle {
             font-size: 13px;
-            color: #6B7280;
+            color: var(--text-muted);
             margin: 0 0 20px 0;
           }
 
@@ -1037,48 +1038,49 @@ export const CreateAdPage: React.FC = () => {
           .form-label-styled {
             font-size: 13px;
             font-weight: 500;
-            color: #171717;
+            color: var(--text-primary);
           }
 
           .disabled-label {
-            color: #A1A1AA;
+            color: var(--text-muted);
           }
 
           .form-text-input {
             width: 100%;
             box-sizing: border-box;
-            border: 1px solid #D1D5DB;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 10px 14px;
             font-size: 13px;
-            color: #171717;
+            color: var(--text-primary);
             outline: none;
-            background: #FFFFFF;
+            background: var(--bg-base);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
           }
 
           .form-text-input:focus {
-            border-color: #171717;
-            box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.05);
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
           }
 
           .form-textarea-input {
             width: 100%;
             box-sizing: border-box;
-            border: 1px solid #D1D5DB;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 10px 14px;
             font-size: 13px;
-            color: #171717;
+            color: var(--text-primary);
             outline: none;
             resize: vertical;
             font-family: inherit;
+            background: var(--bg-base);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
           }
 
           .form-textarea-input:focus {
-            border-color: #171717;
-            box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.05);
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
           }
 
           .input-with-icon {
@@ -1091,24 +1093,34 @@ export const CreateAdPage: React.FC = () => {
             left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: #6B7280;
+            color: var(--text-muted);
             pointer-events: none;
           }
 
+          [dir="rtl"] .input-icon {
+            left: auto;
+            right: 12px;
+          }
+
           .disabled-icon {
-            color: #D1D5DB;
+            color: var(--border-color);
           }
 
           .icon-padding {
             padding-left: 36px;
           }
 
+          [dir="rtl"] .icon-padding {
+            padding-left: 14px;
+            padding-right: 36px;
+          }
+
           /* Dropzone image styling */
           .image-dropzone {
             width: 100%;
-            border: 2px dashed #E5E7EB;
+            border: 2px dashed var(--border-color);
             border-radius: 12px;
-            background: #FAFAFA;
+            background: var(--bg-base);
             box-sizing: border-box;
             transition: border-color 0.2s ease, background 0.2s ease;
             cursor: pointer;
@@ -1116,8 +1128,8 @@ export const CreateAdPage: React.FC = () => {
           }
 
           .image-dropzone:hover {
-            border-color: #A1A1AA;
-            background: #F4F4F5;
+            border-color: var(--color-primary);
+            background: var(--bg-surface-hover);
           }
 
           .hidden-file-input {
@@ -1137,20 +1149,20 @@ export const CreateAdPage: React.FC = () => {
           }
 
           .upload-icon {
-            color: #9CA3AF;
+            color: var(--text-muted);
             margin-bottom: 12px;
           }
 
           .upload-primary-text {
             font-size: 13px;
             font-weight: 500;
-            color: #171717;
+            color: var(--text-primary);
             margin-bottom: 4px;
           }
 
           .upload-sub-text {
             font-size: 11px;
-            color: #6B7280;
+            color: var(--text-muted);
             text-align: center;
           }
 
@@ -1171,7 +1183,7 @@ export const CreateAdPage: React.FC = () => {
           .dropzone-preview-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.6);
             color: #FFFFFF;
             display: flex;
             flex-direction: column;
@@ -1201,14 +1213,14 @@ export const CreateAdPage: React.FC = () => {
             width: 16px;
             height: 16px;
             border-radius: 4px;
-            border: 1px solid #D1D5DB;
+            border: 1px solid var(--border-color);
             cursor: pointer;
-            accent-color: #171717;
+            accent-color: var(--color-primary);
           }
 
           .checkbox-label {
             font-size: 13px;
-            color: #171717;
+            color: var(--text-primary);
           }
 
           /* Radio Buttons */
@@ -1229,12 +1241,12 @@ export const CreateAdPage: React.FC = () => {
             width: 16px;
             height: 16px;
             cursor: pointer;
-            accent-color: #171717;
+            accent-color: var(--color-primary);
           }
 
           .radio-text {
             font-size: 13px;
-            color: #171717;
+            color: var(--text-primary);
           }
 
           /* Tag clouds / buttons selection */
@@ -1245,34 +1257,36 @@ export const CreateAdPage: React.FC = () => {
           }
 
           .tag-btn {
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 6px 12px;
             font-size: 13px;
-            color: #171717;
+            color: var(--text-secondary);
             font-weight: 500;
             cursor: pointer;
             box-sizing: border-box;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
           }
 
           .tag-btn:hover {
-            border-color: #A1A1AA;
+            border-color: var(--color-primary);
+            color: var(--text-primary);
           }
 
           .tag-btn.selected {
-            background: #F4F4F5;
-            border-color: #171717;
-            color: #171717;
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: #FFFFFF;
+            box-shadow: 0 1px 4px rgba(37, 99, 235, 0.4);
           }
 
           /* Cities selection layout */
           .cities-box {
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             padding: 16px;
-            background: #FAFAFA;
+            background: var(--bg-base);
             box-sizing: border-box;
             margin-top: 12px;
           }
@@ -1283,14 +1297,14 @@ export const CreateAdPage: React.FC = () => {
             gap: 8px;
             min-height: 33px;
             align-items: center;
-            border-bottom: 1px solid #E5E7EB;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 12px;
             margin-bottom: 12px;
           }
 
           .no-cities-placeholder {
             font-size: 12px;
-            color: #9CA3AF;
+            color: var(--text-muted);
             font-style: italic;
           }
 
@@ -1298,13 +1312,13 @@ export const CreateAdPage: React.FC = () => {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 4px 8px;
             font-size: 12px;
             font-weight: 500;
-            color: #171717;
+            color: var(--text-primary);
           }
 
           .city-pill-close {
@@ -1312,7 +1326,7 @@ export const CreateAdPage: React.FC = () => {
             border: none;
             font-size: 16px;
             line-height: 1;
-            color: #9CA3AF;
+            color: var(--text-muted);
             cursor: pointer;
             padding: 0;
             display: flex;
@@ -1320,7 +1334,7 @@ export const CreateAdPage: React.FC = () => {
           }
 
           .city-pill-close:hover {
-            color: #DC2626;
+            color: #f87171;
           }
 
           .available-cities-grid {
@@ -1330,28 +1344,28 @@ export const CreateAdPage: React.FC = () => {
           }
 
           .city-select-btn {
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 6px;
             font-size: 12px;
             font-weight: 500;
-            color: #6B7280;
+            color: var(--text-secondary);
             cursor: pointer;
             box-sizing: border-box;
             text-align: center;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
           }
 
           .city-select-btn:hover {
-            border-color: #D1D5DB;
-            color: #171717;
+            border-color: var(--color-primary);
+            color: var(--text-primary);
           }
 
           .city-select-btn.selected {
-            background: #F4F4F5;
-            border-color: #171717;
-            color: #171717;
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: #FFFFFF;
           }
 
           /* Placement layout */
@@ -1371,44 +1385,44 @@ export const CreateAdPage: React.FC = () => {
             display: flex;
             align-items: center;
             gap: 10px;
-            border: 1px solid #E5E7EB;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 12px;
             cursor: pointer;
             box-sizing: border-box;
-            background: #FFFFFF;
-            transition: all 0.2s ease;
+            background: var(--bg-surface);
+            transition: all 0.15s ease;
           }
 
           .placement-item:hover {
-            border-color: #D1D5DB;
+            border-color: var(--color-primary);
           }
 
           .placement-item.selected {
-            border-color: #171717;
-            background: #FAFAFA;
+            border-color: var(--color-primary);
+            background: var(--bg-surface-hover);
           }
 
           .placement-radio {
             width: 16px;
             height: 16px;
-            border: 1px solid #D1D5DB;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
           }
 
           .placement-radio.checked {
-            background: #171717;
-            border-color: #171717;
+            background: var(--color-primary);
+            border-color: var(--color-primary);
           }
 
           .placement-label-text {
             font-size: 13px;
             font-weight: 500;
-            color: #171717;
+            color: var(--text-primary);
           }
 
           /* Form Actions */
@@ -1417,38 +1431,40 @@ export const CreateAdPage: React.FC = () => {
             justify-content: flex-end;
             gap: 12px;
             padding: 16px 0;
-            border-top: 1px solid #E5E7EB;
+            border-top: 1px solid var(--border-color);
           }
 
           .btn-cancel {
-            background: none;
-            border: none;
-            color: #6B7280;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             padding: 8px 16px;
-            transition: color 0.2s ease;
+            transition: all 0.15s ease;
           }
 
           .btn-cancel:hover {
-            color: #171717;
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
           }
 
           .btn-launch {
-            background: #171717;
+            background: var(--color-primary);
             border: none;
             color: #FFFFFF;
             border-radius: 8px;
             padding: 10px 20px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: opacity 0.2s ease;
           }
 
           .btn-launch:hover {
-            background: #000000;
+            opacity: 0.9;
           }
 
           /* Success Toast */
@@ -1456,18 +1472,18 @@ export const CreateAdPage: React.FC = () => {
             position: fixed;
             top: 24px;
             right: 24px;
-            background: #FFFFFF;
+            background: var(--bg-surface);
             border: 1px solid #10B981;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 16px;
             display: flex;
             align-items: center;
             gap: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow-lg);
             z-index: 1000;
             font-size: 13px;
             font-weight: 500;
-            color: #1F2937;
+            color: var(--text-primary);
             animation: slideInRight 0.3s ease;
           }
 
@@ -1500,7 +1516,7 @@ export const CreateAdPage: React.FC = () => {
           .preview-section-title {
             font-size: 14px;
             font-weight: 600;
-            color: #171717;
+            color: var(--text-primary);
             margin: 0;
           }
 
@@ -1509,10 +1525,10 @@ export const CreateAdPage: React.FC = () => {
             width: 100%;
             max-width: 320px;
             height: 520px;
-            border: 12px solid #171717;
+            border: 10px solid var(--border-color);
             border-radius: 36px;
-            background: #F4F4F5;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            background: var(--bg-base);
+            box-shadow: var(--shadow-lg);
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -1521,8 +1537,8 @@ export const CreateAdPage: React.FC = () => {
           }
 
           .mobile-header {
-            background: #FFFFFF;
-            border-bottom: 1px solid #E5E7EB;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
             height: 48px;
             display: flex;
             align-items: center;
@@ -1533,7 +1549,7 @@ export const CreateAdPage: React.FC = () => {
           .mobile-header-title {
             font-size: 14px;
             font-weight: 600;
-            color: #171717;
+            color: var(--text-primary);
           }
 
           .mobile-body {
@@ -1547,11 +1563,11 @@ export const CreateAdPage: React.FC = () => {
 
           /* Mock ad card in mobile screen */
           .preview-card {
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: var(--shadow-sm);
             display: flex;
             flex-direction: column;
             width: 100%;
@@ -1562,13 +1578,13 @@ export const CreateAdPage: React.FC = () => {
             width: 100%;
             height: 110px;
             object-fit: cover;
-            background: #F4F4F5;
+            background: var(--bg-surface-hover);
           }
 
           .preview-card-img-placeholder {
             width: 100%;
             height: 110px;
-            background: #F4F4F5;
+            background: var(--bg-surface-hover);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1582,11 +1598,12 @@ export const CreateAdPage: React.FC = () => {
           }
 
           .ad-badge {
-            background: #E5E7EB;
-            color: #1F2937;
+            background: var(--bg-surface-hover);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
             font-size: 9px;
             font-weight: 600;
-            padding: 2px 4px;
+            padding: 2px 6px;
             border-radius: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -1597,7 +1614,7 @@ export const CreateAdPage: React.FC = () => {
           .preview-card-title-text {
             font-size: 13px;
             font-weight: 600;
-            color: #171717;
+            color: var(--text-primary);
             margin: 0;
             line-height: 1.3;
             word-break: break-word;
@@ -1606,7 +1623,7 @@ export const CreateAdPage: React.FC = () => {
 
           .preview-card-desc-text {
             font-size: 11px;
-            color: #6B7280;
+            color: var(--text-muted);
             margin: 0 0 10px 0;
             line-height: 1.4;
             word-break: break-word;
@@ -1614,7 +1631,7 @@ export const CreateAdPage: React.FC = () => {
 
           .preview-card-cta-btn {
             width: 100%;
-            background: #171717;
+            background: var(--color-primary);
             border: none;
             color: #FFFFFF;
             border-radius: 6px;
@@ -1628,20 +1645,20 @@ export const CreateAdPage: React.FC = () => {
 
           .dummy-mobile-item {
             height: 72px;
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             opacity: 0.6;
           }
 
           /* Reach Panel */
           .reach-panel {
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 18px;
             box-sizing: border-box;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            box-shadow: var(--shadow-sm);
           }
 
           .reach-header {
@@ -1654,7 +1671,7 @@ export const CreateAdPage: React.FC = () => {
           .reach-title {
             font-size: 12px;
             font-weight: 600;
-            color: #6B7280;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
           }
@@ -1669,19 +1686,19 @@ export const CreateAdPage: React.FC = () => {
           .reach-number {
             font-size: 32px;
             font-weight: 700;
-            color: #171717;
+            color: var(--text-primary);
             line-height: 1;
           }
 
           .reach-label {
             font-size: 13px;
-            color: #6B7280;
+            color: var(--text-muted);
             font-weight: 500;
           }
 
           .reach-description {
             font-size: 12px;
-            color: #6B7280;
+            color: var(--text-muted);
             margin: 0;
             line-height: 1.5;
           }
@@ -1690,7 +1707,7 @@ export const CreateAdPage: React.FC = () => {
           .creative-link-section {
             margin-top: 24px;
             padding-top: 24px;
-            border-top: 1px solid #E5E7EB;
+            border-top: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -1707,16 +1724,16 @@ export const CreateAdPage: React.FC = () => {
           .link-section-title {
             font-size: 14px;
             font-weight: 600;
-            color: #171717;
+            color: var(--text-primary);
           }
 
           .link-type-toggle {
             display: flex;
             gap: 8px;
-            background: #F4F4F5;
+            background: var(--bg-base);
             padding: 4px;
             border-radius: 8px;
-            border: 1px solid #E5E7EB;
+            border: 1px solid var(--border-color);
           }
 
           .link-type-btn {
@@ -1731,19 +1748,19 @@ export const CreateAdPage: React.FC = () => {
             padding: 8px 12px;
             font-size: 13px;
             font-weight: 500;
-            color: #6B7280;
+            color: var(--text-muted);
             cursor: pointer;
             transition: all 0.2s ease;
           }
 
           .link-type-btn:hover {
-            color: #171717;
+            color: var(--text-primary);
           }
 
           .link-type-btn.active {
-            background: #FFFFFF;
-            color: #171717;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
             font-weight: 600;
           }
 
@@ -1757,28 +1774,29 @@ export const CreateAdPage: React.FC = () => {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #FFFFFF;
-            border: 1px solid #D1D5DB;
+            background: var(--bg-base);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 10px 14px;
             font-size: 13px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: start;
+            color: var(--text-primary);
           }
 
           .entity-dropdown-trigger:focus {
-            border-color: #171717;
-            box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.05);
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
             outline: none;
           }
 
           .entity-trigger-placeholder {
-            color: #9CA3AF;
+            color: var(--text-muted);
           }
 
           .entity-chevron {
-            color: #6B7280;
+            color: var(--text-muted);
             transition: transform 0.2s ease;
           }
 
@@ -1790,8 +1808,8 @@ export const CreateAdPage: React.FC = () => {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #F4F4F5;
-            border: 1px solid #E5E7EB;
+            background: var(--bg-surface-hover);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 8px 12px;
             width: 100%;
@@ -1807,7 +1825,7 @@ export const CreateAdPage: React.FC = () => {
           .entity-pill-text {
             font-size: 13px;
             font-weight: 500;
-            color: #171717;
+            color: var(--text-primary);
             flex: 1;
             white-space: nowrap;
             overflow: hidden;
@@ -1818,7 +1836,7 @@ export const CreateAdPage: React.FC = () => {
           .entity-pill-clear {
             background: none;
             border: none;
-            color: #9CA3AF;
+            color: var(--text-muted);
             cursor: pointer;
             padding: 2px;
             border-radius: 4px;
@@ -1829,8 +1847,8 @@ export const CreateAdPage: React.FC = () => {
           }
 
           .entity-pill-clear:hover {
-            background: #E5E7EB;
-            color: #171717;
+            background: var(--bg-surface);
+            color: var(--text-primary);
           }
 
           .entity-dropdown-panel {
@@ -1838,10 +1856,10 @@ export const CreateAdPage: React.FC = () => {
             top: calc(100% + 4px);
             left: 0;
             right: 0;
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: var(--shadow-lg);
             z-index: 50;
             overflow: hidden;
             display: flex;
@@ -1854,12 +1872,12 @@ export const CreateAdPage: React.FC = () => {
             align-items: center;
             gap: 8px;
             padding: 8px 12px;
-            border-bottom: 1px solid #E5E7EB;
-            background: #FAFAFA;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-surface-hover);
           }
 
           .entity-search-icon {
-            color: #9CA3AF;
+            color: var(--text-muted);
           }
 
           .entity-search-input {
@@ -1867,7 +1885,7 @@ export const CreateAdPage: React.FC = () => {
             border: none;
             background: transparent;
             font-size: 13px;
-            color: #171717;
+            color: var(--text-primary);
             outline: none;
             padding: 4px 0;
           }
@@ -1888,26 +1906,28 @@ export const CreateAdPage: React.FC = () => {
             border: none;
             cursor: pointer;
             text-align: start;
+            color: var(--text-primary);
             transition: background 0.15s ease;
           }
 
           .entity-option:hover {
-            background: #F4F4F5;
+            background: var(--bg-surface-hover);
           }
 
           .entity-option.selected {
-            background: #FAFAFA;
+            background: var(--bg-surface-hover);
+            font-weight: 600;
           }
 
           .entity-option-icon {
-            color: #9CA3AF;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
           }
 
           .entity-option-label {
             font-size: 13px;
-            color: #171717;
+            color: var(--text-primary);
             flex: 1;
             white-space: nowrap;
             overflow: hidden;
@@ -1918,7 +1938,7 @@ export const CreateAdPage: React.FC = () => {
           .entity-no-results {
             padding: 16px;
             text-align: center;
-            color: #9CA3AF;
+            color: var(--text-muted);
             font-size: 13px;
           }
 
@@ -1977,13 +1997,13 @@ export const CreateAdPage: React.FC = () => {
             .mobile-tab-btn {
               flex: 1;
               min-width: 80px;
-              background: #F4F4F5;
-              border: 1px solid #E5E7EB;
+              background: var(--bg-surface);
+              border: 1px solid var(--border-color);
               border-radius: 8px;
               padding: 8px 12px;
               font-size: 13px;
               font-weight: 500;
-              color: #6B7280;
+              color: var(--text-muted);
               cursor: pointer;
               white-space: nowrap;
               transition: all 0.2s ease;
@@ -1991,8 +2011,8 @@ export const CreateAdPage: React.FC = () => {
             }
 
             .mobile-tab-btn.active {
-              background: #171717;
-              border-color: #171717;
+              background: var(--color-primary);
+              border-color: var(--color-primary);
               color: #FFFFFF;
               font-weight: 600;
             }

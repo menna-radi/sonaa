@@ -293,10 +293,10 @@ export const AdAnalyticsPage: React.FC = () => {
         {/* Desktop & Tablet Top Action Header */}
         <div className="desktop-tablet-page-header desktop-tablet-only">
           <div style={{ textAlign: 'start' }}>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600, letterSpacing: '-0.7px', color: '#171717' }}>
+            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600, letterSpacing: '-0.7px', color: 'var(--text-primary)' }}>
               {t('ad_analytics_page_title') || 'Advertisement Analytics'}
             </h1>
-            <p style={{ margin: '4px 0 0 0', color: '#71717A', fontSize: '14px' }}>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '14px' }}>
               {t('ad_analytics_page_subtitle') || 'Deep performance insights across all campaigns'}
             </p>
           </div>
@@ -452,11 +452,11 @@ export const AdAnalyticsPage: React.FC = () => {
                 {activeMetrics.map((metric) => {
                   const pts = getPointsForMetric(metric);
                   const pathD = getBezierPath(pts);
-                  // Color codes: impressions=solid black, clicks=solid dark gray, others=gray variants
-                  const strokeColor = metric === 'impressions' ? '#171717' : 
-                                      metric === 'clicks' ? '#737373' : 
-                                      metric === 'ctr' ? '#A3A3A3' : 
-                                      metric === 'conversions' ? '#525252' : '#D4D4D4';
+                  // Color codes for high contrast chart visualization in dark mode
+                  const strokeColor = metric === 'impressions' ? '#3b82f6' : 
+                                      metric === 'clicks' ? '#10b981' : 
+                                      metric === 'ctr' ? '#f59e0b' : 
+                                      metric === 'conversions' ? '#8b5cf6' : '#ec4899';
                   
                   return (
                     <g key={metric}>
@@ -613,7 +613,7 @@ export const AdAnalyticsPage: React.FC = () => {
                         className="progress-bar-fill" 
                         style={{ 
                           width: item.width, 
-                          backgroundColor: item.active ? '#171717' : '#737373' 
+                          backgroundColor: item.active ? 'var(--color-primary)' : 'var(--text-muted)' 
                         }} 
                       />
                     </div>
@@ -637,7 +637,7 @@ export const AdAnalyticsPage: React.FC = () => {
                         className="progress-bar-fill" 
                         style={{ 
                           width: item.width, 
-                          backgroundColor: item.active ? '#171717' : '#737373' 
+                          backgroundColor: item.active ? 'var(--color-primary)' : 'var(--text-muted)' 
                         }} 
                       />
                     </div>
@@ -661,7 +661,7 @@ export const AdAnalyticsPage: React.FC = () => {
                         className="progress-bar-fill" 
                         style={{ 
                           width: item.width, 
-                          backgroundColor: item.active ? '#171717' : '#737373' 
+                          backgroundColor: item.active ? 'var(--color-primary)' : 'var(--text-muted)' 
                         }} 
                       />
                     </div>
@@ -772,14 +772,14 @@ export const AdAnalyticsPage: React.FC = () => {
         .page-title {
           font-size: 28px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0 0 4px 0;
           text-align: start;
         }
 
         .page-subtitle {
           font-size: 14px;
-          color: #71717A;
+          color: var(--text-muted);
           margin: 0;
           text-align: start;
         }
@@ -794,51 +794,53 @@ export const AdAnalyticsPage: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 8px;
-          background: #FFFFFF;
-          border: 1px solid #E5E7EB;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           padding: 8px 16px;
           border-radius: 8px;
           font-size: 13px;
           font-weight: 500;
-          color: #171717;
+          color: var(--text-primary);
           cursor: pointer;
-          transition: background 0.15s, border-color 0.15s;
+          transition: all 0.15s ease;
         }
 
         .select-filter-btn:hover {
-          background: #F4F4F5;
+          background: var(--bg-surface-hover);
         }
 
         .control-chevron {
-          color: #71717A;
+          color: var(--text-muted);
         }
 
         .export-download-btn {
           display: flex;
           align-items: center;
           gap: 6px;
-          background: #FFFFFF;
-          border: 1px solid #E5E7EB;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           padding: 8px 16px;
           border-radius: 8px;
           font-size: 13px;
           font-weight: 500;
-          color: #171717;
+          color: var(--text-primary);
           cursor: pointer;
-          transition: background 0.15s;
+          transition: all 0.15s ease;
         }
 
         .export-download-btn:hover {
-          background: #F4F4F5;
+          background: var(--bg-surface-hover);
+          border-color: var(--color-primary);
+          color: var(--color-primary);
         }
 
         /* ── Glass Cards Style ── */
         .glass-card {
-          background: #FFFFFF;
-          border: 1px solid #E5E7EB;
-          border-radius: 12px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
           padding: 24px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+          box-shadow: var(--shadow-sm);
           box-sizing: border-box;
         }
 
@@ -857,12 +859,12 @@ export const AdAnalyticsPage: React.FC = () => {
         }
 
         .stat-metric-card:hover {
-          border-color: #A3A3A3;
+          border-color: var(--color-primary);
         }
 
         .stat-metric-card.active-outline {
-          border-color: #171717;
-          box-shadow: 0 0 0 1px #171717;
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 1px var(--color-primary), 0 0 12px rgba(37, 99, 235, 0.2);
         }
 
         .stat-metric-card .card-header {
@@ -875,25 +877,27 @@ export const AdAnalyticsPage: React.FC = () => {
         .stat-icon-container {
           width: 36px;
           height: 36px;
-          background: #F4F4F5;
-          border: 1px solid #E5E7EB;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .trend-green {
           font-size: 12px;
           font-weight: 700;
-          color: #16A34A;
+          color: #4ade80;
         }
 
         .stat-label {
-          font-size: 13px;
-          color: #71717A;
-          font-weight: 500;
+          font-size: 12px;
+          color: var(--text-secondary);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
           display: block;
           margin-bottom: 4px;
         }
@@ -901,7 +905,8 @@ export const AdAnalyticsPage: React.FC = () => {
         .stat-value {
           font-size: 24px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
+          letter-spacing: -0.4px;
         }
 
         /* ── Performance Trends Chart ── */
@@ -923,39 +928,42 @@ export const AdAnalyticsPage: React.FC = () => {
           margin: 0 0 4px 0;
           font-size: 18px;
           font-weight: 700;
+          color: var(--text-primary);
         }
 
         .chart-title-block span {
           font-size: 13px;
-          color: #71717A;
+          color: var(--text-muted);
         }
 
         .chart-metric-selector-pills {
           display: flex;
           gap: 8px;
-          background: #FFFFFF;
+          background: transparent;
         }
 
         .pill-btn {
-          border: 1px solid #E5E7EB;
-          background: #FFFFFF;
-          color: #71717A;
+          border: 1px solid var(--border-color);
+          background: var(--bg-base);
+          color: var(--text-secondary);
           font-size: 12px;
           font-weight: 600;
           padding: 6px 14px;
           border-radius: 20px;
           cursor: pointer;
-          transition: background 0.15s, color 0.15s, border-color 0.15s;
+          transition: all 0.15s ease;
         }
 
         .pill-btn:hover {
-          border-color: #A3A3A3;
+          border-color: var(--color-primary);
+          color: var(--text-primary);
         }
 
         .pill-btn.active {
-          background: #171717;
-          border-color: #171717;
+          background: var(--color-primary);
+          border-color: var(--color-primary);
           color: #FFFFFF;
+          box-shadow: 0 1px 4px rgba(37, 99, 235, 0.4);
         }
 
         .svg-chart-container {
@@ -971,7 +979,7 @@ export const AdAnalyticsPage: React.FC = () => {
         }
 
         .grid-dashed-line {
-          stroke: #E5E7EB;
+          stroke: var(--border-color);
           stroke-width: 1;
           stroke-dasharray: 4, 4;
         }
@@ -993,7 +1001,7 @@ export const AdAnalyticsPage: React.FC = () => {
           padding: 0 40px;
           font-size: 12px;
           font-weight: 600;
-          color: #71717A;
+          color: var(--text-muted);
           margin-top: 8px;
         }
 
@@ -1020,11 +1028,12 @@ export const AdAnalyticsPage: React.FC = () => {
           margin: 0 0 4px 0;
           font-size: 18px;
           font-weight: 700;
+          color: var(--text-primary);
         }
 
         .card-header-block span {
           font-size: 13px;
-          color: #71717A;
+          color: var(--text-muted);
           display: block;
           margin-bottom: 24px;
         }
@@ -1047,18 +1056,19 @@ export const AdAnalyticsPage: React.FC = () => {
           display: flex;
           justify-content: space-between;
           font-size: 13px;
-          color: #171717;
+          color: var(--text-primary);
           font-weight: 600;
         }
 
         .step-raw-val {
-          color: #71717A;
+          color: var(--text-muted);
         }
 
         .step-bar-bg {
           height: 36px;
-          background: #F4F4F5;
-          border-radius: 6px;
+          background: var(--bg-base);
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
           overflow: hidden;
           position: relative;
         }
@@ -1071,14 +1081,14 @@ export const AdAnalyticsPage: React.FC = () => {
           font-size: 12px;
           font-weight: 700;
           color: #FFFFFF;
-          border-radius: 6px;
+          border-radius: 7px;
           box-sizing: border-box;
           transition: width 0.3s ease;
         }
 
-        .step-1-fill { background: #171717; }
-        .step-2-fill { background: #27272A; }
-        .step-3-fill { background: #525252; }
+        .step-1-fill { background: var(--color-primary); }
+        .step-2-fill { background: #6366f1; }
+        .step-3-fill { background: #8b5cf6; }
 
         [dir="rtl"] .step-bar-fill {
           padding-left: 0;
@@ -1088,7 +1098,7 @@ export const AdAnalyticsPage: React.FC = () => {
 
         .funnel-arrow-indicator {
           font-size: 14px;
-          color: #9CA3AF;
+          color: var(--text-muted);
           text-align: start;
           padding-left: 20px;
           margin: 2px 0;
@@ -1118,11 +1128,12 @@ export const AdAnalyticsPage: React.FC = () => {
           margin: 0 0 4px 0;
           font-size: 18px;
           font-weight: 700;
+          color: var(--text-primary);
         }
 
         .table-header-block span {
           font-size: 13px;
-          color: #71717A;
+          color: var(--text-muted);
         }
 
         .table-search-box {
@@ -1134,13 +1145,14 @@ export const AdAnalyticsPage: React.FC = () => {
           width: 100%;
           height: 36px;
           border-radius: 8px;
-          border: 1px solid #D1D5DB;
+          border: 1px solid var(--border-color);
           padding-left: 36px;
           padding-right: 12px;
           font-size: 13px;
           outline: none;
           box-sizing: border-box;
-          background: #FAFAFA;
+          background: var(--bg-base);
+          color: var(--text-primary);
         }
 
         [dir="rtl"] .table-search-box input {
@@ -1153,7 +1165,7 @@ export const AdAnalyticsPage: React.FC = () => {
           top: 50%;
           left: 12px;
           transform: translateY(-50%);
-          color: #9CA3AF;
+          color: var(--text-muted);
         }
 
         [dir="rtl"] .table-search-box .search-icon {
@@ -1173,11 +1185,13 @@ export const AdAnalyticsPage: React.FC = () => {
         }
 
         .analytics-table th {
-          font-size: 13px;
+          font-size: 11px;
           font-weight: 600;
-          color: #71717A;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
           padding: 12px;
-          border-bottom: 1px solid #E5E7EB;
+          border-bottom: 1px solid var(--border-color);
         }
 
         .analytics-table th.sortable {
@@ -1186,33 +1200,33 @@ export const AdAnalyticsPage: React.FC = () => {
         }
 
         .analytics-table th.sortable:hover {
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .analytics-table td {
           padding: 14px 12px;
           font-size: 13px;
-          color: #171717;
-          border-bottom: 1px solid #F4F4F5;
+          color: var(--text-primary);
+          border-bottom: 1px solid var(--border-color);
         }
 
         .analytics-table tr:hover td {
-          background: #FAFAFA;
+          background: var(--bg-surface-hover);
         }
 
         .text-start { text-align: start; }
         .text-end { text-align: end; }
-        .text-muted { color: #71717A; }
-        .bold-revenue { font-weight: 600; }
+        .text-muted { color: var(--text-muted); }
+        .bold-revenue { font-weight: 600; color: var(--text-primary); }
 
         .analytics-table .campaign-name {
           font-weight: 600;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .analytics-table .empty-row {
           text-align: center;
-          color: #9CA3AF;
+          color: var(--text-muted);
           padding: 32px 0;
         }
 
@@ -1232,7 +1246,7 @@ export const AdAnalyticsPage: React.FC = () => {
           margin: 0 0 20px 0;
           font-size: 16px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .distribution-list {
@@ -1255,7 +1269,7 @@ export const AdAnalyticsPage: React.FC = () => {
         }
 
         .item-name {
-          color: #171717;
+          color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1263,12 +1277,13 @@ export const AdAnalyticsPage: React.FC = () => {
         }
 
         .item-value {
-          color: #71717A;
+          color: var(--text-muted);
         }
 
         .progress-bar-bg {
           height: 8px;
-          background: #F4F4F5;
+          background: var(--bg-base);
+          border: 1px solid var(--border-color);
           border-radius: 9999px;
           overflow: hidden;
         }
@@ -1299,11 +1314,12 @@ export const AdAnalyticsPage: React.FC = () => {
           margin: 0 0 4px 0;
           font-size: 18px;
           font-weight: 700;
+          color: var(--text-primary);
         }
 
         .heatmap-title-block span {
           font-size: 13px;
-          color: #71717A;
+          color: var(--text-muted);
         }
 
         .heatmap-legend {
@@ -1311,7 +1327,7 @@ export const AdAnalyticsPage: React.FC = () => {
           align-items: center;
           gap: 8px;
           font-size: 12px;
-          color: #71717A;
+          color: var(--text-muted);
           font-weight: 600;
         }
 
@@ -1333,7 +1349,6 @@ export const AdAnalyticsPage: React.FC = () => {
 
         .heatmap-grid-layout {
           display: grid;
-          /* 60px corner day label column + 24 hour columns */
           grid-template-columns: 60px repeat(24, 1fr);
           gap: 4px;
           min-width: 760px;
@@ -1346,7 +1361,7 @@ export const AdAnalyticsPage: React.FC = () => {
         .heatmap-hour-label {
           font-size: 11px;
           font-weight: 600;
-          color: #71717A;
+          color: var(--text-muted);
           text-align: start;
           height: 24px;
           display: flex;
@@ -1358,7 +1373,7 @@ export const AdAnalyticsPage: React.FC = () => {
         .heatmap-day-label {
           font-size: 12px;
           font-weight: 700;
-          color: #71717A;
+          color: var(--text-secondary);
           display: flex;
           align-items: center;
           height: 24px;
@@ -1366,7 +1381,7 @@ export const AdAnalyticsPage: React.FC = () => {
 
         .heatmap-cell-block {
           height: 24px;
-          border-radius: 2px;
+          border-radius: 3px;
           cursor: pointer;
           position: relative;
           transition: transform 0.15s, box-shadow 0.15s;
@@ -1374,16 +1389,16 @@ export const AdAnalyticsPage: React.FC = () => {
 
         .heatmap-cell-block:hover {
           transform: scale(1.15);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
           z-index: 2;
         }
 
-        /* 5 Heat Levels Grayscale matching Figma precisely */
-        .heat-level-1 { background: #F4F4F5; }
-        .heat-level-2 { background: #E4E4E7; }
-        .heat-level-3 { background: #A1A1AA; }
-        .heat-level-4 { background: #52525B; }
-        .heat-level-5 { background: #18181B; }
+        /* 5 Heat Levels Dark Theme */
+        .heat-level-1 { background: rgba(37, 99, 235, 0.08); border: 1px solid var(--border-color); }
+        .heat-level-2 { background: rgba(37, 99, 235, 0.25); }
+        .heat-level-3 { background: rgba(37, 99, 235, 0.50); }
+        .heat-level-4 { background: rgba(37, 99, 235, 0.75); }
+        .heat-level-5 { background: #2563eb; box-shadow: 0 0 8px rgba(37, 99, 235, 0.5); }
 
         .cell-hover-val {
           display: none;
@@ -1391,8 +1406,9 @@ export const AdAnalyticsPage: React.FC = () => {
 
         .heatmap-detail-tooltip {
           margin-top: 16px;
-          background: #171717;
-          color: #FFFFFF;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
           font-size: 12px;
           padding: 8px 16px;
           border-radius: 8px;

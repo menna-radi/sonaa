@@ -377,13 +377,17 @@ export const BroadcastPage: React.FC = () => {
                   onChange={(e) => setTargetCity(e.target.value)}
                   style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', borderRadius: '8px', padding: '10px 14px' }}
                 >
-                  <option value="All">All Palestine Cities (الجميع)</option>
+                  <option value="All">All Palestine Cities (جميع المدن)</option>
                   <option value="Jerusalem">Jerusalem (القدس)</option>
                   <option value="Ramallah">Ramallah (رام الله)</option>
                   <option value="Bethlehem">Bethlehem (بيت لحم)</option>
                   <option value="Hebron">Hebron (الخليل)</option>
                   <option value="Nablus">Nablus (نابلس)</option>
                   <option value="Jericho">Jericho (أريحا)</option>
+                  <option value="Jenin">Jenin (جنين)</option>
+                  <option value="Tulkarm">Tulkarm (طولكرم)</option>
+                  <option value="Qalqilya">Qalqilya (قلقيلية)</option>
+                  <option value="Gaza">Gaza (غزة)</option>
                 </select>
               </div>
 

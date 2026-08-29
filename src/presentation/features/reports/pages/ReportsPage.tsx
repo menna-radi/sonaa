@@ -540,17 +540,17 @@ export const ReportsPage: React.FC = () => {
 
 
                   {/* Tab Navigation Header */}
-                  <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e5e5e5', margin: '16px 0 20px 0', paddingBottom: '2px', overflowX: 'auto' }}>
+                  <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-color)', margin: '16px 0 20px 0', paddingBottom: '2px', overflowX: 'auto' }}>
                     <button
                       type="button"
                       onClick={() => setActiveDetailTab('overview')}
                       style={{
                         padding: '8px 14px',
                         border: 'none',
-                        borderBottom: activeDetailTab === 'overview' ? '2px solid #171717' : '2px solid transparent',
+                        borderBottom: activeDetailTab === 'overview' ? '2px solid var(--color-primary)' : '2px solid transparent',
                         background: 'none',
                         fontWeight: activeDetailTab === 'overview' ? 700 : 500,
-                        color: activeDetailTab === 'overview' ? '#171717' : '#737373',
+                        color: activeDetailTab === 'overview' ? 'var(--text-primary)' : 'var(--text-muted)',
                         fontSize: '0.85rem',
                         cursor: 'pointer',
                         display: 'flex',
@@ -569,10 +569,10 @@ export const ReportsPage: React.FC = () => {
                       style={{
                         padding: '8px 14px',
                         border: 'none',
-                        borderBottom: activeDetailTab === 'chat' ? '2px solid #171717' : '2px solid transparent',
+                        borderBottom: activeDetailTab === 'chat' ? '2px solid var(--color-primary)' : '2px solid transparent',
                         background: 'none',
                         fontWeight: activeDetailTab === 'chat' ? 700 : 500,
-                        color: activeDetailTab === 'chat' ? '#171717' : '#737373',
+                        color: activeDetailTab === 'chat' ? 'var(--text-primary)' : 'var(--text-muted)',
                         fontSize: '0.85rem',
                         cursor: 'pointer',
                         display: 'flex',
@@ -591,10 +591,10 @@ export const ReportsPage: React.FC = () => {
                       style={{
                         padding: '8px 14px',
                         border: 'none',
-                        borderBottom: activeDetailTab === 'evidence' ? '2px solid #171717' : '2px solid transparent',
+                        borderBottom: activeDetailTab === 'evidence' ? '2px solid var(--color-primary)' : '2px solid transparent',
                         background: 'none',
                         fontWeight: activeDetailTab === 'evidence' ? 700 : 500,
-                        color: activeDetailTab === 'evidence' ? '#171717' : '#737373',
+                        color: activeDetailTab === 'evidence' ? 'var(--text-primary)' : 'var(--text-muted)',
                         fontSize: '0.85rem',
                         cursor: 'pointer',
                         display: 'flex',
@@ -613,10 +613,10 @@ export const ReportsPage: React.FC = () => {
                       style={{
                         padding: '8px 14px',
                         border: 'none',
-                        borderBottom: activeDetailTab === 'audit' ? '2px solid #171717' : '2px solid transparent',
+                        borderBottom: activeDetailTab === 'audit' ? '2px solid var(--color-primary)' : '2px solid transparent',
                         background: 'none',
                         fontWeight: activeDetailTab === 'audit' ? 700 : 500,
-                        color: activeDetailTab === 'audit' ? '#171717' : '#737373',
+                        color: activeDetailTab === 'audit' ? 'var(--text-primary)' : 'var(--text-muted)',
                         fontSize: '0.85rem',
                         cursor: 'pointer',
                         display: 'flex',
@@ -634,17 +634,17 @@ export const ReportsPage: React.FC = () => {
                   {activeDetailTab === 'overview' && (
                     <>
                       {/* Financial Escrow Hold & Safeguards Banner */}
-                      <div style={{ background: escrowStates[selectedReport.id] === 'REFUNDED' ? '#eff6ff' : escrowStates[selectedReport.id] === 'RELEASED' ? '#f0fdf4' : '#fff7ed', border: `1px solid ${escrowStates[selectedReport.id] === 'REFUNDED' ? '#bfdbfe' : escrowStates[selectedReport.id] === 'RELEASED' ? '#bbf7d0' : '#fed7aa'}`, borderRadius: '12px', padding: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                      <div style={{ background: escrowStates[selectedReport.id] === 'REFUNDED' ? 'rgba(37, 99, 235, 0.12)' : escrowStates[selectedReport.id] === 'RELEASED' ? 'rgba(22, 163, 74, 0.12)' : 'rgba(234, 88, 12, 0.12)', border: `1px solid ${escrowStates[selectedReport.id] === 'REFUNDED' ? 'rgba(37, 99, 235, 0.3)' : escrowStates[selectedReport.id] === 'RELEASED' ? 'rgba(22, 163, 74, 0.3)' : 'rgba(234, 88, 12, 0.3)'}`, borderRadius: '12px', padding: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <div style={{ background: escrowStates[selectedReport.id] === 'REFUNDED' ? '#2563eb' : escrowStates[selectedReport.id] === 'RELEASED' ? '#16a34a' : '#ea580c', color: '#ffffff', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Lock size={18} />
                           </div>
                           <div style={{ textAlign: 'start' }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                               Escrow Financial Protection: {selectedReport.orderBudget || 350} ILS
                             </div>
-                            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                              Status: <strong style={{ color: escrowStates[selectedReport.id] === 'REFUNDED' ? '#2563eb' : escrowStates[selectedReport.id] === 'RELEASED' ? '#16a34a' : '#ea580c' }}>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                              Status: <strong style={{ color: escrowStates[selectedReport.id] === 'REFUNDED' ? '#3b82f6' : escrowStates[selectedReport.id] === 'RELEASED' ? '#22c55e' : '#f97316' }}>
                                 {escrowStates[selectedReport.id] || selectedReport.escrowStatus || 'FROZEN'}
                               </strong>
                             </div>
@@ -658,9 +658,9 @@ export const ReportsPage: React.FC = () => {
                             style={{
                               padding: '6px 12px',
                               borderRadius: '8px',
-                              border: '1px solid #cbd5e1',
-                              background: '#ffffff',
-                              color: '#334155',
+                              border: '1px solid var(--border-color)',
+                              background: 'var(--bg-surface)',
+                              color: 'var(--text-primary)',
                               fontSize: '0.78rem',
                               fontWeight: 600,
                               cursor: 'pointer',
@@ -699,35 +699,35 @@ export const ReportsPage: React.FC = () => {
                       {/* Parties Contact Grid & Repeat Offender Counter */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                         {/* Reporter Card */}
-                        <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px', textAlign: 'start' }}>
+                        <div style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px', textAlign: 'start' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reporter Profile</span>
-                            <span style={{ fontSize: '0.7rem', background: '#dbeafe', color: '#1e40af', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Customer</span>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reporter Profile</span>
+                            <span style={{ fontSize: '0.7rem', background: 'rgba(37, 99, 235, 0.15)', color: '#60a5fa', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Customer</span>
                           </div>
-                          <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#171717' }}>{selectedReport.reporter}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#525252', marginTop: '6px' }}>
+                          <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{selectedReport.reporter}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
                             <Phone size={12} />
                             <a href={`tel:${selectedReport.reporterPhone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{selectedReport.reporterPhone}</a>
                           </div>
-                          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#166534', background: '#dcfce7', padding: '3px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 600 }}>
+                          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#4ade80', background: 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 600 }}>
                             {selectedReport.reporterPriorReportsCount || 1} Prior Report Submitted
                           </div>
                         </div>
 
                         {/* Suspect Card */}
-                        <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px', textAlign: 'start' }}>
+                        <div style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px', textAlign: 'start' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reported Suspect</span>
-                            <span style={{ fontSize: '0.7rem', background: selectedReport.suspectStatus === 'BLOCKED' ? '#fee2e2' : selectedReport.suspectStatus === 'SUSPENDED' ? '#fef3c7' : '#dcfce7', color: selectedReport.suspectStatus === 'BLOCKED' ? '#991b1b' : selectedReport.suspectStatus === 'SUSPENDED' ? '#92400e' : '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reported Suspect</span>
+                            <span style={{ fontSize: '0.7rem', background: selectedReport.suspectStatus === 'BLOCKED' ? 'rgba(239, 68, 68, 0.15)' : selectedReport.suspectStatus === 'SUSPENDED' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(34, 197, 94, 0.15)', color: selectedReport.suspectStatus === 'BLOCKED' ? '#f87171' : selectedReport.suspectStatus === 'SUSPENDED' ? '#fbbf24' : '#4ade80', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                               {selectedReport.suspectStatus || 'ACTIVE'}
                             </span>
                           </div>
-                          <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#171717' }}>{selectedReport.subject}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#525252', marginTop: '6px' }}>
+                          <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{selectedReport.subject}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
                             <Phone size={12} />
                             <a href={`tel:${selectedReport.suspectPhone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{selectedReport.suspectPhone}</a>
                           </div>
-                          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: (selectedReport.suspectPriorReportsCount || 0) > 1 ? '#991b1b' : '#166534', background: (selectedReport.suspectPriorReportsCount || 0) > 1 ? '#fee2e2' : '#dcfce7', padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: (selectedReport.suspectPriorReportsCount || 0) > 1 ? '#f87171' : '#4ade80', background: (selectedReport.suspectPriorReportsCount || 0) > 1 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(34, 197, 94, 0.12)', padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
                             {(selectedReport.suspectPriorReportsCount || 0) > 1 && <AlertTriangle size={12} />}
                             <span>⚠️ {selectedReport.suspectPriorReportsCount || 1} Reported Incident(s) Logged</span>
                           </div>
@@ -738,8 +738,8 @@ export const ReportsPage: React.FC = () => {
                       <div 
                         onClick={() => setShowTaskModal(true)}
                         style={{
-                          background: '#f8fafc',
-                          border: '1px solid #cbd5e1',
+                          background: 'var(--bg-surface-hover)',
+                          border: '1px solid var(--border-color)',
                           borderRadius: '12px',
                           padding: '14px',
                           marginBottom: '16px',
@@ -748,19 +748,19 @@ export const ReportsPage: React.FC = () => {
                           justifyContent: 'space-between',
                           cursor: 'pointer',
                           transition: 'all 0.2s ease',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                          boxShadow: 'var(--shadow-sm)'
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{ background: '#e0f2fe', color: '#0284c7', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ background: 'rgba(37, 99, 235, 0.15)', color: '#60a5fa', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Briefcase size={20} />
                           </div>
                           <div style={{ textAlign: 'start' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>{selectedReport.taskTitle}</div>
-                            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Order Reference: <strong style={{ color: '#0284c7' }}>{selectedReport.taskDisplayId}</strong></div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedReport.taskTitle}</div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Order Reference: <strong style={{ color: '#60a5fa' }}>{selectedReport.taskDisplayId}</strong></div>
                           </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0284c7', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--color-primary)', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 600 }}>
                           <span>Inspect Order</span>
                           <ExternalLink size={14} />
                         </div>
@@ -769,7 +769,7 @@ export const ReportsPage: React.FC = () => {
                       {/* Incident Description */}
                       <div className="rp-detail-section" style={{ textAlign: 'start' }}>
                         <span className="rp-section-label">Reported Incident Statement</span>
-                        <p className="rp-section-description" style={{ background: '#ffffff', border: '1px solid #e5e5e5', borderRadius: '8px', padding: '12px', fontSize: '0.9rem', color: '#262626' }}>
+                        <p className="rp-section-description" style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                           {selectedReport.desc}
                         </p>
                       </div>
@@ -778,13 +778,13 @@ export const ReportsPage: React.FC = () => {
 
                   {/* TAB 2: CHAT LOGS */}
                   {activeDetailTab === 'chat' && (
-                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', textAlign: 'start' }}>
+                    <div style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', textAlign: 'start' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <MessageSquare size={16} style={{ color: '#0284c7' }} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MessageSquare size={16} style={{ color: '#60a5fa' }} />
                           Order Chat Log History
                         </span>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Flagged lines highlighted in red</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Flagged lines highlighted in red</span>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -792,24 +792,24 @@ export const ReportsPage: React.FC = () => {
                           <div 
                             key={idx}
                             style={{
-                              background: msg.flagged ? '#fef2f2' : '#ffffff',
-                              border: msg.flagged ? '1px solid #fecaca' : '1px solid #e2e8f0',
+                              background: msg.flagged ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-surface)',
+                              border: msg.flagged ? '1px solid rgba(239, 68, 68, 0.35)' : '1px solid var(--border-color)',
                               borderRadius: '8px',
                               padding: '10px 12px',
                               position: 'relative'
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: msg.sender === selectedReport.reporter ? '#1e40af' : '#15803d' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: msg.sender === selectedReport.reporter ? '#60a5fa' : '#34d399' }}>
                                 {msg.sender}
                               </span>
-                              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{msg.time}</span>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{msg.time}</span>
                             </div>
-                            <div style={{ fontSize: '0.88rem', color: msg.flagged ? '#991b1b' : '#334155', fontWeight: msg.flagged ? 600 : 400 }}>
+                            <div style={{ fontSize: '0.88rem', color: msg.flagged ? '#f87171' : 'var(--text-primary)', fontWeight: msg.flagged ? 600 : 400 }}>
                               {msg.text}
                             </div>
                             {msg.flagged && (
-                              <span style={{ fontSize: '0.7rem', color: '#dc2626', background: '#fee2e2', padding: '1px 6px', borderRadius: '4px', marginTop: '6px', display: 'inline-block', fontWeight: 600 }}>
+                              <span style={{ fontSize: '0.7rem', color: '#f87171', background: 'rgba(239, 68, 68, 0.2)', padding: '1px 6px', borderRadius: '4px', marginTop: '6px', display: 'inline-block', fontWeight: 600 }}>
                                 ⚠️ Flagged Message Signal
                               </span>
                             )}
@@ -822,7 +822,7 @@ export const ReportsPage: React.FC = () => {
                   {/* TAB 3: EVIDENCE GALLERY */}
                   {activeDetailTab === 'evidence' && (
                     <div style={{ textAlign: 'start' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px', display: 'block' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'block' }}>
                         Uploaded Photos & Attachments ({selectedReport.evidenceImages?.length || 0})
                       </span>
 
@@ -832,16 +832,16 @@ export const ReportsPage: React.FC = () => {
                             key={idx}
                             onClick={() => setLightboxImage(imgUrl)}
                             style={{
-                              border: '1px solid #e2e8f0',
+                              border: '1px solid var(--border-color)',
                               borderRadius: '12px',
                               overflow: 'hidden',
                               cursor: 'pointer',
-                              background: '#f8fafc',
+                              background: 'var(--bg-surface-hover)',
                               transition: 'transform 0.15s ease'
                             }}
                           >
                             <img src={imgUrl} alt={`Evidence photo ${idx + 1}`} style={{ width: '100%', height: '140px', objectFit: 'cover' }} />
-                            <div style={{ padding: '8px', fontSize: '0.75rem', fontWeight: 600, color: '#475569', textAlign: 'center' }}>
+                            <div style={{ padding: '8px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textAlign: 'center' }}>
                               Photo Evidence #{idx + 1} 🔍
                             </div>
                           </div>
@@ -852,18 +852,18 @@ export const ReportsPage: React.FC = () => {
 
                   {/* TAB 4: AUDIT TRAIL */}
                   {activeDetailTab === 'audit' && (
-                    <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '16px', textAlign: 'start' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginBottom: '14px', display: 'block' }}>
+                    <div style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', textAlign: 'start' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', display: 'block' }}>
                         Incident Moderation Audit Log
                       </span>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {(selectedReport.auditTrail || []).map((log, idx) => (
                           <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0284c7', marginTop: '6px' }} />
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-primary)', marginTop: '6px' }} />
                             <div>
-                              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#171717' }}>{log.action}</div>
-                              <div style={{ fontSize: '0.75rem', color: '#737373' }}>By {log.actor} · {log.timestamp}</div>
+                              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>{log.action}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>By {log.actor} · {log.timestamp}</div>
                             </div>
                           </div>
                         ))}
@@ -875,7 +875,7 @@ export const ReportsPage: React.FC = () => {
                   <div style={{ marginTop: '20px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                       <span className="rp-section-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                        <MessageSquare size={14} style={{ color: '#171717' }} />
+                        <MessageSquare size={14} style={{ color: 'var(--text-primary)' }} />
                         Response Templates & Automation Presets
                       </span>
                     </div>
@@ -890,9 +890,9 @@ export const ReportsPage: React.FC = () => {
                             borderRadius: '8px',
                             fontSize: '0.78rem',
                             fontWeight: 600,
-                            border: '1px solid #e5e5e5',
-                            background: selectedAction === preset.action && messageTarget === preset.target ? '#171717' : '#ffffff',
-                            color: selectedAction === preset.action && messageTarget === preset.target ? '#ffffff' : '#404040',
+                            border: '1px solid var(--border-color)',
+                            background: selectedAction === preset.action && messageTarget === preset.target ? 'var(--color-primary)' : 'var(--bg-surface)',
+                            color: selectedAction === preset.action && messageTarget === preset.target ? '#ffffff' : 'var(--text-primary)',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease'
                           }}
@@ -904,9 +904,9 @@ export const ReportsPage: React.FC = () => {
                   </div>
 
                   {/* Target Audience & Direct Notification Controls */}
-                  <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
+                  <div style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#404040' }}>Notification Target Audience:</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Notification Target Audience:</span>
                       <div style={{ display: 'flex', gap: '6px' }}>
                         {(['reporter', 'suspect', 'both'] as const).map((targ) => (
                           <button
@@ -918,9 +918,9 @@ export const ReportsPage: React.FC = () => {
                               borderRadius: '6px',
                               fontSize: '0.75rem',
                               fontWeight: 600,
-                              border: '1px solid #d4d4d4',
-                              background: messageTarget === targ ? '#262626' : '#ffffff',
-                              color: messageTarget === targ ? '#ffffff' : '#525252',
+                              border: '1px solid var(--border-color)',
+                              background: messageTarget === targ ? 'var(--color-primary)' : 'var(--bg-surface)',
+                              color: messageTarget === targ ? '#ffffff' : 'var(--text-secondary)',
                               cursor: 'pointer'
                             }}
                           >
@@ -932,7 +932,7 @@ export const ReportsPage: React.FC = () => {
 
                     {/* Pre-filled Message Textarea */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#737373' }}>Automated Notification Message (Editable):</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Automated Notification Message (Editable):</span>
                       <textarea
                         className="rp-notes-textarea"
                         value={customMessage}
@@ -962,7 +962,7 @@ export const ReportsPage: React.FC = () => {
                         justifyContent: 'center',
                         gap: '8px',
                         cursor: 'pointer',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        boxShadow: 'var(--shadow-sm)'
                       }}
                       onClick={handleExecuteAction}
                     >
@@ -980,57 +980,57 @@ export const ReportsPage: React.FC = () => {
 
         {/* Full Order Details Modal */}
         {showTaskModal && selectedReport && (
-          <div className="modal-backdrop animate-fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
-            <div className="glass-card" style={{ background: '#ffffff', width: '100%', maxWidth: '580px', borderRadius: '16px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', position: 'relative' }}>
+          <div className="modal-backdrop animate-fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
+            <div className="glass-card" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', width: '100%', maxWidth: '580px', borderRadius: '16px', padding: '24px', boxShadow: 'var(--shadow-lg)', position: 'relative' }}>
               <button 
                 onClick={() => setShowTaskModal(false)}
-                style={{ position: 'absolute', top: '16px', right: '16px', background: '#f5f5f5', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <X size={18} />
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                <Briefcase size={24} style={{ color: '#0284c7' }} />
+                <Briefcase size={24} style={{ color: '#60a5fa' }} />
                 <div style={{ textAlign: 'start' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a' }}>Linked Order Inspector</h3>
-                  <span style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: 600 }}>Reference: {selectedReport.taskDisplayId}</span>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>Linked Order Inspector</h3>
+                  <span style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: 600 }}>Reference: {selectedReport.taskDisplayId}</span>
                 </div>
               </div>
 
-              <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '16px', marginBottom: '16px', textAlign: 'start' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#737373', textTransform: 'uppercase', marginBottom: '4px' }}>Order Title</div>
-                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#171717', marginBottom: '12px' }}>{selectedReport.taskTitle}</div>
+              <div style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', marginBottom: '16px', textAlign: 'start' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Order Title</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>{selectedReport.taskTitle}</div>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: '#737373' }}>Category</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#262626' }}>{selectedReport.category.toUpperCase()}</div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Category</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>{selectedReport.category.toUpperCase()}</div>
                   </div>
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: '#737373' }}>Order Status</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0284c7' }}>IN_PROGRESS / DISPUTED</div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Order Status</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#60a5fa' }}>IN_PROGRESS / DISPUTED</div>
                   </div>
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: '#737373' }}>Agreed Budget</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#16a34a' }}>250.00 ILS</div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Agreed Budget</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#4ade80' }}>250.00 ILS</div>
                   </div>
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: '#737373' }}>Location</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#262626' }}>Jerusalem, Palestine</div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Location</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>Jerusalem (القدس)</div>
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px', textAlign: 'start' }}>
-                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>CUSTOMER</span>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>{selectedReport.reporter}</div>
-                  <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{selectedReport.reporterPhone}</div>
+                <div style={{ background: 'var(--bg-surface-hover)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>CUSTOMER</span>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>{selectedReport.reporter}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{selectedReport.reporterPhone}</div>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>ASSIGNED CRAFTSMAN</span>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>{selectedReport.subject}</div>
-                  <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{selectedReport.suspectPhone}</div>
+                <div style={{ background: 'var(--bg-surface-hover)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>ASSIGNED CRAFTSMAN</span>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>{selectedReport.subject}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{selectedReport.suspectPhone}</div>
                 </div>
               </div>
 
@@ -1038,7 +1038,7 @@ export const ReportsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => { setShowTaskModal(false); navigate('tasks'); }}
-                  style={{ flex: 1, padding: '10px', background: '#171717', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                  style={{ flex: 1, padding: '10px', background: 'var(--color-primary)', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <span>Open Tasks Center</span>
                   <ExternalLink size={14} />
@@ -1046,7 +1046,7 @@ export const ReportsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowTaskModal(false)}
-                  style={{ padding: '10px 16px', background: '#f5f5f5', color: '#525252', border: '1px solid #e5e5e5', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                  style={{ padding: '10px 16px', background: 'var(--bg-surface-hover)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
                 >
                   Close
                 </button>
@@ -1061,11 +1061,11 @@ export const ReportsPage: React.FC = () => {
             <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
               <button 
                 onClick={() => setLightboxImage(null)}
-                style={{ position: 'absolute', top: '-16px', right: '-16px', background: '#ffffff', color: '#171717', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                style={{ position: 'absolute', top: '-16px', right: '-16px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}
               >
                 <X size={20} />
               </button>
-              <img src={lightboxImage} alt="Evidence preview" style={{ maxWidth: '100%', maxHeight: '85vh', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', objectFit: 'contain' }} />
+              <img src={lightboxImage} alt="Evidence preview" style={{ maxWidth: '100%', maxHeight: '85vh', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)', objectFit: 'contain' }} />
             </div>
           </div>
         )}
@@ -1074,8 +1074,6 @@ export const ReportsPage: React.FC = () => {
       <MobileBottomTabs />
 
       <style>{`
-
-
         /* ── Page Layout ── */
         .rp-page-body {
           display: flex;
@@ -1097,24 +1095,24 @@ export const ReportsPage: React.FC = () => {
         .rp-page-title {
           font-size: 24px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           letter-spacing: -0.48px;
           font-family: var(--font-title);
           margin: 0 0 4px 0;
         }
         .rp-page-subtitle {
           font-size: 14px;
-          color: #737373;
+          color: var(--text-muted);
           margin: 0;
         }
         
         .rp-ai-toggle-button {
           height: 32px;
           padding: 0 14px;
-          background: #f5f5f5;
+          background: var(--bg-surface);
           border-radius: 8px;
-          border: none;
-          color: #171717;
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
           font-size: 12px;
           font-weight: 600;
           display: flex;
@@ -1123,8 +1121,9 @@ export const ReportsPage: React.FC = () => {
           transition: all var(--transition-fast);
         }
         .rp-ai-toggle-button.active {
-          background: #0a0a0a;
+          background: var(--color-primary);
           color: #ffffff;
+          border-color: var(--color-primary);
         }
 
         /* ── Metrics Grid ── */
@@ -1135,15 +1134,15 @@ export const ReportsPage: React.FC = () => {
           width: 100%;
         }
         .rp-metric-card {
-          background: #ffffff;
-          border: 1px solid #e5e5e5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 20px;
           display: flex;
           flex-direction: column;
           align-items: flex-start;
           text-align: start;
-          box-shadow: 0px 1px 1.5px rgba(0, 0, 0, 0.04);
+          box-shadow: var(--shadow-sm);
         }
         .rp-metric-header {
           height: 32px;
@@ -1152,7 +1151,7 @@ export const ReportsPage: React.FC = () => {
           margin-bottom: 6px;
         }
         .rp-metric-icon-bg {
-          background: #f5f5f5;
+          background: var(--bg-surface-hover);
           width: 32px;
           height: 32px;
           border-radius: 8px;
@@ -1163,7 +1162,7 @@ export const ReportsPage: React.FC = () => {
         .rp-metric-title {
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-secondary);
           text-transform: uppercase;
           letter-spacing: 0.5px;
           margin-bottom: 4px;
@@ -1171,14 +1170,14 @@ export const ReportsPage: React.FC = () => {
         .rp-metric-value {
           font-size: 24px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           letter-spacing: -0.48px;
           line-height: 1.2;
           margin-bottom: 4px;
         }
         .rp-metric-subtext {
           font-size: 10px;
-          color: #a3a3a3;
+          color: var(--text-muted);
         }
 
         /* ── Split Layout ── */
@@ -1195,20 +1194,21 @@ export const ReportsPage: React.FC = () => {
           min-width: 0;
         }
         .rp-queue-card-container {
-          background: #ffffff;
-          border: 1px solid #e5e5e5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           display: flex;
           flex-direction: column;
-          box-shadow: 0px 1px 1.5px rgba(0, 0, 0, 0.04);
+          box-shadow: var(--shadow-sm);
           overflow: hidden;
         }
         .rp-filter-tabs-row {
-          border-bottom: 1px solid #f5f5f5;
+          border-bottom: 1px solid var(--border-color);
           padding: 20px;
         }
         .rp-filter-tabs-track {
-          background: #f5f5f5;
+          background: var(--bg-base);
+          border: 1px solid var(--border-color);
           border-radius: 8px;
           display: flex;
           padding: 2px;
@@ -1221,7 +1221,7 @@ export const ReportsPage: React.FC = () => {
           border-radius: 6px;
           background: transparent;
           border: none;
-          color: #737373;
+          color: var(--text-secondary);
           font-size: 10px;
           font-weight: 700;
           cursor: pointer;
@@ -1233,9 +1233,9 @@ export const ReportsPage: React.FC = () => {
           justify-content: center;
         }
         .rp-filter-pill-btn.active {
-          background: #ffffff;
-          color: #171717;
-          box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.05);
+          background: var(--bg-surface);
+          color: var(--text-primary);
+          box-shadow: var(--shadow-sm);
         }
 
         .rp-reports-list {
@@ -1251,18 +1251,18 @@ export const ReportsPage: React.FC = () => {
           align-items: center;
           padding: 16px;
           border: none;
-          border-bottom: 1px solid #f5f5f5;
-          background: #ffffff;
+          border-bottom: 1px solid var(--border-color);
+          background: var(--bg-surface);
           cursor: pointer;
           transition: background 0.15s ease;
           width: 100%;
           text-align: start;
         }
         .rp-report-item-btn:hover {
-          background: #fafafa;
+          background: var(--bg-surface-hover);
         }
         .rp-report-item-btn.selected {
-          background: #fafafa;
+          background: var(--bg-surface-hover);
         }
         .rp-report-item-btn:last-child {
           border-bottom: none;
@@ -1284,13 +1284,13 @@ export const ReportsPage: React.FC = () => {
           justify-content: center;
           flex-shrink: 0;
         }
-        .severity-bg-high { background: #fef2f2; }
-        .severity-bg-medium { background: #fffbeb; }
-        .severity-bg-low { background: #f5f5f5; }
+        .severity-bg-high { background: rgba(239, 68, 68, 0.15); }
+        .severity-bg-medium { background: rgba(245, 158, 11, 0.15); }
+        .severity-bg-low { background: var(--bg-surface-hover); }
 
         .icon-red { color: #ef4444; }
         .icon-orange { color: #f59e0b; }
-        .icon-gray { color: #737373; }
+        .icon-gray { color: var(--text-muted); }
 
         .rp-report-item-info {
           display: flex;
@@ -1307,7 +1307,7 @@ export const ReportsPage: React.FC = () => {
         .rp-report-item-title {
           font-size: 12px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1323,18 +1323,19 @@ export const ReportsPage: React.FC = () => {
           align-items: center;
           justify-content: center;
         }
-        .rp-report-item-badge.severity-high { background: #fef2f2; color: #b91c1c; }
-        .rp-report-item-badge.severity-medium { background: #fffbeb; color: #b45309; }
-        .rp-report-item-badge.severity-low { background: #f5f5f5; color: #404040; }
+        .rp-report-item-badge.severity-high { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .rp-report-item-badge.severity-medium { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .rp-report-item-badge.severity-low { background: var(--bg-surface-hover); color: var(--text-secondary); }
 
         .rp-report-item-ai-badge {
-          background: #171717;
+          background: var(--bg-base);
+          border: 1px solid var(--border-color);
           border-radius: 4px;
           padding: 2px 6px;
           display: inline-flex;
           align-items: center;
           gap: 4px;
-          color: #ffffff;
+          color: var(--text-primary);
           font-size: 8px;
           font-weight: 700;
           text-transform: uppercase;
@@ -1342,7 +1343,7 @@ export const ReportsPage: React.FC = () => {
         }
         .rp-report-item-metadata {
           font-size: 11px;
-          color: #737373;
+          color: var(--text-muted);
           text-align: start;
         }
 
@@ -1356,12 +1357,12 @@ export const ReportsPage: React.FC = () => {
         }
         .rp-report-item-time {
           font-size: 10px;
-          color: #a3a3a3;
+          color: var(--text-muted);
         }
         .rp-report-item-risk {
           font-size: 12px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         /* ── Right Detail Panel ── */
@@ -1373,13 +1374,13 @@ export const ReportsPage: React.FC = () => {
           gap: 16px;
         }
         .rp-detail-card {
-          background: #ffffff;
-          border: 1px solid #e5e5e5;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 24px;
           display: flex;
           flex-direction: column;
-          box-shadow: 0px 1px 1.5px rgba(0, 0, 0, 0.04);
+          box-shadow: var(--shadow-sm);
           text-align: start;
         }
         .rp-detail-header {
@@ -1397,14 +1398,14 @@ export const ReportsPage: React.FC = () => {
         .rp-detail-id {
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
         .rp-detail-header-text h2 {
           font-size: 18px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0;
         }
         .rp-detail-badge {
@@ -1416,13 +1417,14 @@ export const ReportsPage: React.FC = () => {
           letter-spacing: 0.5px;
           align-self: flex-start;
         }
-        .rp-detail-badge.severity-high { background: #fef2f2; color: #b91c1c; }
-        .rp-detail-badge.severity-medium { background: #fffbeb; color: #b45309; }
-        .rp-detail-badge.severity-low { background: #f5f5f5; color: #404040; }
+        .rp-detail-badge.severity-high { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .rp-detail-badge.severity-medium { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .rp-detail-badge.severity-low { background: var(--bg-surface-hover); color: var(--text-secondary); }
 
         /* AI Risk Score Banner */
         .rp-risk-banner-card {
-          background: #171717;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 16px;
           display: flex;
@@ -1440,14 +1442,14 @@ export const ReportsPage: React.FC = () => {
           align-items: center;
           font-size: 10px;
           font-weight: 700;
-          color: #a3a3a3;
+          color: var(--text-secondary);
           text-transform: uppercase;
           letter-spacing: 1px;
         }
         .rp-risk-banner-score {
           font-size: 24px;
           font-weight: 700;
-          color: #ffffff;
+          color: var(--text-primary);
           letter-spacing: -0.48px;
         }
         .rp-risk-banner-progress-track {
@@ -1473,19 +1475,19 @@ export const ReportsPage: React.FC = () => {
         .rp-section-label {
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-secondary);
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
         .rp-section-description {
           font-size: 12px;
           line-height: 1.5;
-          color: #404040;
+          color: var(--text-primary);
           margin: 0;
         }
 
         .rp-detail-metadata-divider-row {
-          border-top: 1px solid #f5f5f5;
+          border-top: 1px solid var(--border-color);
           padding-top: 16px;
           margin-bottom: 20px;
           display: grid;
@@ -1499,12 +1501,12 @@ export const ReportsPage: React.FC = () => {
         }
         .rp-metadata-label {
           font-size: 10px;
-          color: #737373;
+          color: var(--text-muted);
         }
         .rp-metadata-value {
           font-size: 12px;
           font-weight: 600;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .rp-detail-notes-section {
@@ -1516,17 +1518,17 @@ export const ReportsPage: React.FC = () => {
         .rp-notes-label {
           font-size: 10px;
           font-weight: 700;
-          color: #737373;
+          color: var(--text-secondary);
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
         .rp-notes-textarea {
-          background: #fafafa;
-          border: 1px solid #e5e5e5;
+          background: var(--bg-base);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 12px;
           font-size: 12px;
-          color: #171717;
+          color: var(--text-primary);
           width: 100%;
           resize: none;
           box-sizing: border-box;
@@ -1534,7 +1536,7 @@ export const ReportsPage: React.FC = () => {
           transition: border-color 0.15s ease;
         }
         .rp-notes-textarea:focus {
-          border-color: #171717;
+          border-color: var(--color-primary);
         }
 
         .rp-detail-actions-row {
@@ -1556,30 +1558,30 @@ export const ReportsPage: React.FC = () => {
           transition: background 0.15s ease;
         }
         .rp-action-btn.btn-dismiss {
-          background: #f0fdf4;
-          color: #15803d;
+          background: rgba(34, 197, 94, 0.15);
+          color: #4ade80;
         }
         .rp-action-btn.btn-dismiss:hover {
-          background: #dcfce7;
+          background: rgba(34, 197, 94, 0.25);
         }
         .rp-action-btn.btn-suspend {
-          background: #fffbeb;
-          color: #b45309;
+          background: rgba(245, 158, 11, 0.15);
+          color: #fbbf24;
         }
         .rp-action-btn.btn-suspend:hover {
-          background: #fef3c7;
+          background: rgba(245, 158, 11, 0.25);
         }
         .rp-action-btn.btn-ban {
-          background: #fef2f2;
-          color: #b91c1c;
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
         }
         .rp-action-btn.btn-ban:hover {
-          background: #fee2e2;
+          background: rgba(239, 68, 68, 0.25);
         }
 
         .rp-detail-card-empty {
-          background: #ffffff;
-          border: 1px dashed #e5e5e5;
+          background: var(--bg-surface);
+          border: 1px dashed var(--border-color);
           border-radius: 16px;
           height: 250px;
           display: flex;
@@ -1587,19 +1589,19 @@ export const ReportsPage: React.FC = () => {
           align-items: center;
           justify-content: center;
           padding: 20px;
-          color: #737373;
+          color: var(--text-muted);
           font-size: 12px;
         }
 
         .rp-empty-state {
           padding: 40px 20px;
           text-align: center;
-          color: #737373;
+          color: var(--text-muted);
         }
         .rp-empty-state h3 {
           font-size: 14px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0 0 6px 0;
         }
         .rp-empty-state p {
@@ -1624,7 +1626,6 @@ export const ReportsPage: React.FC = () => {
 
         /* ── Mobile Screens (max-width: 768px) ── */
         @media (max-width: 768px) {
-
           .main-content {
             margin-inline-start: 0 !important;
             padding-top: 0 !important;
@@ -1684,11 +1685,11 @@ export const ReportsPage: React.FC = () => {
             align-items: center;
             padding: 8px 12px;
             border-radius: 8px;
-            background: #ffffff;
-            border: 1px solid #e5e5e5;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             font-size: 12px;
             font-weight: 600;
-            color: #171717;
+            color: var(--text-primary);
             cursor: pointer;
             align-self: flex-start;
             margin-bottom: 8px;
@@ -1722,3 +1723,4 @@ export const ReportsPage: React.FC = () => {
 };
 
 export default ReportsPage;
+

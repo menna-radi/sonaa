@@ -184,7 +184,7 @@ export class LiveActivityMapper {
         activeJobs: model.active_jobs ?? activeTasks.length,
         onlineCraftsmen: model.online_craftsmen ?? activeCraftsmen.length,
         sosCount: model.sos_count ?? emergencies.length,
-        busyZonesCount: model.busy_zones_count ?? 3,
+        busyZonesCount: model.busy_zones_count ?? rawBusyZones.length,
       },
       feedEvents: rawFeedEvents,
       busyZones: rawBusyZones,

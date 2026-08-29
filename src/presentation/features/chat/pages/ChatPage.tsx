@@ -29,7 +29,10 @@ import {
   WifiOff,
   Image as ImageIcon,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  RotateCcw,
+  ShieldCheck,
+  Inbox
 } from 'lucide-react';
 
 export const ChatPage: React.FC = () => {
@@ -199,8 +202,34 @@ export const ChatPage: React.FC = () => {
                 </div>
               ) : rooms.length === 0 ? (
                 <div className="chat-empty-state">
-                  <MessageSquare size={32} opacity={0.3} />
-                  <p>{isRtl ? 'لا توجد محادثات مطابقة' : 'No conversations found'}</p>
+                  <div className="empty-state-icon-box">
+                    <Inbox size={26} />
+                  </div>
+                  <h4 className="empty-state-title">
+                    {searchQuery || filterTab !== 'all'
+                      ? (isRtl ? 'لا توجد محادثات مطابقة' : 'No matching conversations')
+                      : (isRtl ? 'لا توجد محادثات حتى الآن' : 'No active conversations')}
+                  </h4>
+                  <p className="empty-state-desc">
+                    {searchQuery || filterTab !== 'all'
+                      ? (isRtl ? 'لم نتمكن من العثور على محادثات تطابق بحثك الحالي.' : 'No threads match your current filter or search criteria.')
+                      : (isRtl ? 'ستظهر محادثات العملاء والحرفيين وإشعارات الدعم هنا فور إرسالها.' : 'Incoming customer and craftsman conversations will appear here automatically in real time.')}
+                  </p>
+                  {(searchQuery || filterTab !== 'all') ? (
+                    <button
+                      type="button"
+                      className="empty-state-reset-btn"
+                      onClick={() => { setSearchQuery(''); setFilterTab('all'); }}
+                    >
+                      <RotateCcw size={12} />
+                      <span>{isRtl ? 'إعادة ضبط الفلتر' : 'Reset Filters'}</span>
+                    </button>
+                  ) : (
+                    <div className="empty-state-live-pill">
+                      <span className="live-pulse-dot" />
+                      <span>{isRtl ? 'في انتظار رسائل جديدة...' : 'Listening for new messages...'}</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 rooms.map(room => {
@@ -514,13 +543,29 @@ export const ChatPage: React.FC = () => {
               </>
             ) : (
               <div className="no-room-selected-state">
-                <MessageSquare size={48} opacity={0.2} />
-                <h3>{isRtl ? 'اختر محادثة من القائمة' : 'Select a conversation to start chatting'}</h3>
+                <div className="no-room-icon-badge">
+                  <MessageSquare size={36} />
+                </div>
+                <h3>{isRtl ? 'مركز المحادثات والدعم الإداري' : 'Direct Support & Communication Hub'}</h3>
                 <p>
                   {isRtl
-                    ? 'يمكنك الرد على استفسارات الحرفيين، مراجعة إيصالات Bit، وتقديم الدعم الفوري'
-                    : 'Real-time administrative control over all participant threads, customer queries, and Bit payment proofs.'}
+                    ? 'اختر محادثة من القائمة الجانبية لعرض الرسائل المباشرة، فحص إيصالات Bit، وتقديم الدعم الفوري للحرفيين والعملاء.'
+                    : 'Select a conversation from the sidebar to inspect participant threads, review payment attachments, or dispatch official administrative responses.'}
                 </p>
+                <div className="no-room-features-grid">
+                  <div className="no-room-feature-chip">
+                    <span className="live-pulse-dot" />
+                    <span>Live WebSocket Sync</span>
+                  </div>
+                  <div className="no-room-feature-chip">
+                    <ShieldCheck size={13} style={{ color: '#22c55e' }} />
+                    <span>Audit Trail Logged</span>
+                  </div>
+                  <div className="no-room-feature-chip">
+                    <CreditCard size={13} style={{ color: '#3b82f6' }} />
+                    <span>Bit Slip Verification</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -729,34 +774,37 @@ export const ChatPage: React.FC = () => {
 
         .chat-filter-tabs {
           display: flex;
-          padding: 0 14px 12px 14px;
+          padding: 8px 14px 12px 14px;
           gap: 6px;
           border-bottom: 1px solid var(--border-color);
           overflow-x: auto;
+          background: var(--bg-surface);
         }
 
         .chat-filter-btn {
-          padding: 5px 11px;
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: 500;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-size: 11.5px;
+          font-weight: 600;
           border: 1px solid transparent;
-          background: transparent;
+          background: var(--bg-base);
           color: var(--text-muted);
           cursor: pointer;
           white-space: nowrap;
-          transition: all 0.15s ease;
+          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .chat-filter-btn:hover {
           background: var(--bg-hover);
           color: var(--text-primary);
+          border-color: var(--border-color);
         }
 
         .chat-filter-btn.active {
           background: var(--color-primary);
           color: #ffffff;
-          font-weight: 600;
+          font-weight: 700;
+          box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
         }
 
         .chat-rooms-list {
@@ -764,6 +812,101 @@ export const ChatPage: React.FC = () => {
           overflow-y: auto;
           display: flex;
           flex-direction: column;
+          position: relative;
+        }
+
+        /* ── Modern Chat Empty State ── */
+        .chat-empty-state {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 24px;
+          text-align: center;
+          gap: 12px;
+          margin: auto 0;
+          animation: fadeIn 0.25s ease-out;
+        }
+
+        .empty-state-icon-box {
+          width: 56px;
+          height: 56px;
+          border-radius: 16px;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-muted);
+          box-shadow: var(--shadow-sm);
+        }
+
+        .empty-state-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin: 0;
+          letter-spacing: -0.2px;
+        }
+
+        .empty-state-desc {
+          font-size: 12px;
+          color: var(--text-muted);
+          margin: 0;
+          line-height: 1.5;
+          max-width: 220px;
+        }
+
+        .empty-state-reset-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          border-radius: 8px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
+          font-size: 11.5px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-top: 4px;
+          transition: all 0.15s ease;
+          box-shadow: var(--shadow-sm);
+        }
+
+        .empty-state-reset-btn:hover {
+          background: var(--bg-surface-hover);
+          border-color: var(--color-primary);
+          color: var(--color-primary);
+        }
+
+        .empty-state-live-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 4px 10px;
+          border-radius: 20px;
+          background: rgba(16, 185, 129, 0.08);
+          border: 1px solid rgba(16, 185, 129, 0.25);
+          color: #34d399;
+          font-size: 11px;
+          font-weight: 600;
+          margin-top: 6px;
+        }
+
+        .live-pulse-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #10b981;
+          box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.85); }
         }
 
         .chat-room-card {
@@ -1425,23 +1568,62 @@ export const ChatPage: React.FC = () => {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 12px;
+          gap: 14px;
           color: var(--text-muted);
           text-align: center;
-          padding: 40px;
+          padding: 48px 32px;
+          background: radial-gradient(circle at center, rgba(37, 99, 235, 0.04) 0%, transparent 70%);
+        }
+
+        .no-room-icon-badge {
+          width: 72px;
+          height: 72px;
+          border-radius: 24px;
+          background: rgba(37, 99, 235, 0.1);
+          border: 1px solid rgba(37, 99, 235, 0.25);
+          color: var(--color-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
+          margin-bottom: 4px;
         }
 
         .no-room-selected-state h3 {
           margin: 0;
           color: var(--text-primary);
-          font-size: 18px;
+          font-size: 19px;
+          font-weight: 700;
+          letter-spacing: -0.3px;
         }
 
         .no-room-selected-state p {
-          max-width: 420px;
+          max-width: 440px;
           margin: 0;
           font-size: 13px;
-          line-height: 1.5;
+          line-height: 1.6;
+          color: var(--text-secondary);
+        }
+
+        .no-room-features-grid {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          justify-content: center;
+          margin-top: 10px;
+        }
+
+        .no-room-feature-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          border-radius: 8px;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          font-size: 11.5px;
+          font-weight: 600;
+          color: var(--text-secondary);
         }
 
         .mini-spinner {

@@ -108,15 +108,15 @@ export const ServiceManagementPage: React.FC = () => {
   // Helper to render Category Icon based on name
   const renderCategoryIcon = (iconName: string) => {
     switch (iconName) {
-      case 'Plumbing': return <Wrench size={16} style={{ color: '#525252' }} />;
-      case 'Electrical': return <Zap size={16} style={{ color: '#525252' }} />;
-      case 'Cleaning': return <Sparkles size={16} style={{ color: '#525252' }} />;
-      case 'Carpentry': return <Hammer size={16} style={{ color: '#525252' }} />;
-      case 'Painting': return <Paintbrush size={16} style={{ color: '#525252' }} />;
-      case 'AC & HVAC': return <Wind size={16} style={{ color: '#525252' }} />;
-      case 'Moving': return <Truck size={16} style={{ color: '#525252' }} />;
-      case 'Gardening': return <Leaf size={16} style={{ color: '#525252' }} />;
-      default: return <Wrench size={16} style={{ color: '#525252' }} />;
+      case 'Plumbing': return <Wrench size={16} style={{ color: 'var(--text-secondary)' }} />;
+      case 'Electrical': return <Zap size={16} style={{ color: 'var(--text-secondary)' }} />;
+      case 'Cleaning': return <Sparkles size={16} style={{ color: 'var(--text-secondary)' }} />;
+      case 'Carpentry': return <Hammer size={16} style={{ color: 'var(--text-secondary)' }} />;
+      case 'Painting': return <Paintbrush size={16} style={{ color: 'var(--text-secondary)' }} />;
+      case 'AC & HVAC': return <Wind size={16} style={{ color: 'var(--text-secondary)' }} />;
+      case 'Moving': return <Truck size={16} style={{ color: 'var(--text-secondary)' }} />;
+      case 'Gardening': return <Leaf size={16} style={{ color: 'var(--text-secondary)' }} />;
+      default: return <Wrench size={16} style={{ color: 'var(--text-secondary)' }} />;
     }
   };
 
@@ -173,7 +173,7 @@ export const ServiceManagementPage: React.FC = () => {
   const currentSubcats = subcategories;
 
   return (
-    <div className="app-container" style={{ direction: isRtl ? 'rtl' : 'ltr', background: '#fafafa' }}>
+    <div className="app-container" style={{ direction: isRtl ? 'rtl' : 'ltr', background: 'var(--bg-base)' }}>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -181,10 +181,10 @@ export const ServiceManagementPage: React.FC = () => {
         {/* Desktop & Tablet Page Header */}
         <div className="desktop-tablet-page-header desktop-tablet-only" style={{ marginBottom: '24px' }}>
           <div style={{ textAlign: 'start' }}>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600, letterSpacing: '-0.7px', color: '#171717' }}>
+            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600, letterSpacing: '-0.7px', color: 'var(--text-primary)' }}>
               {isRtl ? 'إدارة الخدمات' : 'Service Management'}
             </h1>
-            <p style={{ margin: '4px 0 0 0', color: '#71717A', fontSize: '14px' }}>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '14px' }}>
               {isRtl ? 'إدارة الفئات والفئات الفرعية وحقول الطلبات لكل خدمة' : 'Manage categories, subcategories, and request fields per service'}
             </p>
           </div>
@@ -936,7 +936,8 @@ export const ServiceManagementPage: React.FC = () => {
         .sm-modal-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(0, 0, 0, 0.4);
+          background: rgba(0, 0, 0, 0.7);
+          backdrop-filter: blur(4px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -944,11 +945,13 @@ export const ServiceManagementPage: React.FC = () => {
           padding: 16px;
         }
         .sm-modal-container {
-          background: #ffffff;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
           width: 100%;
           max-width: 500px;
-          border-radius: 14px;
-          box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+          border-radius: 16px;
+          box-shadow: var(--shadow-lg);
           overflow: hidden;
           text-align: start;
         }
@@ -957,22 +960,31 @@ export const ServiceManagementPage: React.FC = () => {
           justify-content: space-between;
           align-items: center;
           padding: 16px 20px;
-          border-bottom: 1px solid #e5e5e5;
+          border-bottom: 1px solid var(--border-color);
         }
         .sm-modal-header h2 {
           margin: 0;
           font-size: 16px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
         .sm-modal-close-btn {
-          background: transparent;
-          border: none;
-          color: #737373;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          border-radius: 50%;
+          color: var(--text-muted);
           cursor: pointer;
-          padding: 4px;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s ease;
         }
-        .sm-modal-close-btn:hover { color: #171717; }
+        .sm-modal-close-btn:hover {
+          color: var(--text-primary);
+          border-color: var(--text-primary);
+        }
         .sm-modal-body {
           padding: 20px;
         }
@@ -982,23 +994,24 @@ export const ServiceManagementPage: React.FC = () => {
           margin-bottom: 20px;
         }
         .sm-upload-box {
-          border: 1px dashed #d4d4d4;
-          border-radius: 8px;
-          background: #fafafa;
+          border: 1px dashed var(--border-color);
+          border-radius: 10px;
+          background: var(--bg-surface-hover);
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 6px;
           cursor: pointer;
-          color: #737373;
+          color: var(--text-secondary);
           font-size: 11px;
           font-weight: 600;
           transition: all 0.2s ease;
         }
         .sm-upload-box:hover {
-          border-color: #171717;
-          background: #f5f5f5;
+          border-color: var(--color-primary);
+          background: rgba(37, 99, 235, 0.08);
+          color: var(--color-primary);
         }
         .sm-upload-box.small {
           width: 90px;
@@ -1009,7 +1022,7 @@ export const ServiceManagementPage: React.FC = () => {
           height: 90px;
         }
         .sm-upload-box .icon {
-          color: #a3a3a3;
+          color: var(--text-muted);
         }
         .sm-modal-field-group {
           display: flex;
@@ -1020,77 +1033,88 @@ export const ServiceManagementPage: React.FC = () => {
         .sm-modal-field-group label {
           font-size: 13px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
         .sm-modal-field-group input,
         .sm-modal-field-group textarea {
           width: 100%;
           padding: 10px 12px;
-          border: 1px solid #e5e5e5;
+          border: 1px solid var(--border-color);
           border-radius: 8px;
           font-size: 13px;
           outline: none;
-          background: #fff;
+          background: var(--bg-base);
+          color: var(--text-primary);
+          box-sizing: border-box;
+          transition: border-color 0.15s ease;
         }
         .sm-modal-field-group input:focus,
         .sm-modal-field-group textarea:focus {
-          border-color: #171717;
+          border-color: var(--color-primary);
         }
         .sm-modal-toggle-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 1px solid #f5f5f5;
+          border-top: 1px solid var(--border-color);
           padding-top: 16px;
         }
         .sm-modal-toggle-row .toggle-label {
           font-size: 13px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0;
         }
         .sm-modal-toggle-row .toggle-desc {
           margin: 2px 0 0;
           font-size: 11px;
-          color: #737373;
+          color: var(--text-muted);
         }
         .sm-modal-footer {
           padding: 16px 20px;
-          border-top: 1px solid #e5e5e5;
-          background: #fafafa;
+          border-top: 1px solid var(--border-color);
+          background: var(--bg-surface-hover);
           display: flex;
           justify-content: flex-end;
           align-items: center;
           gap: 12px;
         }
         .sm-modal-footer .sm-btn-primary {
-          border-radius: 14px;
+          border-radius: 8px;
         }
         .sm-modal-footer .sm-modal-cancel-btn {
-          border-radius: 14px;
+          border-radius: 8px;
         }
         .sm-modal-cancel-btn {
           background: transparent;
-          border: none;
-          color: #525252;
+          border: 1px solid var(--border-color);
+          color: var(--text-secondary);
           font-weight: 600;
           font-size: 13px;
           cursor: pointer;
-          padding: 8px 12px;
+          padding: 8px 14px;
+          border-radius: 8px;
+          transition: all 0.15s ease;
         }
-        .sm-modal-cancel-btn:hover { color: #171717; }
+        .sm-modal-cancel-btn:hover {
+          color: var(--text-primary);
+          background: var(--bg-surface);
+        }
         
         .sm-kpi-card {
-          background: #fff;
-          border: 1px solid #e5e5e5;
-          border-radius: 12px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
           padding: 20px 16px;
           text-align: start;
+          box-shadow: var(--shadow-sm);
         }
         .sm-kpi-label {
           font-size: 12px;
-          color: #737373;
-          font-weight: 500;
+          color: var(--text-secondary);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
         }
         .sm-kpi-val-row {
           display: flex;
@@ -1101,14 +1125,15 @@ export const ServiceManagementPage: React.FC = () => {
         .sm-kpi-val {
           font-size: 24px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
+          letter-spacing: -0.4px;
         }
         .sm-kpi-trend {
           font-size: 11px;
           font-weight: 700;
         }
-        .sm-kpi-trend.up { color: #15803d; }
-        .sm-kpi-trend.down { color: #b91c1c; }
+        .sm-kpi-trend.up { color: #4ade80; }
+        .sm-kpi-trend.down { color: #f87171; }
 
         /* ── Insights Row ── */
         .sm-insights-layout {
@@ -1118,25 +1143,26 @@ export const ServiceManagementPage: React.FC = () => {
           margin-bottom: 20px;
         }
         .sm-insight-card {
-          background: #fff;
-          border: 1px solid #e5e5e5;
-          border-radius: 12px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
           padding: 20px;
           text-align: start;
+          box-shadow: var(--shadow-sm);
         }
         .sm-insight-header h3 {
           margin: 0;
           font-size: 16px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
         .sm-insight-header p {
           margin: 4px 0 0;
           font-size: 12px;
-          color: #737373;
+          color: var(--text-muted);
         }
 
-        /* ── Donut Chart Placeholder (Mockup style) ── */
+        /* ── Donut Chart (Dark Theme) ── */
         .sm-chart-container {
           display: flex;
           align-items: center;
@@ -1152,19 +1178,19 @@ export const ServiceManagementPage: React.FC = () => {
           width: 140px;
           height: 140px;
           border-radius: 50%;
-          border: 12px solid #e5e5e5;
+          border: 12px solid var(--border-color);
           position: relative;
         }
         .chart-inner-circle {
           position: absolute;
           inset: 0px;
           border-radius: 50%;
-          border: 12px solid #171717;
+          border: 12px solid var(--color-primary);
           clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
           transform: rotate(30deg);
         }
 
-        /* ── MoM Growth list (Figma clean format) ── */
+        /* ── MoM Growth list (Dark Theme) ── */
         .growing-list-container {
           display: flex;
           flex-direction: column;
@@ -1182,8 +1208,9 @@ export const ServiceManagementPage: React.FC = () => {
           width: 24px;
           height: 24px;
           border-radius: 50%;
-          background: #f5f5f5;
-          color: #404040;
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1191,17 +1218,18 @@ export const ServiceManagementPage: React.FC = () => {
         .growing-pct {
           font-size: 12px;
           font-weight: 700;
-          color: #15803d;
+          color: #4ade80;
         }
 
         /* ── Stacked General Card ── */
         .sm-stacked-card {
-          background: #fff;
-          border: 1px solid #e5e5e5;
-          border-radius: 12px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
           padding: 24px;
           margin-bottom: 20px;
           text-align: start;
+          box-shadow: var(--shadow-sm);
         }
         .sm-card-header {
           display: flex;
@@ -1215,12 +1243,12 @@ export const ServiceManagementPage: React.FC = () => {
           margin: 0;
           font-size: 18px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
         .sm-card-header p {
           margin: 4px 0 0;
           font-size: 12px;
-          color: #737373;
+          color: var(--text-muted);
         }
 
         /* ── Split Layout Box ── */
@@ -1231,7 +1259,7 @@ export const ServiceManagementPage: React.FC = () => {
           align-items: start;
         }
         .sm-split-left {
-          border-inline-end: 1px solid #f0f0f0;
+          border-inline-end: 1px solid var(--border-color);
           padding-inline-end: 24px;
         }
         .sm-search-input-wrapper {
@@ -1243,17 +1271,28 @@ export const ServiceManagementPage: React.FC = () => {
           left: 10px;
           top: 50%;
           transform: translateY(-50%);
-          color: #a3a3a3;
+          color: var(--text-muted);
+        }
+        [dir="rtl"] .sm-search-input-wrapper .icon {
+          left: auto;
+          right: 10px;
         }
         .sm-search-input-wrapper input {
           width: 100%;
-          padding: 8px 10px 8px 30px;
-          border: 1px solid #e5e5e5;
-          border-radius: 6px;
+          padding: 8px 10px 8px 32px;
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
           font-size: 12px;
           outline: none;
+          background: var(--bg-base);
+          color: var(--text-primary);
+          box-sizing: border-box;
+          transition: border-color 0.15s ease;
         }
-        .sm-search-input-wrapper input:focus { border-color: #171717; }
+        [dir="rtl"] .sm-search-input-wrapper input {
+          padding: 8px 32px 8px 10px;
+        }
+        .sm-search-input-wrapper input:focus { border-color: var(--color-primary); }
 
         .sm-left-list {
           display: flex;
@@ -1264,27 +1303,32 @@ export const ServiceManagementPage: React.FC = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 8px 10px;
+          padding: 8px 12px;
           background: transparent;
-          border: none;
-          border-radius: 6px;
+          border: 1px solid transparent;
+          border-radius: 8px;
           font-size: 13px;
-          color: #404040;
+          color: var(--text-secondary);
           font-weight: 500;
           cursor: pointer;
           text-align: start;
-          transition: all 0.2s ease;
+          transition: all 0.15s ease;
         }
-        .sm-left-item:hover { background: #fafafa; }
+        .sm-left-item:hover {
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
+        }
         .sm-left-item.active {
-          background: #f5f5f5;
-          color: #171717;
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
           font-weight: 700;
+          border-inline-start: 3px solid var(--color-primary);
         }
         .sm-left-item .badge {
           font-size: 10px;
-          background: #e5e5e5;
-          color: #737373;
+          background: var(--bg-base);
+          border: 1px solid var(--border-color);
+          color: var(--text-muted);
           padding: 1px 6px;
           border-radius: 4px;
         }
@@ -1299,7 +1343,7 @@ export const ServiceManagementPage: React.FC = () => {
           margin: 0;
           font-size: 14px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         /* ── Buttons ── */
@@ -1308,54 +1352,57 @@ export const ServiceManagementPage: React.FC = () => {
           gap: 8px;
         }
         .sm-btn-primary {
-          background: #171717;
+          background: var(--color-primary);
           color: #fff;
           border: none;
           padding: 10px 16px;
-          border-radius: 6px;
+          border-radius: 8px;
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
           display: flex;
           align-items: center;
           gap: 6px;
+          transition: all 0.15s ease;
         }
-        .sm-btn-primary:hover { background: #262626; }
+        .sm-btn-primary:hover { opacity: 0.9; }
         .sm-btn-primary.small {
           padding: 6px 12px;
           font-size: 11px;
         }
 
         .sm-btn-outline {
-          background: #fff;
-          color: #171717;
-          border: 1px solid #e5e5e5;
+          background: var(--bg-surface);
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
           padding: 10px 16px;
-          border-radius: 6px;
+          border-radius: 8px;
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
           display: flex;
           align-items: center;
           gap: 6px;
+          transition: all 0.15s ease;
         }
-        .sm-btn-outline:hover { background: #fafafa; }
+        .sm-btn-outline:hover { background: var(--bg-surface-hover); }
         .sm-btn-outline.small {
           padding: 6px 12px;
           font-size: 11px;
         }
 
         .sm-btn-secondary {
-          background: #a3a3a3;
-          color: #fff;
-          border: none;
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
           padding: 10px 16px;
-          border-radius: 6px;
+          border-radius: 8px;
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
+          transition: all 0.15s ease;
         }
-        .sm-btn-secondary:hover { background: #737373; }
+        .sm-btn-secondary:hover { background: var(--bg-surface); }
 
         /* ── Tables ── */
         .sm-table-container {
@@ -1368,48 +1415,51 @@ export const ServiceManagementPage: React.FC = () => {
         .sm-table th {
           padding: 10px 12px;
           font-size: 11px;
-          color: #737373;
+          color: var(--text-secondary);
           font-weight: 600;
           text-transform: uppercase;
-          border-bottom: 1px solid #e5e5e5;
+          border-bottom: 1px solid var(--border-color);
           text-align: start;
         }
         .sm-table td {
           padding: 12px;
-          border-bottom: 1px solid #f0f0f0;
+          border-bottom: 1px solid var(--border-color);
           font-size: 13px;
-          color: #171717;
+          color: var(--text-primary);
           text-align: start;
         }
         .sm-checkbox {
           width: 14px;
           height: 14px;
           border-radius: 4px;
-          border: 1.5px solid #d4d4d4;
+          border: 1.5px solid var(--border-color);
           outline: none;
           cursor: pointer;
+          accent-color: var(--color-primary);
         }
         .sm-category-icon-box {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          border: 1px solid #e5e5e5;
+          border: 1px solid var(--border-color);
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #fafafa;
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
         }
         .sm-orange-star {
           color: #f59e0b;
           font-size: 14px;
         }
         .sm-subcat-badge {
-          border: 1.5px solid #e5e5e5;
+          border: 1px solid var(--border-color);
+          background: var(--bg-surface-hover);
           border-radius: 6px;
           padding: 2px 8px;
           font-weight: 500;
           font-size: 11px;
-          color: #404040;
+          color: var(--text-secondary);
         }
 
         /* Status badges */
@@ -1427,11 +1477,11 @@ export const ServiceManagementPage: React.FC = () => {
           height: 5px;
           border-radius: 50%;
         }
-        .sm-status-badge.active { background: #dcfce7; color: #15803d; }
+        .sm-status-badge.active { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
         .sm-status-badge.active .dot { background: #22c55e; }
-        .sm-status-badge.hidden { background: #f5f5f5; color: #737373; }
+        .sm-status-badge.hidden { background: var(--bg-surface-hover); color: var(--text-muted); }
         .sm-status-badge.hidden .dot { background: #9ca3af; }
-        .sm-status-badge.archived { background: #fef3c7; color: #d97706; }
+        .sm-status-badge.archived { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
         .sm-status-badge.archived .dot { background: #f59e0b; }
 
         .sm-usage-cell {
@@ -1439,12 +1489,12 @@ export const ServiceManagementPage: React.FC = () => {
           flex-direction: column;
           font-size: 11px;
           font-weight: 500;
-          color: #737373;
+          color: var(--text-muted);
         }
         .sm-action-menu-btn {
           background: transparent;
           border: none;
-          color: #a3a3a3;
+          color: var(--text-muted);
           font-weight: bold;
           cursor: pointer;
         }
@@ -1454,7 +1504,7 @@ export const ServiceManagementPage: React.FC = () => {
           width: 32px;
           height: 18px;
           border-radius: 999px;
-          background: #e5e5e5;
+          background: var(--border-color);
           border: none;
           position: relative;
           cursor: pointer;
@@ -1471,20 +1521,20 @@ export const ServiceManagementPage: React.FC = () => {
           left: 2px;
           transition: transform 0.2s ease;
         }
-        .sm-toggle-switch.on { background: #171717; }
+        .sm-toggle-switch.on { background: var(--color-primary); }
         .sm-toggle-switch.on::before {
           transform: translateX(14px);
         }
 
         /* ── Dynamic request fields builder ── */
         .sm-edit-badge {
-          background: #fafafa;
-          border: 1px solid #e5e5e5;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           padding: 2px 8px;
           border-radius: 4px;
           font-size: 11px;
           font-weight: 600;
-          color: #525252;
+          color: var(--text-secondary);
         }
         .sm-toolbox-grid {
           display: grid;
@@ -1497,24 +1547,24 @@ export const ServiceManagementPage: React.FC = () => {
           align-items: center;
           gap: 8px;
           padding: 8px 12px;
-          border: 1.5px solid #e5e5e5;
-          border-radius: 6px;
-          background: #fff;
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          background: var(--bg-surface);
           font-size: 12px;
           font-weight: 600;
-          color: #171717;
+          color: var(--text-primary);
           cursor: pointer;
           text-align: start;
           transition: all 0.2s ease;
         }
         .sm-toolbox-card:hover {
-          background: #fafafa;
-          border-color: #171717;
+          background: var(--bg-surface-hover);
+          border-color: var(--color-primary);
         }
         .sm-toolbox-card .icon {
           font-weight: bold;
           font-size: 13px;
-          color: #737373;
+          color: var(--text-muted);
           width: 16px;
           text-align: center;
         }
@@ -1529,9 +1579,10 @@ export const ServiceManagementPage: React.FC = () => {
           justify-content: space-between;
           align-items: center;
           padding: 10px 14px;
-          border: 1px solid #e5e5e5;
-          border-radius: 6px;
-          background: #fff;
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          background: var(--bg-surface);
+          color: var(--text-primary);
         }
         .sm-required-asterisk {
           color: #ef4444;
@@ -1540,27 +1591,27 @@ export const ServiceManagementPage: React.FC = () => {
         .sm-field-type-pill {
           font-size: 10px;
           font-weight: 600;
-          background: #f5f5f5;
-          border: 1px solid #e5e5e5;
-          color: #737373;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-secondary);
           padding: 1px 6px;
           border-radius: 4px;
         }
         .sm-icon-action-btn {
           background: transparent;
           border: none;
-          color: #a3a3a3;
+          color: var(--text-muted);
           cursor: pointer;
           padding: 4px;
           border-radius: 4px;
         }
         .sm-icon-action-btn:hover {
-          color: #171717;
-          background: #fafafa;
+          color: var(--text-primary);
+          background: var(--bg-surface-hover);
         }
         .sm-icon-action-btn.delete:hover {
-          color: #ef4444;
-          background: #fee2e2;
+          color: #f87171;
+          background: rgba(239, 68, 68, 0.15);
         }
 
         /* ── Recent Activity timeline ── */
@@ -1574,21 +1625,22 @@ export const ServiceManagementPage: React.FC = () => {
           justify-content: space-between;
           align-items: center;
           padding: 10px 0;
-          border-bottom: 1px solid #fafafa;
+          border-bottom: 1px solid var(--border-color);
         }
         .sm-activity-circle-avatar {
           width: 24px;
           height: 24px;
           border-radius: 50%;
-          background: #e5e5e5;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
         }
         .sm-view-activity-link {
           font-size: 12px;
           font-weight: 600;
-          color: #737373;
+          color: var(--text-muted);
           text-decoration: none;
         }
-        .sm-view-activity-link:hover { color: #171717; }
+        .sm-view-activity-link:hover { color: var(--color-primary); }
 
         .sm-split-left,
         .sm-split-right,
@@ -1625,7 +1677,7 @@ export const ServiceManagementPage: React.FC = () => {
           .sm-split-left {
             border-inline-end: none;
             padding-inline-end: 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 20px;
             margin-bottom: 20px;
           }

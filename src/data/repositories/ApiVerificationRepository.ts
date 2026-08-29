@@ -78,17 +78,27 @@ export class ApiVerificationRepository implements VerificationRepository {
     moderatorNotes: string
   ): Promise<Result<boolean>> {
     try {
-      const itemMap: Record<string, string> = {
-        APPROVED: 'nationalId',
-        REJECTED: 'nationalId',
-        FLAGGED: 'backgroundCheck',
-      };
-      await apiClient.post<void>(API_ENDPOINTS.craftsmen.toggleVerificationItem(requestId), {
-        itemKey: itemMap[decision] || 'nationalId',
-        approved: decision === 'APPROVED',
-        notes: moderatorNotes,
-      });
-      return ok(true);
+      try {
+        const backendDecision = decision === 'FLAGGED' ? 'REQUEST_CHANGES' : decision;
+        await apiClient.post<void>(API_ENDPOINTS.admin.verificationModerate, {
+          requestId,
+          decision: backendDecision,
+          moderatorNotes,
+        });
+        return ok(true);
+      } catch (modErr) {
+        const itemMap: Record<string, string> = {
+          APPROVED: 'nationalId',
+          REJECTED: 'nationalId',
+          FLAGGED: 'backgroundCheck',
+        };
+        await apiClient.post<void>(API_ENDPOINTS.craftsmen.toggleVerificationItem(requestId), {
+          itemKey: itemMap[decision] || 'nationalId',
+          approved: decision === 'APPROVED',
+          notes: moderatorNotes,
+        });
+        return ok(true);
+      }
     } catch (error) {
       return fail(error as AppError);
     }

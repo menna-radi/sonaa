@@ -207,10 +207,10 @@ const OverviewPage: React.FC = () => {
                     </div>
                     <div className="mobile-attention-content">
                       <strong className="mobile-attention-card-title">Emergency requests</strong>
-                      <span className="mobile-attention-card-sub">+23% vs yesterday</span>
+                      <span className="mobile-attention-card-sub">Active alerts</span>
                     </div>
                     <div className="mobile-attention-right">
-                      <strong className="mobile-attention-value">47</strong>
+                      <strong className="mobile-attention-value">{metrics.find(m => m.id === 'emergency')?.value ?? 0}</strong>
                       <span className="mobile-attention-chevron">›</span>
                     </div>
                   </div>
@@ -222,10 +222,10 @@ const OverviewPage: React.FC = () => {
                     </div>
                     <div className="mobile-attention-content">
                       <strong className="mobile-attention-card-title">Verification queue</strong>
-                      <span className="mobile-attention-card-sub">Avg SLA 3h 12m</span>
+                      <span className="mobile-attention-card-sub">Awaiting review</span>
                     </div>
                     <div className="mobile-attention-right">
-                      <strong className="mobile-attention-value">129</strong>
+                      <strong className="mobile-attention-value">{metrics.find(m => m.id === 'verification')?.value ?? 0}</strong>
                       <span className="mobile-attention-chevron">›</span>
                     </div>
                   </div>

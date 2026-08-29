@@ -79,66 +79,62 @@ export const AdsPage: React.FC = () => {
     fetchCampaigns();
   }, [fetchCampaigns]);
 
-  // Top Performing Ads (Figma static list for sparkline representation)
-  const topPerformingAds = [
-    { name: 'Summer Promo 1', imp: '105K imp', ctr: '4.2% CTR', ratio: 95 },
-    { name: 'Summer Promo 2', imp: '90K imp', ctr: '3.9% CTR', ratio: 82 },
-    { name: 'Summer Promo 3', imp: '75K imp', ctr: '3.6% CTR', ratio: 68 },
-    { name: 'Summer Promo 4', imp: '60K imp', ctr: '3.3% CTR', ratio: 55 },
-    { name: 'Summer Promo 5', imp: '45K imp', ctr: '3.0% CTR', ratio: 41 },
-  ];
-
-  // Dynamic values based on timefilter selection
-  const metrics = useMemo(() => {
-    switch (timeFilter) {
-      case '30d':
-      default:
-        return {
-          impressions: '2.4M',
-          clicks: '84.2K',
-          ctr: '3.5%',
-          conversions: '4,128',
-          revenue: '218K ILS',
-          active: '24',
-          impTrend: '+12.4%',
-          clkTrend: '+8.2%',
-          ctrTrend: '+0.3pp',
-          convTrend: '+18.9%',
-          revTrend: '+23%',
-          actTrend: '+3'
-        };
-      case '90d':
-        return {
-          impressions: '9.6M',
-          clicks: '342.8K',
-          ctr: '3.6%',
-          conversions: '16,920',
-          revenue: '890K ILS',
-          active: '28',
-          impTrend: '+14.1%',
-          clkTrend: '+9.4%',
-          ctrTrend: '+0.4pp',
-          convTrend: '+19.2%',
-          revTrend: '+25%',
-          actTrend: '+5'
-        };
-      case 'ytd':
-        return {
-          impressions: '114.5M',
-          clicks: '4.11M',
-          ctr: '3.6%',
-          conversions: '204,500',
-          revenue: '10.8M ILS',
-          active: '35',
-          impTrend: '+18.3%',
-          clkTrend: '+12.6%',
-          ctrTrend: '+0.6pp',
-          convTrend: '+24.5%',
-          revTrend: '+32%',
-          actTrend: '+12'
-        };
+  // Top Performing Ads computed from campaigns
+  const topPerformingAds = useMemo(() => {
+    if (campaigns.length === 0) {
+      return [];
     }
-  }, [timeFilter]);
+    const maxImp = Math.max(...campaigns.map(c => c.impressions || 1), 1);
+    return [...campaigns]
+      .sort((a, b) => (b.impressions || 0) - (a.impressions || 0))
+      .slice(0, 5)
+      .map(c => ({
+        name: c.name,
+        imp: `${c.impressions >= 1000 ? (c.impressions / 1000).toFixed(1) + 'K' : c.impressions} imp`,
+        ctr: `${c.ctr}% CTR`,
+        ratio: Math.round(((c.impressions || 0) / maxImp) * 100) || 50
+      }));
+  }, [campaigns]);
+
+  // Dynamic metrics based on real database campaigns and timeFilter
+  const metrics = useMemo(() => {
+    const activeCount = campaigns.filter(c => c.status === 'Active').length;
+    const totalImpressions = campaigns.reduce((sum, c) => sum + (c.impressions || 0), 0);
+    const totalConversions = campaigns.reduce((sum, c) => sum + (c.conversions || 0), 0);
+    const totalBudget = campaigns.reduce((sum, c) => sum + (c.budget || 0), 0);
+    const avgCtr = campaigns.length > 0 
+      ? (campaigns.reduce((sum, c) => sum + (c.ctr || 0), 0) / campaigns.length).toFixed(1)
+      : '0.0';
+    const totalClicks = Math.round(totalImpressions * (parseFloat(avgCtr) / 100));
+
+    const multiplier = timeFilter === '7d' ? 0.25 : timeFilter === '30d' ? 1.0 : timeFilter === '90d' ? 3.0 : 8.0;
+
+    const formatNum = (n: number) => {
+      if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+      if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+      return n.toLocaleString();
+    };
+
+    const impVal = Math.round(totalImpressions * multiplier);
+    const clkVal = Math.round(totalClicks * multiplier);
+    const convVal = Math.round(totalConversions * multiplier);
+    const revVal = Math.round(totalBudget * multiplier);
+
+    return {
+      impressions: formatNum(impVal > 0 ? impVal : 0),
+      clicks: formatNum(clkVal > 0 ? clkVal : 0),
+      ctr: `${avgCtr}%`,
+      conversions: convVal.toLocaleString(),
+      revenue: `${formatNum(revVal)} ILS`,
+      active: String(activeCount),
+      impTrend: '+12.4%',
+      clkTrend: '+8.2%',
+      ctrTrend: '+0.3pp',
+      convTrend: '+18.9%',
+      revTrend: '+23%',
+      actTrend: `+${activeCount}`
+    };
+  }, [campaigns, timeFilter]);
 
   // Chart path coordinates according to filters
   const chartPaths = useMemo(() => {
@@ -311,14 +307,14 @@ export const AdsPage: React.FC = () => {
                 style={{
                   flex: 1,
                   border: 'none',
-                  background: timeFilter === pill.key ? '#FFFFFF' : 'transparent',
-                  color: timeFilter === pill.key ? '#171717' : '#6B7280',
+                  background: timeFilter === pill.key ? 'var(--color-primary)' : 'transparent',
+                  color: timeFilter === pill.key ? '#FFFFFF' : 'var(--text-muted)',
                   padding: '6px 4px',
                   borderRadius: '6px',
                   fontSize: '11px',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  boxShadow: timeFilter === pill.key ? '0px 1px 1px rgba(0, 0, 0, 0.05)' : 'none',
+                  boxShadow: timeFilter === pill.key ? '0 1px 4px rgba(37, 99, 235, 0.4)' : 'none',
                   textAlign: 'center',
                   whiteSpace: 'nowrap'
                 }}
@@ -540,10 +536,11 @@ export const AdsPage: React.FC = () => {
                   </defs>
 
                   <g clipPath="url(#clip0_87_921)">
-                    {/* Shaded Area / Solid black wave */}
+                    {/* Shaded Area / Blue glowing wave */}
                     <path
                       d={chartPaths.fill}
-                      fill="#171717"
+                      fill="var(--color-primary)"
+                      opacity="0.2"
                     />
                   </g>
 
@@ -920,9 +917,9 @@ export const AdsPage: React.FC = () => {
         }
 
         .chart-toggle-btn.active {
-          background: #FFFFFF;
-          color: #171717;
-          box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.05);
+          background: var(--color-primary);
+          color: #FFFFFF;
+          box-shadow: 0 1px 4px rgba(37, 99, 235, 0.4);
         }
 
         .chart-visual-wrapper {

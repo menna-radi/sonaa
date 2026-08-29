@@ -16,14 +16,14 @@ export class GetDashboardMetricsUseCase {
 
   public async execute(): Promise<Result<DashboardDataSnapshot>> {
     try {
-      // Parallel loading of all statistics using repository contracts
+      // Parallel resilient loading of all statistics using repository contracts
       const [
         metricsRes,
         categoriesRes,
         reportsRes,
         submissionsRes,
         cohortsRes
-      ] = await Promise.all([
+      ] = await Promise.allSettled([
         this.metricRepository.getMetrics(),
         this.metricRepository.getCategoryVolumes(),
         this.metricRepository.getPendingReports(),
@@ -31,18 +31,18 @@ export class GetDashboardMetricsUseCase {
         this.metricRepository.getCohortData()
       ]);
 
-      if (!metricsRes.success) return fail(metricsRes.error);
-      if (!categoriesRes.success) return fail(categoriesRes.error);
-      if (!reportsRes.success) return fail(reportsRes.error);
-      if (!submissionsRes.success) return fail(submissionsRes.error);
-      if (!cohortsRes.success) return fail(cohortsRes.error);
+      const metrics = (metricsRes.status === 'fulfilled' && metricsRes.value.success) ? metricsRes.value.data : [];
+      const categories = (categoriesRes.status === 'fulfilled' && categoriesRes.value.success) ? categoriesRes.value.data : [];
+      const reports = (reportsRes.status === 'fulfilled' && reportsRes.value.success) ? reportsRes.value.data : [];
+      const submissions = (submissionsRes.status === 'fulfilled' && submissionsRes.value.success) ? submissionsRes.value.data : [];
+      const cohortData = (cohortsRes.status === 'fulfilled' && cohortsRes.value.success) ? cohortsRes.value.data : [];
 
       return ok({
-        metrics: metricsRes.data,
-        categories: categoriesRes.data,
-        reports: reportsRes.data,
-        submissions: submissionsRes.data,
-        cohortData: cohortsRes.data
+        metrics,
+        categories,
+        reports,
+        submissions,
+        cohortData
       });
     } catch (error) {
       return fail(error as AppError);

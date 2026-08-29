@@ -86,18 +86,6 @@ export const PromotionsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Stats Metrics State
-  const [stats, setStats] = useState({
-    activeSponsorships: 342,
-    activeSponsorshipsTrend: '+18.4%',
-    featuredProfiles: 128,
-    featuredProfilesTrend: '+12.0%',
-    boostRevenueMtd: 184000,
-    boostRevenueMtdTrend: '+24.6%',
-    avgBoostLift: 62,
-    avgBoostLiftTrend: '+4pp'
-  });
-
   // Global Features Toggles State
   const [globalFeatures, setGlobalFeatures] = useState<PromotionFeature[]>([
     {
@@ -278,6 +266,30 @@ export const PromotionsPage: React.FC = () => {
     }
   ]);
 
+  // Dynamic Stats Metrics computed from sponsoredCraftsmen
+  const stats = useMemo(() => {
+    const activeCount = sponsoredCraftsmen.length;
+    const featuredCount = sponsoredCraftsmen.filter(c => c.packageName === 'Featured' || c.packageName === 'Premium').length;
+    const boostRevenue = sponsoredCraftsmen.reduce((sum, c) => {
+      const pkg = packages.find(p => p.name === c.packageName);
+      return sum + (pkg ? pkg.price : 499);
+    }, 0);
+    const avgLift = sponsoredCraftsmen.length > 0
+      ? Math.round(sponsoredCraftsmen.reduce((sum, c) => sum + (c.conversionRate || 5.0) * 10, 0) / sponsoredCraftsmen.length)
+      : 0;
+
+    return {
+      activeSponsorships: activeCount,
+      activeSponsorshipsTrend: activeCount > 0 ? `+${activeCount}` : '0',
+      featuredProfiles: featuredCount,
+      featuredProfilesTrend: featuredCount > 0 ? `+${featuredCount}` : '0',
+      boostRevenueMtd: boostRevenue,
+      boostRevenueMtdTrend: boostRevenue > 0 ? `+${boostRevenue.toLocaleString()} ILS` : '0 ILS',
+      avgBoostLift: avgLift,
+      avgBoostLiftTrend: avgLift > 0 ? '+4pp' : '0pp'
+    };
+  }, [sponsoredCraftsmen, packages]);
+
   // Edit Package Modal State
   const [editingPackage, setEditingPackage] = useState<PromotionPackage | null>(null);
   const [newPackagePrice, setNewPackagePrice] = useState('');
@@ -310,19 +322,6 @@ export const PromotionsPage: React.FC = () => {
             ? `تم ${nextState ? 'تفعيل' : 'تعطيل'} ميزة "${feature.name}" بنجاح.` 
             : `Feature "${feature.name}" successfully ${nextState ? 'enabled' : 'disabled'}.`
         );
-        
-        // Dynamically adjust statistics based on toggle state
-        if (featureId === 'sponsored_listings') {
-          setStats(prev => ({
-            ...prev,
-            activeSponsorships: nextState ? prev.activeSponsorships + 342 : prev.activeSponsorships - 342
-          }));
-        } else if (featureId === 'featured_badge') {
-          setStats(prev => ({
-            ...prev,
-            featuredProfiles: nextState ? prev.featuredProfiles + 128 : prev.featuredProfiles - 128
-          }));
-        }
         
         return { ...feature, enabled: nextState };
       }
@@ -357,11 +356,6 @@ export const PromotionsPage: React.FC = () => {
         ? `تم تحديث أسعار ومميزات باقة "${editingPackage.name}" بنجاح.`
         : `Package "${editingPackage.name}" tiers successfully updated.`
     );
-    
-    // Update boost revenue stats if Premium or Featured is edited
-    if (editingPackage.id === 'Premium') {
-      setStats(prev => ({ ...prev, boostRevenueMtd: prev.boostRevenueMtd + 15000 }));
-    }
 
     setEditingPackage(null);
   };
@@ -392,13 +386,8 @@ export const PromotionsPage: React.FC = () => {
 
     setSponsoredCraftsmen([newPromo, ...sponsoredCraftsmen]);
     
-    // Increment active count in package and metrics stats
+    // Increment active count in package
     setPackages(packages.map(p => p.id === newCraftsmanPack ? { ...p, activeCount: p.activeCount + 1 } : p));
-    setStats(prev => ({
-      ...prev,
-      activeSponsorships: prev.activeSponsorships + 1,
-      boostRevenueMtd: prev.boostRevenueMtd + (newCraftsmanPack === 'Premium' ? 1499 : newCraftsmanPack === 'Featured' ? 499 : 199)
-    }));
 
     showToast(
       isRtl
@@ -418,12 +407,8 @@ export const PromotionsPage: React.FC = () => {
 
     setSponsoredCraftsmen(sponsoredCraftsmen.filter(c => c.id !== id));
     
-    // Decrement stats
+    // Decrement package active count
     setPackages(packages.map(p => p.id === item.packageName ? { ...p, activeCount: Math.max(0, p.activeCount - 1) } : p));
-    setStats(prev => ({
-      ...prev,
-      activeSponsorships: Math.max(0, prev.activeSponsorships - 1)
-    }));
 
     showToast(
       isRtl
@@ -566,7 +551,7 @@ export const PromotionsPage: React.FC = () => {
             <div className="metric-card glass-card">
               <div className="metric-header">
                 <div className="icon-wrapper">
-                  <Megaphone size={16} style={{ color: '#171717' }} />
+                  <Megaphone size={16} style={{ color: 'var(--color-primary)' }} />
                 </div>
                 <span className="trend-badge positive">{stats.activeSponsorshipsTrend}</span>
               </div>
@@ -578,7 +563,7 @@ export const PromotionsPage: React.FC = () => {
             <div className="metric-card glass-card">
               <div className="metric-header">
                 <div className="icon-wrapper">
-                  <Award size={16} style={{ color: '#171717' }} />
+                  <Award size={16} style={{ color: '#eab308' }} />
                 </div>
                 <span className="trend-badge positive">{stats.featuredProfilesTrend}</span>
               </div>
@@ -590,7 +575,7 @@ export const PromotionsPage: React.FC = () => {
             <div className="metric-card glass-card">
               <div className="metric-header">
                 <div className="icon-wrapper">
-                  <DollarSign size={16} style={{ color: '#171717' }} />
+                  <DollarSign size={16} style={{ color: '#22c55e' }} />
                 </div>
                 <span className="trend-badge positive">{stats.boostRevenueMtdTrend}</span>
               </div>
@@ -604,7 +589,7 @@ export const PromotionsPage: React.FC = () => {
             <div className="metric-card glass-card">
               <div className="metric-header">
                 <div className="icon-wrapper">
-                  <TrendingUp size={16} style={{ color: '#171717' }} />
+                  <TrendingUp size={16} style={{ color: '#3b82f6' }} />
                 </div>
                 <span className="trend-badge positive">{stats.avgBoostLiftTrend}</span>
               </div>
@@ -683,18 +668,18 @@ export const PromotionsPage: React.FC = () => {
           <div className="layout-two-columns">
             {/* Table Column */}
             <div className="column-table glass-card" style={{ padding: 0 }}>
-              <div className="table-header-block" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', borderBottom: '1px solid #E5E7EB' }}>
+              <div className="table-header-block" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', borderBottom: '1px solid var(--border-color)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '12px' }}>
                   <div style={{ textAlign: 'start' }}>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {t('promotions_active_sponsored_title') || 'Active Sponsored Craftsmen'}
                     </h3>
-                    <p style={{ margin: '4px 0 0 0', color: '#6B7280', fontSize: '13px' }}>
+                    <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '13px' }}>
                       {t('promotions_active_sponsored_subtitle') || 'Currently boosted profiles across categories and cities.'}
                     </p>
                   </div>
                   
-                  <button className="view-all-table-btn" style={{ fontSize: '13px', fontWeight: 600, color: '#171717', border: 'none', background: 'none', cursor: 'pointer' }}>
+                  <button className="view-all-table-btn" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-primary)', border: 'none', background: 'none', cursor: 'pointer' }}>
                     {t('promotions_view_all') || 'View all'}
                   </button>
                 </div>
@@ -713,10 +698,11 @@ export const PromotionsPage: React.FC = () => {
                       paddingRight: isRtl ? '36px' : '12px',
                       boxSizing: 'border-box',
                       borderRadius: '8px',
-                      border: '1px solid #D1D5DB',
+                      border: '1px solid var(--border-color)',
                       fontSize: '13px',
                       outline: 'none',
-                      background: '#FAFAFA'
+                      background: 'var(--bg-base)',
+                      color: 'var(--text-primary)'
                     }}
                   />
                   <Search
@@ -727,7 +713,7 @@ export const PromotionsPage: React.FC = () => {
                       left: isRtl ? 'auto' : '12px',
                       right: isRtl ? '12px' : 'auto',
                       transform: 'translateY(-50%)',
-                      color: '#9CA3AF'
+                      color: 'var(--text-muted)'
                     }}
                   />
                 </div>
@@ -765,29 +751,29 @@ export const PromotionsPage: React.FC = () => {
                                 <span>{craftsman.avatarInitials}</span>
                               </div>
                               <div style={{ textAlign: 'start' }}>
-                                <div style={{ fontSize: '13px', fontWeight: 600, color: '#171717' }}>{craftsman.name}</div>
+                                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{craftsman.name}</div>
                               </div>
                             </div>
                           </td>
-                          <td style={{ textAlign: 'start', color: '#525252', fontSize: '13px' }}>{craftsman.category}</td>
-                          <td style={{ textAlign: 'start', color: '#525252', fontSize: '13px' }}>{craftsman.city}</td>
+                          <td style={{ textAlign: 'start', color: 'var(--text-secondary)', fontSize: '13px' }}>{craftsman.category}</td>
+                          <td style={{ textAlign: 'start', color: 'var(--text-secondary)', fontSize: '13px' }}>{craftsman.city}</td>
                           <td style={{ textAlign: 'start' }}>
                             <span className={`pkg-badge-pill ${craftsman.packageName.toLowerCase()}`}>
                               {craftsman.packageName}
                             </span>
                           </td>
-                          <td style={{ textAlign: 'end', fontWeight: 600, fontSize: '13px' }}>
+                          <td style={{ textAlign: 'end', fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
                             <span className={craftsman.daysLeft <= 7 ? 'alert-danger-text' : ''}>
                               {craftsman.daysLeft} {isRtl ? 'يوم' : 'd'}
                             </span>
                           </td>
-                          <td style={{ textAlign: 'end', color: '#525252', fontSize: '13px' }}>
+                          <td style={{ textAlign: 'end', color: 'var(--text-secondary)', fontSize: '13px' }}>
                             {craftsman.views.toLocaleString()}
                           </td>
-                          <td style={{ textAlign: 'end', color: '#525252', fontSize: '13px' }}>
+                          <td style={{ textAlign: 'end', color: 'var(--text-secondary)', fontSize: '13px' }}>
                             {craftsman.clicks.toLocaleString()}
                           </td>
-                          <td style={{ textAlign: 'end', color: '#16A34A', fontWeight: 600, fontSize: '13px' }}>
+                          <td style={{ textAlign: 'end', color: '#4ade80', fontWeight: 600, fontSize: '13px' }}>
                             {craftsman.conversionRate}%
                           </td>
                           <td style={{ textAlign: 'center' }}>
@@ -809,11 +795,11 @@ export const PromotionsPage: React.FC = () => {
 
             {/* Features Sidebar Column */}
             <div className="column-features glass-card">
-              <div style={{ textAlign: 'start', borderBottom: '1px solid #E5E7EB', paddingBottom: '16px', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
+              <div style={{ textAlign: 'start', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
                   {t('promotions_features_title') || 'Promotion Features'}
                 </h3>
-                <p style={{ margin: '4px 0 0 0', color: '#6B7280', fontSize: '13px' }}>
+                <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '13px' }}>
                   {t('promotions_features_subtitle') || 'Globally enable or disable available promotion features.'}
                 </p>
               </div>
@@ -1018,14 +1004,14 @@ export const PromotionsPage: React.FC = () => {
         .section-title {
           font-size: 20px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0;
           letter-spacing: -0.4px;
         }
 
         .section-subtitle {
           font-size: 13px;
-          color: #6B7280;
+          color: var(--text-muted);
           margin: 4px 0 0 0;
         }
 
@@ -1034,18 +1020,18 @@ export const PromotionsPage: React.FC = () => {
           position: fixed;
           top: 80px;
           inset-inline-end: 24px;
-          background: #FFFFFF;
-          border: 1px solid #E5E7EB;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 12px 18px;
-          box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+          box-shadow: var(--shadow-lg);
           z-index: 1000;
           display: flex;
           align-items: center;
           gap: 10px;
           font-size: 13px;
           font-weight: 500;
-          color: #171717;
+          color: var(--text-primary);
           animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -1065,7 +1051,7 @@ export const PromotionsPage: React.FC = () => {
 
         /* ── Action Buttons ── */
         .promotions-primary-btn {
-          background: #171717;
+          background: var(--color-primary);
           color: #FFFFFF;
           padding: 10px 16px;
           border-radius: 8px;
@@ -1076,17 +1062,17 @@ export const PromotionsPage: React.FC = () => {
           justify-content: center;
           gap: 8px;
           cursor: pointer;
-          transition: background 0.15s;
+          transition: all 0.15s ease;
           border: none;
         }
 
         .promotions-primary-btn:hover {
-          background: #2D2D2D;
+          opacity: 0.9;
         }
 
         .promotions-secondary-btn {
-          background: #FFFFFF;
-          color: #171717;
+          background: var(--bg-surface);
+          color: var(--text-primary);
           padding: 10px 16px;
           border-radius: 8px;
           font-size: 13px;
@@ -1096,12 +1082,12 @@ export const PromotionsPage: React.FC = () => {
           justify-content: center;
           gap: 8px;
           cursor: pointer;
-          border: 1px solid #D1D5DB;
-          transition: background 0.15s;
+          border: 1px solid var(--border-color);
+          transition: all 0.15s ease;
         }
 
         .promotions-secondary-btn:hover {
-          background: #F9FAFB;
+          background: var(--bg-surface-hover);
         }
 
         /* ── Metrics Grid ── */
@@ -1115,9 +1101,9 @@ export const PromotionsPage: React.FC = () => {
         .metric-card {
           padding: 24px !important;
           border-radius: 16px !important;
-          border: 1px solid #E5E7EB !important;
-          background: #FFFFFF !important;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.03) !important;
+          border: 1px solid var(--border-color) !important;
+          background: var(--bg-surface) !important;
+          box-shadow: var(--shadow-sm) !important;
           display: flex;
           flex-direction: column;
           align-items: flex-start;
@@ -1139,8 +1125,9 @@ export const PromotionsPage: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: center;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
         }
-
 
         .trend-badge {
           font-size: 11px;
@@ -1150,20 +1137,22 @@ export const PromotionsPage: React.FC = () => {
         }
 
         .trend-badge.positive {
-          background: #DCFCE7;
-          color: #15803D;
+          background: rgba(34, 197, 94, 0.15);
+          color: #4ade80;
         }
 
         .metric-label {
           font-size: 12px;
-          color: #6B7280;
-          font-weight: 500;
+          color: var(--text-secondary);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
         }
 
         .metric-value {
           font-size: 28px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           letter-spacing: -0.8px;
         }
 
@@ -1178,27 +1167,29 @@ export const PromotionsPage: React.FC = () => {
         .package-card {
           padding: 28px !important;
           border-radius: 16px !important;
-          border: 1px solid #E5E7EB !important;
+          border: 1px solid var(--border-color) !important;
           display: flex;
           flex-direction: column;
           position: relative;
           text-align: start;
+          box-shadow: var(--shadow-sm);
         }
 
         .package-card.basic {
-          background: #FFFFFF !important;
-          color: #171717;
+          background: var(--bg-surface) !important;
+          color: var(--text-primary);
         }
 
         .package-card.featured {
-          background: #171717 !important;
-          border-color: #171717 !important;
-          color: #FFFFFF;
+          background: linear-gradient(180deg, var(--bg-surface) 0%, rgba(37, 99, 235, 0.08) 100%) !important;
+          border-color: var(--color-primary) !important;
+          color: var(--text-primary);
+          box-shadow: 0 0 20px rgba(37, 99, 235, 0.15) !important;
         }
 
         .package-card.premium {
-          background: #FFFFFF !important;
-          color: #171717;
+          background: var(--bg-surface) !important;
+          color: var(--text-primary);
         }
 
         .popular-badge-pill {
@@ -1206,13 +1197,13 @@ export const PromotionsPage: React.FC = () => {
           top: -12px;
           left: 50%;
           transform: translateX(-50%);
-          background: #FFFFFF;
-          color: #171717;
-          padding: 4px 12px;
+          background: var(--color-primary);
+          color: #FFFFFF;
+          padding: 4px 14px;
           border-radius: 9999px;
-          font-size: 10px;
+          font-size: 10.5px;
           font-weight: 700;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
           white-space: nowrap;
         }
 
@@ -1223,45 +1214,17 @@ export const PromotionsPage: React.FC = () => {
           margin-bottom: 20px;
         }
 
-        .icon-wrapper {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #F4F4F5;
-          color: #171717;
-        }
-
-        .package-card.featured .icon-wrapper {
-          background: rgba(255, 255, 255, 0.1);
-          color: #FFFFFF;
-        }
-
         .package-active-badge {
           font-size: 12px;
-          color: #71717A;
+          color: var(--text-muted);
           font-weight: 500;
-        }
-
-        .package-card.featured .package-active-badge {
-          color: rgba(255, 255, 255, 0.5);
-        }
-
-        .package-card.premium .package-active-badge {
-          color: #71717A;
         }
 
         .package-tier-name {
           font-size: 18px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           margin: 0 0 8px 0;
-        }
-
-        .package-card.featured .package-tier-name {
-          color: #FFFFFF;
         }
 
         .price-container {
@@ -1274,21 +1237,13 @@ export const PromotionsPage: React.FC = () => {
         .price-value {
           font-size: 26px;
           font-weight: 700;
-          color: #171717;
-        }
-
-        .package-card.featured .price-value {
-          color: #FFFFFF;
+          color: var(--text-primary);
         }
 
         .price-duration {
           font-size: 12px;
-          color: #71717A;
+          color: var(--text-muted);
           font-weight: 500;
-        }
-
-        .package-card.featured .price-duration {
-          color: rgba(255, 255, 255, 0.5);
         }
 
         .highlights-row {
@@ -1305,22 +1260,14 @@ export const PromotionsPage: React.FC = () => {
 
         .hl-label {
           font-size: 11px;
-          color: #71717A;
+          color: var(--text-muted);
           font-weight: 500;
-        }
-
-        .package-card.featured .hl-label {
-          color: rgba(255, 255, 255, 0.5);
         }
 
         .hl-value {
           font-size: 13px;
           font-weight: 700;
-          color: #171717;
-        }
-
-        .package-card.featured .hl-value {
-          color: #FFFFFF;
+          color: var(--text-primary);
         }
 
         .package-features-list {
@@ -1338,29 +1285,21 @@ export const PromotionsPage: React.FC = () => {
           align-items: flex-start;
           gap: 8px;
           font-size: 13px;
-          color: #27272A;
+          color: var(--text-secondary);
           line-height: 1.3;
         }
 
-        .package-card.featured .package-features-list li {
-          color: rgba(255, 255, 255, 0.8);
-        }
-
         .package-features-list li .check-icon {
-          color: #171717;
+          color: var(--color-primary);
           flex-shrink: 0;
           margin-top: 2px;
         }
 
-        .package-card.featured .package-features-list li .check-icon {
-          color: #FFFFFF;
-        }
-
         .package-edit-btn {
           width: 100%;
-          background: #F4F4F5;
-          border: none;
-          color: #171717;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
           font-size: 13px;
           font-weight: 600;
           padding: 10px;
@@ -1370,20 +1309,23 @@ export const PromotionsPage: React.FC = () => {
           justify-content: center;
           gap: 6px;
           cursor: pointer;
-          transition: background 0.15s;
+          transition: all 0.15s ease;
         }
 
         .package-edit-btn:hover {
-          background: #E4E4E7;
+          background: var(--bg-base);
+          border-color: var(--color-primary);
+          color: var(--color-primary);
         }
 
         .package-card.featured .package-edit-btn {
-          background: #FFFFFF;
-          color: #171717;
+          background: var(--color-primary);
+          color: #FFFFFF;
+          border: none;
         }
 
         .package-card.featured .package-edit-btn:hover {
-          background: #F4F4F5;
+          opacity: 0.9;
         }
 
         /* ── Split Grid Columns ── */
@@ -1397,18 +1339,18 @@ export const PromotionsPage: React.FC = () => {
 
         .column-table {
           border-radius: 16px !important;
-          border: 1px solid #E5E7EB !important;
-          background: #FFFFFF !important;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.03) !important;
+          border: 1px solid var(--border-color) !important;
+          background: var(--bg-surface) !important;
+          box-shadow: var(--shadow-sm) !important;
           overflow: hidden;
         }
 
         .column-features {
           padding: 24px !important;
           border-radius: 16px !important;
-          border: 1px solid #E5E7EB !important;
-          background: #FFFFFF !important;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.03) !important;
+          border: 1px solid var(--border-color) !important;
+          background: var(--bg-surface) !important;
+          box-shadow: var(--shadow-sm) !important;
         }
 
         /* ── Craftsmen Sponsored Table ── */
@@ -1426,19 +1368,22 @@ export const PromotionsPage: React.FC = () => {
 
         .promotions-table th {
           font-size: 13px;
-          font-weight: 500;
-          color: #6B7280;
+          font-weight: 600;
+          color: var(--text-secondary);
           padding: 14px 20px;
-          border-bottom: 1px solid #E5E7EB;
-          background: #F9FAFB;
+          border-bottom: 1px solid var(--border-color);
+          background: var(--bg-surface-hover);
           white-space: nowrap;
+          text-transform: uppercase;
+          font-size: 11px;
+          letter-spacing: 0.4px;
         }
 
         .promotions-table td {
           padding: 14px 20px;
           font-size: 13px;
-          border-bottom: 1px solid #E5E7EB;
-          color: #171717;
+          border-bottom: 1px solid var(--border-color);
+          color: var(--text-primary);
           vertical-align: middle;
           white-space: nowrap;
         }
@@ -1448,21 +1393,21 @@ export const PromotionsPage: React.FC = () => {
         }
 
         .promotions-table tr:hover td {
-          background: #FAFAFA;
+          background: var(--bg-surface-hover);
         }
 
         .craftsman-avatar {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: #FAFAFA;
-          border: 1px solid #E5E7EB;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 11px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
           flex-shrink: 0;
         }
 
@@ -1475,46 +1420,49 @@ export const PromotionsPage: React.FC = () => {
         }
 
         .pkg-badge-pill.basic {
-          background: #F4F4F5;
-          color: #171717;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-secondary);
         }
 
         .pkg-badge-pill.featured {
-          background: #171717;
-          color: #FFFFFF;
+          background: rgba(37, 99, 235, 0.15);
+          border: 1px solid rgba(37, 99, 235, 0.3);
+          color: #60a5fa;
         }
 
         .pkg-badge-pill.premium {
-          background: #FEF3C7;
-          color: #92400E;
+          background: rgba(245, 158, 11, 0.15);
+          border: 1px solid rgba(245, 158, 11, 0.3);
+          color: #fbbf24;
         }
 
         .alert-danger-text {
-          color: #DC2626;
+          color: #f87171;
         }
 
         .table-row-delete-btn {
           background: transparent;
           border: none;
-          color: #9CA3AF;
+          color: var(--text-muted);
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 6px;
           border-radius: 50%;
-          transition: background 0.15s, color 0.15s;
+          transition: all 0.15s ease;
         }
 
         .table-row-delete-btn:hover {
-          background: #FEF2F2;
-          color: #DC2626;
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
         }
 
         .empty-table-cell {
           text-align: center;
           padding: 48px !important;
-          color: #6B7280;
+          color: var(--text-muted);
           font-size: 13px;
         }
 
@@ -1531,7 +1479,7 @@ export const PromotionsPage: React.FC = () => {
           align-items: center;
           gap: 16px;
           padding-bottom: 20px;
-          border-bottom: 1px solid #F3F4F6;
+          border-bottom: 1px solid var(--border-color);
         }
 
         .feature-item-row:last-child {
@@ -1547,14 +1495,14 @@ export const PromotionsPage: React.FC = () => {
           display: block;
           font-size: 14px;
           font-weight: 600;
-          color: #171717;
+          color: var(--text-primary);
           margin-bottom: 2px;
         }
 
         .feature-desc-label {
           display: block;
           font-size: 12px;
-          color: #737373;
+          color: var(--text-muted);
           line-height: 1.4;
         }
 
@@ -1571,7 +1519,7 @@ export const PromotionsPage: React.FC = () => {
           width: 36px;
           height: 20px;
           border-radius: 9999px;
-          background: #E5E7EB;
+          background: var(--border-color);
           position: relative;
           cursor: pointer;
           transition: background 0.2s;
@@ -1580,7 +1528,7 @@ export const PromotionsPage: React.FC = () => {
         }
 
         .toggle-switch-btn.checked {
-          background: #171717;
+          background: var(--color-primary);
         }
 
         .switch-slider {
@@ -1591,7 +1539,7 @@ export const PromotionsPage: React.FC = () => {
           height: 16px;
           border-radius: 50%;
           background: #FFFFFF;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
           transition: transform 0.2s;
         }
 
@@ -1603,14 +1551,14 @@ export const PromotionsPage: React.FC = () => {
           transform: translateX(-16px);
         }
 
-        /* ── Premium Modal Layout ── */
+        /* ── Modal Layout ── */
         .custom-modal-backdrop {
           position: fixed;
           top: 0;
           bottom: 0;
           inset-inline-start: 0;
           inset-inline-end: 0;
-          background: rgba(0, 0, 0, 0.4);
+          background: rgba(0, 0, 0, 0.7);
           backdrop-filter: blur(4px);
           z-index: 1100;
           display: flex;
@@ -1622,11 +1570,12 @@ export const PromotionsPage: React.FC = () => {
         .custom-modal-content {
           width: 100%;
           max-width: 480px;
-          background: #FFFFFF !important;
-          border: 1px solid #E5E7EB !important;
+          background: var(--bg-surface) !important;
+          border: 1px solid var(--border-color) !important;
           border-radius: 16px !important;
-          box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04) !important;
+          box-shadow: var(--shadow-lg) !important;
           padding: 24px !important;
+          color: var(--text-primary);
           animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
@@ -1639,7 +1588,7 @@ export const PromotionsPage: React.FC = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-bottom: 1px solid #E5E7EB;
+          border-bottom: 1px solid var(--border-color);
           padding-bottom: 14px;
           margin-bottom: 20px;
         }
@@ -1648,24 +1597,26 @@ export const PromotionsPage: React.FC = () => {
           margin: 0;
           font-size: 16px;
           font-weight: 700;
-          color: #171717;
+          color: var(--text-primary);
         }
 
         .modal-close-btn {
-          background: transparent;
-          border: none;
-          color: #9CA3AF;
+          background: var(--bg-surface-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-muted);
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 4px;
+          width: 30px;
+          height: 30px;
           border-radius: 50%;
+          transition: all 0.15s ease;
         }
 
         .modal-close-btn:hover {
-          background: #F3F4F6;
-          color: #4B5563;
+          color: var(--text-primary);
+          border-color: var(--text-primary);
         }
 
         .modal-form-body {
@@ -1684,25 +1635,26 @@ export const PromotionsPage: React.FC = () => {
         .input-group label {
           font-size: 12px;
           font-weight: 600;
-          color: #4B5563;
+          color: var(--text-primary);
         }
 
         .input-group input,
         .input-group select {
           height: 38px;
-          border: 1px solid #D1D5DB;
+          border: 1px solid var(--border-color);
           border-radius: 8px;
           padding: 0 12px;
           font-size: 13px;
           outline: none;
           width: 100%;
           box-sizing: border-box;
-          background: #FFFFFF;
+          background: var(--bg-base);
+          color: var(--text-primary);
         }
 
         .input-group input:focus,
         .input-group select:focus {
-          border-color: #171717;
+          border-color: var(--color-primary);
         }
 
         .modal-actions-row {
@@ -1713,22 +1665,24 @@ export const PromotionsPage: React.FC = () => {
         }
 
         .modal-actions-row .cancel-btn {
-          background: #FAFAFA;
-          border: 1px solid #E5E7EB;
-          color: #171717;
+          background: transparent;
+          border: 1px solid var(--border-color);
+          color: var(--text-secondary);
           padding: 10px 16px;
           border-radius: 8px;
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
+          transition: all 0.15s ease;
         }
 
         .modal-actions-row .cancel-btn:hover {
-          background: #F4F4F5;
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
         }
 
         .modal-actions-row .save-btn {
-          background: #171717;
+          background: var(--color-primary);
           color: #FFFFFF;
           padding: 10px 16px;
           border-radius: 8px;
@@ -1736,10 +1690,11 @@ export const PromotionsPage: React.FC = () => {
           font-weight: 600;
           cursor: pointer;
           border: none;
+          transition: opacity 0.15s ease;
         }
 
         .modal-actions-row .save-btn:hover {
-          background: #2D2D2D;
+          opacity: 0.9;
         }
 
         /* ── Media Queries Responsive Grid Override ── */
@@ -1792,7 +1747,7 @@ export const PromotionsPage: React.FC = () => {
           }
 
           .mobile-action-row {
-            margin-top: 16px !important; /* Move button away from mobile subheader */
+            margin-top: 16px !important;
           }
 
           .metrics-grid {

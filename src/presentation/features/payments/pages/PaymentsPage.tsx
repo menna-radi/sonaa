@@ -100,15 +100,15 @@ export const PaymentsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // Format Helper for Currency
+  // Format Helper for Currency (Standardized ILS Shekel)
   const formatCurrency = (val: number): string => {
     if (val >= 1000000) {
-      return `${(val / 1000000).toFixed(2)}M ILS`;
+      return `₪${(val / 1000000).toFixed(2)}M ILS`;
     }
     if (val >= 1000) {
-      return `${(val / 1000).toFixed(0)}K ILS`;
+      return `₪${(val / 1000).toFixed(0)}K ILS`;
     }
-    return `${val.toLocaleString()} ILS`;
+    return `₪${val.toLocaleString()} ILS`;
   };
 
   return (
@@ -566,12 +566,13 @@ export const PaymentsPage: React.FC = () => {
             padding: '16px'
           }} onClick={() => setShowAllFailedModal(false)}>
             <div style={{
-              background: '#ffffff',
+              background: 'var(--bg-surface)',
               borderRadius: '12px',
               width: '100%',
               maxWidth: '700px',
               padding: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              border: '1px solid var(--border-color)',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
               textAlign: 'start',
               position: 'relative',
               maxHeight: '80vh',
@@ -579,26 +580,26 @@ export const PaymentsPage: React.FC = () => {
             }} onClick={(e) => e.stopPropagation()}>
               <button 
                 onClick={() => setShowAllFailedModal(false)}
-                style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#71717a' }}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--text-muted)' }}
               >
                 ×
               </button>
               
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 700, color: '#171717' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Failed Transactions Log
               </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: '0.85rem', color: '#71717a' }}>
+              <p style={{ margin: '0 0 20px 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 Review and trigger retry processes for system payments.
               </p>
 
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e4e4e7', textAlign: 'left' }}>
-                    <th style={{ padding: '10px 8px', color: '#71717a' }}>Transaction</th>
-                    <th style={{ padding: '10px 8px', color: '#71717a' }}>Amount</th>
-                    <th style={{ padding: '10px 8px', color: '#71717a' }}>Reason</th>
-                    <th style={{ padding: '10px 8px', color: '#71717a' }}>Retries</th>
-                    <th style={{ padding: '10px 8px', color: '#71717a', textAlign: 'right' }}>Action</th>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 8px', color: 'var(--text-secondary)' }}>Transaction</th>
+                    <th style={{ padding: '10px 8px', color: 'var(--text-secondary)' }}>Amount</th>
+                    <th style={{ padding: '10px 8px', color: 'var(--text-secondary)' }}>Reason</th>
+                    <th style={{ padding: '10px 8px', color: 'var(--text-secondary)' }}>Retries</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'right', color: 'var(--text-secondary)' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -606,33 +607,35 @@ export const PaymentsPage: React.FC = () => {
                     const isRetrying = retryingId === tx.id;
                     const reasonText = t(tx.reasonKey) || tx.reasonKey.replace('reason_', '').replace('_', ' ');
                     return (
-                      <tr key={tx.id} style={{ borderBottom: '1px solid #f4f4f5' }}>
+                      <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                         <td style={{ padding: '12px 8px' }}>
-                          <strong style={{ display: 'block', color: '#171717' }}>{tx.name}</strong>
-                          <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{tx.txId} · {tx.bank}</span>
+                          <strong style={{ display: 'block', color: 'var(--text-primary)' }}>{tx.name}</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tx.txId} · {tx.bank}</span>
                         </td>
-                        <td style={{ padding: '12px 8px', fontWeight: 600 }}>{tx.amount.toLocaleString()} ILS</td>
-                        <td style={{ padding: '12px 8px', color: '#dc2626' }}>{reasonText}</td>
-                        <td style={{ padding: '12px 8px' }}>{tx.retries}</td>
+                        <td style={{ padding: '12px 8px', fontWeight: 600, color: 'var(--text-primary)' }}>{tx.amount.toLocaleString()} ILS</td>
+                        <td style={{ padding: '12px 8px', color: '#ef4444' }}>{reasonText}</td>
+                        <td style={{ padding: '12px 8px', color: 'var(--text-primary)' }}>{tx.retries}</td>
                         <td style={{ padding: '12px 8px', textAlign: 'right' }}>
                           <button
                             onClick={() => onRetry(tx.id)}
                             disabled={isRetrying}
                             style={{
-                              background: '#171717',
-                              color: '#ffffff',
-                              border: 'none',
-                              borderRadius: '4px',
-                              padding: '4px 8px',
-                              fontSize: '0.75rem',
-                              cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px'
+                              gap: '4px',
+                              padding: '6px 10px',
+                              borderRadius: '4px',
+                              background: '#eff6ff',
+                              color: '#2563eb',
+                              border: 'none',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              cursor: isRetrying ? 'not-allowed' : 'pointer',
+                              opacity: isRetrying ? 0.7 : 1
                             }}
                           >
-                            <RotateCw size={10} className={isRetrying ? 'animate-spin' : ''} />
-                            <span>Retry</span>
+                            <RotateCw size={12} className={isRetrying ? 'animate-spin' : ''} />
+                            {isRetrying ? 'Retrying...' : 'Retry'}
                           </button>
                         </td>
                       </tr>
@@ -643,7 +646,7 @@ export const PaymentsPage: React.FC = () => {
 
               <button 
                 onClick={() => setShowAllFailedModal(false)}
-                style={{ marginTop: '20px', width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e4e4e7', background: '#ffffff', color: '#171717', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                style={{ marginTop: '20px', width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-surface-hover)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
               >
                 Close Logs
               </button>
@@ -664,12 +667,13 @@ export const PaymentsPage: React.FC = () => {
             padding: '16px'
           }} onClick={() => setShowAllRequestsModal(false)}>
             <div style={{
-              background: '#ffffff',
+              background: 'var(--bg-surface)',
               borderRadius: '12px',
               width: '100%',
               maxWidth: '600px',
               padding: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              border: '1px solid var(--border-color)',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
               textAlign: 'start',
               position: 'relative',
               maxHeight: '80vh',
@@ -677,15 +681,15 @@ export const PaymentsPage: React.FC = () => {
             }} onClick={(e) => e.stopPropagation()}>
               <button 
                 onClick={() => setShowAllRequestsModal(false)}
-                style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#71717a' }}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--text-muted)' }}
               >
                 ×
               </button>
               
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 700, color: '#171717' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 All Payout Requests
               </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: '0.85rem', color: '#71717a' }}>
+              <p style={{ margin: '0 0 20px 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 Approve or reject pending payouts from craftsmen balance.
               </p>
 
@@ -701,21 +705,21 @@ export const PaymentsPage: React.FC = () => {
                         alignItems: 'center',
                         padding: '12px',
                         borderRadius: '8px',
-                        background: '#fafafa',
-                        border: '1px solid #f4f4f5'
+                        background: 'var(--bg-surface-hover)',
+                        border: '1px solid var(--border-color)'
                       }}
                     >
                       <div>
-                        <strong style={{ display: 'block', color: '#171717', fontSize: '0.9rem' }}>{req.name}</strong>
-                        <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{req.bank} · {req.timeAgo}</span>
+                        <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.9rem' }}>{req.name}</strong>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{req.bank} · {req.timeAgo}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <strong style={{ fontSize: '0.9rem', color: '#171717' }}>{req.amount.toLocaleString()} ILS</strong>
+                        <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{req.amount.toLocaleString()} ILS</strong>
                         {isPending ? (
                           <div style={{ display: 'flex', gap: '6px' }}>
                             <button
                               onClick={() => onReject(req.id)}
-                              style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: '#fee2e2', color: '#ef4444', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                              style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: '#fee2e2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                             >
                               <X size={12} />
                             </button>

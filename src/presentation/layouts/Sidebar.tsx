@@ -1,8 +1,9 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '../context/NavigationContext';
 import type { PageKey } from '../context/NavigationContext';
+import { useDependencies } from '../../core/di/DependencyProvider';
 import { 
   LayoutDashboard, 
   Activity, 
@@ -55,6 +56,68 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const { user } = useAuth();
   const { currentPage, navigate } = useNavigation();
+  const { dependencies } = useDependencies();
+
+  // Dynamic real badge counts from database
+  const [badgeCounts, setBadgeCounts] = useState<{
+    verification: number;
+    reports: number;
+    notifications: number;
+    payments: number;
+  }>({
+    verification: 0,
+    reports: 0,
+    notifications: 0,
+    payments: 0,
+  });
+
+  const fetchBadgeCounts = useCallback(async () => {
+    try {
+      // 1. Fetch overview metrics (verification, reports)
+      const [metricsRes, reportsRes, notifsRes, paymentsRes] = await Promise.allSettled([
+        dependencies.metricRepository.getMetrics(),
+        dependencies.metricRepository.getPendingReports(),
+        dependencies.notificationRepository.getNotifications(),
+        dependencies.paymentRepository.getSubscriptionRequests('PENDING_VERIFICATION'),
+      ]);
+
+      let verifCount = 0;
+      if (metricsRes.status === 'fulfilled' && metricsRes.value.success) {
+        const vMetric = metricsRes.value.data.find(m => m.id === 'verification');
+        verifCount = vMetric ? Number(vMetric.value) : 0;
+      }
+
+      let repCount = 0;
+      if (reportsRes.status === 'fulfilled' && reportsRes.value.success) {
+        repCount = reportsRes.value.data.length;
+      }
+
+      let notifCount = 0;
+      if (notifsRes.status === 'fulfilled' && notifsRes.value.success) {
+        notifCount = notifsRes.value.data.filter(n => n.unread).length;
+      }
+
+      let payCount = 0;
+      if (paymentsRes.status === 'fulfilled' && paymentsRes.value.success) {
+        payCount = Array.isArray(paymentsRes.value.data) ? paymentsRes.value.data.length : 0;
+      }
+
+      setBadgeCounts({
+        verification: verifCount,
+        reports: repCount,
+        notifications: notifCount,
+        payments: payCount,
+      });
+    } catch {
+      // Graceful fallback
+    }
+  }, [dependencies]);
+
+  useEffect(() => {
+    fetchBadgeCounts();
+    const interval = setInterval(fetchBadgeCounts, 15000);
+    return () => clearInterval(interval);
+  }, [fetchBadgeCounts]);
 
   // ── Persist sidebar scroll position across page navigations ──
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -88,18 +151,42 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         { key: 'nav_craftsmen', pageKey: 'craftsmen', label: t('nav_craftsmen') || 'Craftsmen', icon: <Users size={16} /> },
         { key: 'nav_tasks', pageKey: 'tasks', label: t('nav_tasks') || 'Tasks', icon: <CheckSquare size={16} /> },
         { key: 'nav_chat', pageKey: 'chat', label: t('nav_chat') || 'Live Support & Chat', icon: <MessageSquare size={16} />, badge: 'LIVE', isPulse: true },
-        { key: 'nav_verification', pageKey: 'verification', label: t('nav_verification') || 'Verification', icon: <ShieldCheck size={16} />, badge: '129' },
-        { key: 'nav_reports', pageKey: 'reports', label: t('nav_reports') || 'Reports', icon: <FileText size={16} />, badge: '42' },
+        { 
+          key: 'nav_verification', 
+          pageKey: 'verification', 
+          label: t('nav_verification') || 'Verification', 
+          icon: <ShieldCheck size={16} />, 
+          badge: badgeCounts.verification > 0 ? String(badgeCounts.verification) : undefined 
+        },
+        { 
+          key: 'nav_reports', 
+          pageKey: 'reports', 
+          label: t('nav_reports') || 'Reports', 
+          icon: <FileText size={16} />, 
+          badge: badgeCounts.reports > 0 ? String(badgeCounts.reports) : undefined 
+        },
       ]
     },
     {
       titleKey: 'sec_insights',
       titleDefault: 'Insights',
       items: [
-        { key: 'nav_payments', pageKey: 'payments', label: t('nav_payments') || 'Payments', icon: <DollarSign size={16} /> },
+        { 
+          key: 'nav_payments', 
+          pageKey: 'payments', 
+          label: t('nav_payments') || 'Payments', 
+          icon: <DollarSign size={16} />,
+          badge: badgeCounts.payments > 0 ? String(badgeCounts.payments) : undefined
+        },
         { key: 'nav_analytics', pageKey: 'analytics', label: t('nav_analytics') || 'Analytics', icon: <BarChart3 size={16} /> },
         { key: 'nav_broadcast', pageKey: 'broadcast', label: t('nav_broadcast') || 'Broadcast', icon: <Radio size={16} /> },
-        { key: 'nav_notifications', pageKey: 'notifications', label: t('nav_notifications') || 'Notifications', icon: <Bell size={16} />, badge: '7' },
+        { 
+          key: 'nav_notifications', 
+          pageKey: 'notifications', 
+          label: t('nav_notifications') || 'Notifications', 
+          icon: <Bell size={16} />, 
+          badge: badgeCounts.notifications > 0 ? String(badgeCounts.notifications) : undefined 
+        },
         { key: 'nav_ads', pageKey: 'ads', label: t('nav_ads') || 'Ads Dashboard', icon: <Megaphone size={16} /> },
         { key: 'nav_campaigns', pageKey: 'campaigns', label: t('nav_campaigns') || 'Active Campaigns', icon: <Compass size={16} /> },
         { key: 'nav_scheduled', pageKey: 'scheduled', label: t('nav_scheduled') || 'Scheduled', icon: <Calendar size={16} /> },
@@ -371,22 +458,52 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'space-between', 
-                padding: '8px', 
-                background: '#1c1c1f', 
-                borderRadius: 'var(--border-radius-sm)', 
-                border: '1px solid #27272a',
+                padding: '8px 10px', 
+                background: 'var(--bg-surface)', 
+                borderRadius: '8px', 
+                border: '1px solid var(--border-color)',
                 cursor: 'pointer',
-                transition: 'background 0.2s ease'
+                transition: 'all 0.2s ease',
+                gap: '8px',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <img src={user.avatarUrl} alt={user.name} style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #27272a' }} />
-                <div className="sidebar-user-details" style={{ display: 'flex', flexDirection: 'column', textAlign: 'start' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff' }}>{user.name} Admin</span>
-                  <span style={{ fontSize: '0.7rem', color: '#a3a3a3' }}>Operations Lead</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                {user.avatarUrl && user.avatarUrl.trim() !== '' ? (
+                  <img 
+                    src={user.avatarUrl} 
+                    alt={user.name} 
+                    style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--border-color)', objectFit: 'cover', flexShrink: 0 }} 
+                  />
+                ) : (
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: 'var(--color-primary)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    flexShrink: 0,
+                    letterSpacing: '0.5px'
+                  }}>
+                    {user.name ? user.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'SA' : 'SA'}
+                  </div>
+                )}
+                <div className="sidebar-user-details" style={{ display: 'flex', flexDirection: 'column', textAlign: 'start', minWidth: 0, overflow: 'hidden' }}>
+                  <span style={{ fontSize: '0.83rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user.name || 'System Admin'}
+                  </span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user.role ? (user.role === 'ADMIN' ? 'Super Admin' : user.role) : 'Operations Lead'}
+                  </span>
                 </div>
               </div>
-              <ChevronDown size={14} className="sidebar-user-chevron" style={{ color: '#a3a3a3', marginInlineStart: 'auto' }} />
+              <ChevronDown size={14} className="sidebar-user-chevron" style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
             </div>
           </div>
         )}

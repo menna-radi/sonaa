@@ -65,7 +65,7 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
           color: 'var(--text-primary)',
           marginTop: '2px'
         }}>
-          Open queue (129)
+          Open queue ({submissions.length})
         </span>
       </div>
 

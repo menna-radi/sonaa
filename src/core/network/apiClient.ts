@@ -114,8 +114,11 @@ class ApiClient {
 
     switch (status) {
       case 401:
-        // Automatically clear session on authentication failure
+        // Automatically clear session on authentication failure and notify AuthContext
         storageService.clearToken();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        }
         return new UnauthorizedError(msg);
       case 403:
         return new ForbiddenError(msg);
