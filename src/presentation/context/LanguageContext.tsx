@@ -13,9 +13,9 @@ export interface TranslationDict {
 
 export const translations: TranslationDict = {
   brand_name: {
-    en: 'Sonaa Admin',
-    ar: 'إدارة صناع',
-    he: 'סונא מנהל'
+    en: 'Arox Admin',
+    ar: 'لوحة تحكم AROX',
+    he: 'ממשק ניהול AROX'
   },
   login_welcome_title: {
     en: 'Welcome Back',
@@ -23,9 +23,9 @@ export const translations: TranslationDict = {
     he: 'ברוך הבא'
   },
   login_welcome_subtitle: {
-    en: 'Sign in to Sonaa Admin Console',
-    ar: 'سجل الدخول إلى لوحة إدارة صناع',
-    he: 'היכנס למסוף הניהול של סונא'
+    en: 'Sign in to AROX Admin Console',
+    ar: 'سجل الدخول إلى لوحة إدارة AROX',
+    he: 'היכנס למסוף הניהול של AROX'
   },
   login_label_email: {
     en: 'Email Address',

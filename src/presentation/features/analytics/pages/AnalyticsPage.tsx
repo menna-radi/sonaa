@@ -80,9 +80,9 @@ export const AnalyticsPage: React.FC = () => {
                 fontFamily: 'inherit'
               }}
             >
-              <div className="mobile-logo">S</div>
+              <div className="mobile-logo">A</div>
               <div className="mobile-logo-text">
-                <strong>Sonaa</strong>
+                <strong>Arox</strong>
                 <span>Admin</span>
               </div>
             </button>

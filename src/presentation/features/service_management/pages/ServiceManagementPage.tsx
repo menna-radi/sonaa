@@ -194,8 +194,8 @@ export const ServiceManagementPage: React.FC = () => {
         <div className="mobile-header mobile-only">
           <div className="mobile-header-left">
             <button onClick={() => setSidebarOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-              <div className="mobile-logo">S</div>
-              <div className="mobile-logo-text"><strong>Sonaa</strong><span>Admin</span></div>
+              <div className="mobile-logo">A</div>
+              <div className="mobile-logo-text"><strong>Arox</strong><span>Admin</span></div>
             </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

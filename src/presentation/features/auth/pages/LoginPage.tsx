@@ -115,9 +115,9 @@ export const LoginPage: React.FC = () => {
 
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src="/sonaa logo.svg" alt="Sonaa Logo" style={{ width: '42px', height: '42px', borderRadius: '8px', flexShrink: 0 }} />
+            <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: '42px', height: '42px', borderRadius: '8px', flexShrink: 0 }} />
             <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.04em', color: '#ffffff' }}>
-              Sonaa Admin
+              Arox Admin
             </h1>
           </div>
           <p style={{ fontSize: '1.1rem', color: '#ffffff', lineHeight: 1.6, maxWidth: '440px' }}>

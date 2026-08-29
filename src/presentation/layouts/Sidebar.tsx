@@ -216,8 +216,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="sidebar-brand flex-between" style={{ padding: 'var(--spacing-md)', height: 'var(--header-height)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img
-              src="/sonaa logo.svg"
-              alt="Sonaa Logo"
+              src="/arox-icon.svg"
+              alt="Arox Logo"
               style={{
                 width: '30px',
                 height: '30px',
@@ -226,8 +226,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               }}
             />
             <div className="sidebar-brand-text" style={{ display: 'flex', flexDirection: 'column', textAlign: 'start' }}>
-              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff', lineHeight: 1.1 }}>
-                Sonaa
+              <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#ffffff', lineHeight: 1.1, letterSpacing: '0.02em' }}>
+                Arox
               </span>
               <span style={{ fontSize: '0.65rem', color: '#a3a3a3', fontWeight: 500 }}>
                 Admin Console
