@@ -276,18 +276,15 @@ export const useCraftsmen = () => {
 
       // 2. Tab filter
       if (activeTab === 'verified') {
-        return (
-          craftsman.verifications.nationalId &&
-          craftsman.verifications.selfieMatch &&
-          craftsman.verifications.bankIban &&
-          craftsman.status !== 'suspended'
-        );
+        const isVerified =
+          craftsman.verifications.nationalId ||
+          (craftsman.verifications.selfieMatch && craftsman.verifications.bankIban);
+        return isVerified && craftsman.status !== 'suspended';
       }
       if (activeTab === 'pending') {
         const isVerified =
-          craftsman.verifications.nationalId &&
-          craftsman.verifications.selfieMatch &&
-          craftsman.verifications.bankIban;
+          craftsman.verifications.nationalId ||
+          (craftsman.verifications.selfieMatch && craftsman.verifications.bankIban);
         return !isVerified && craftsman.status !== 'suspended';
       }
       if (activeTab === 'suspended') {
@@ -308,9 +305,8 @@ export const useCraftsmen = () => {
     craftsmen.forEach(c => {
       allCount++;
       const isVerified =
-        c.verifications.nationalId &&
-        c.verifications.selfieMatch &&
-        c.verifications.bankIban;
+        c.verifications.nationalId ||
+        (c.verifications.selfieMatch && c.verifications.bankIban);
 
       if (c.status === 'suspended') {
         suspendedCount++;

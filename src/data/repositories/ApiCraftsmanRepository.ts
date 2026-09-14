@@ -35,7 +35,7 @@ export class ApiCraftsmanRepository implements CraftsmanRepository {
 
     return {
       id: c.id,
-      name: `${c.firstName} ${c.lastName}`,
+      name: `${c.user?.firstName || c.firstName} ${c.user?.lastName || c.lastName}`.trim() || `${c.firstName} ${c.lastName}`.trim() || 'Craftsman',
       trade: c.title || 'Craftsman',
       avatarUrl: c.avatarUrl || undefined,
       rating: Number(c.rating || 5),
