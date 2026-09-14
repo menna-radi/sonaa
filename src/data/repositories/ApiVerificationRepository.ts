@@ -79,14 +79,15 @@ export class ApiVerificationRepository implements VerificationRepository {
   ): Promise<Result<boolean>> {
     try {
       try {
-        const backendDecision = decision === 'FLAGGED' ? 'REQUEST_CHANGES' : decision;
+        const notes = moderatorNotes?.trim() || (decision === 'APPROVED' ? 'Approved by admin' : 'Reviewed by admin');
         await apiClient.post<void>(API_ENDPOINTS.admin.verificationModerate, {
           requestId,
-          decision: backendDecision,
-          moderatorNotes,
+          decision,
+          moderatorNotes: notes,
         });
         return ok(true);
       } catch (modErr) {
+        const notes = moderatorNotes?.trim() || (decision === 'APPROVED' ? 'Approved by admin' : 'Reviewed by admin');
         const itemMap: Record<string, string> = {
           APPROVED: 'nationalId',
           REJECTED: 'nationalId',
@@ -95,7 +96,7 @@ export class ApiVerificationRepository implements VerificationRepository {
         await apiClient.post<void>(API_ENDPOINTS.craftsmen.toggleVerificationItem(requestId), {
           itemKey: itemMap[decision] || 'nationalId',
           approved: decision === 'APPROVED',
-          notes: moderatorNotes,
+          notes,
         });
         return ok(true);
       }
