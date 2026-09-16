@@ -4,6 +4,7 @@ import { useNavigation } from '../../../context/NavigationContext';
 import { Sidebar } from '../../../../presentation/layouts/Sidebar';
 import { Header } from '../../../../presentation/layouts/Header';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
+import { apiClient } from '../../../../core/network/apiClient';
 import {
   ArrowLeft,
   Upload,
@@ -55,6 +56,7 @@ export const CreateAdPage: React.FC = () => {
   const [ctaText, setCtaText] = useState('Book Now');
   const [destinationUrl, setDestinationUrl] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   // New Creative Fields: URL, Link Type, and Entity Selection
   const [adUrl, setAdUrl] = useState('');
@@ -173,6 +175,7 @@ export const CreateAdPage: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
   };
@@ -185,6 +188,7 @@ export const CreateAdPage: React.FC = () => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
+      setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
   };
@@ -256,9 +260,29 @@ export const CreateAdPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      let uploadedImageUrl: string | undefined = undefined;
+      if (imageFile) {
+        try {
+          const formData = new FormData();
+          formData.append('file', imageFile);
+          const uploadRes = await apiClient.post<{ success: boolean; data: { fileUrl: string } }>('/uploads', formData);
+          uploadedImageUrl = uploadRes?.data?.fileUrl;
+        } catch (uploadErr) {
+          console.error('Failed to upload image file to /uploads:', uploadErr);
+        }
+      }
+
       const placementLabel = placements.find(p => p.selected)?.label || 'Home Banner';
       const numericBudget = parseFloat(budget.replace(/[^0-9.]/g, '')) || 5000;
-      const result = await adRepository.createAd(adTitle, numericBudget, placementLabel);
+      const result = await adRepository.createAd(adTitle, numericBudget, placementLabel, {
+        imageUrl: uploadedImageUrl,
+        description: description,
+        ctaText: ctaText,
+        targetType: linkType === 'task' ? 'TASK' : (linkType === 'craftsman' ? 'CRAFTSMAN' : 'NONE'),
+        targetId: selectedEntityId || undefined,
+        targetUrl: adUrl || destinationUrl || undefined,
+      });
+
       if (result.success) {
         setShowSuccess(true);
         setTimeout(() => {

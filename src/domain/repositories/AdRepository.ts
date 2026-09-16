@@ -23,9 +23,18 @@ export interface PromotionOffer {
   createdAt: string;
 }
 
+export interface AdCreativeDetails {
+  imageUrl?: string;
+  description?: string;
+  ctaText?: string;
+  targetType?: string;
+  targetId?: string;
+  targetUrl?: string;
+}
+
 export interface AdRepository {
   getAds(): Promise<Result<Campaign[]>>;
-  createAd(name: string, budget: number, placement?: string): Promise<Result<Campaign>>;
+  createAd(name: string, budget: number, placement?: string, details?: AdCreativeDetails): Promise<Result<Campaign>>;
   updateAdStatus(id: string, status: 'Active' | 'Paused'): Promise<Result<Campaign>>;
   deleteAd(id: string): Promise<Result<boolean>>;
   getPromotions(): Promise<Result<PromotionOffer[]>>;

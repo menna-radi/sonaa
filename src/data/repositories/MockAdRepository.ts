@@ -1,4 +1,4 @@
-import { AdRepository, Campaign, PromotionOffer } from '../../domain/repositories/AdRepository';
+import { AdRepository, Campaign, PromotionOffer, AdCreativeDetails } from '../../domain/repositories/AdRepository';
 import { Result, ok } from '../../core/result/Result';
 
 export class MockAdRepository implements AdRepository {
@@ -14,7 +14,12 @@ export class MockAdRepository implements AdRepository {
     return ok(this.campaigns);
   }
 
-  public async createAd(name: string, budget: number, placement?: string): Promise<Result<Campaign>> {
+  public async createAd(
+    name: string,
+    budget: number,
+    placement?: string,
+    _details?: AdCreativeDetails
+  ): Promise<Result<Campaign>> {
     const ad: Campaign = {
       id: String(this.campaigns.length + 1),
       name,

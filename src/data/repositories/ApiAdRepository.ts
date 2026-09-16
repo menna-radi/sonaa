@@ -1,4 +1,4 @@
-import { AdRepository, Campaign, PromotionOffer } from '../../domain/repositories/AdRepository';
+import { AdRepository, Campaign, PromotionOffer, AdCreativeDetails } from '../../domain/repositories/AdRepository';
 import { Result, ok, fail } from '../../core/result/Result';
 import { apiClient } from '../../core/network/apiClient';
 import { API_ENDPOINTS } from '../../core/config/apiEndpoints';
@@ -37,11 +37,18 @@ export class ApiAdRepository implements AdRepository {
     }
   }
 
-  public async createAd(name: string, budget: number, placement?: string): Promise<Result<Campaign>> {
+  public async createAd(
+    name: string,
+    budget: number,
+    placement?: string,
+    details?: AdCreativeDetails
+  ): Promise<Result<Campaign>> {
     try {
       const response = await apiClient.post<ApiAdDTO>(API_ENDPOINTS.admin.ads, {
         name,
         budget,
+        placement: placement || 'Home Banner',
+        ...details,
       });
 
       const campaign: Campaign = {
