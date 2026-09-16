@@ -17,6 +17,7 @@ export interface Craftsman {
   jobsCount: number;
   trustScore: number;
   status: 'online' | 'offline' | 'busy' | 'flagged' | 'suspended';
+  isAvailable: boolean;
   joinedDate: string;
   idNumber: string;
   responseTimeMin: number;

@@ -43,6 +43,7 @@ export class ApiCraftsmanRepository implements CraftsmanRepository {
       jobsCount: c.completedTasksCount || 0,
       trustScore: Math.round((c.trustScore || 1.0) * 100),
       status,
+      isAvailable: c.isAvailable !== undefined ? !!c.isAvailable : true,
       joinedDate: c.user?.createdAt ? new Date(c.user.createdAt).toLocaleDateString() : '—',
       idNumber: c.user?.phoneNumber || '—',
       responseTimeMin: c.responseTimeMinutes || 15,

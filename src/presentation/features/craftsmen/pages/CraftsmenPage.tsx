@@ -130,6 +130,8 @@ export const CraftsmenPage: React.FC = () => {
   const displayedCraftsmen = useMemo(() => {
     return craftsmen.filter(c => {
       if (selectedTrade !== 'All' && c.trade !== selectedTrade) return false;
+      if (statusFilter === 'Available') return c.isAvailable;
+      if (statusFilter === 'Unavailable') return !c.isAvailable;
       if (statusFilter !== 'All' && c.status !== statusFilter.toLowerCase()) return false;
       return true;
     });
@@ -335,6 +337,8 @@ export const CraftsmenPage: React.FC = () => {
                       style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
                     >
                       <option value="All">All Statuses</option>
+                      <option value="Available">🟢 Available to Work (متاح للعمل)</option>
+                      <option value="Unavailable">⚪ Not Available (غير متاح)</option>
                       <option value="Online">Online</option>
                       <option value="Offline">Offline</option>
                       <option value="Busy">Busy</option>
@@ -533,7 +537,7 @@ export const CraftsmenPage: React.FC = () => {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div style={{ position: 'relative', flexShrink: 0 }}>
                               <CraftsmanAvatar url={c.avatarUrl} name={c.name} size={32} />
-                              {/* Status dot */}
+                              {/* Availability dot */}
                               <span 
                                 style={{ 
                                   position: 'absolute', 
@@ -542,9 +546,10 @@ export const CraftsmenPage: React.FC = () => {
                                   width: '10px', 
                                   height: '10px', 
                                   borderRadius: '50%', 
-                                  background: styleMeta.dot, 
+                                  background: c.isAvailable ? '#22C55E' : '#9CA3AF', 
                                   border: '2px solid var(--bg-surface)' 
                                 }} 
+                                title={c.isAvailable ? 'Available for work (متاح للعمل)' : 'Not available (غير متاح)'}
                               />
                             </div>
                             <div style={{ textAlign: 'start' }}>
@@ -593,11 +598,35 @@ export const CraftsmenPage: React.FC = () => {
                           </div>
                         </td>
 
-                        {/* Status Col */}
+                        {/* Status & Availability Col */}
                         <td style={{ padding: '12px' }}>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: styleMeta.text }}>
-                            {c.status}
-                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-start' }}>
+                            <span 
+                              style={{ 
+                                fontSize: '0.7rem', 
+                                fontWeight: 700, 
+                                padding: '2px 8px', 
+                                borderRadius: '4px', 
+                                background: c.isAvailable ? '#F0FDF4' : '#F4F4F5', 
+                                color: c.isAvailable ? '#15803D' : '#71717A',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: c.isAvailable ? '#22C55E' : '#9CA3AF' }} />
+                              {c.isAvailable ? 'Available' : 'Unavailable'}
+                            </span>
+                            {c.status === 'suspended' ? (
+                              <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#DC2626', background: '#FEE2E2', padding: '1px 5px', borderRadius: '3px' }}>
+                                SUSPENDED
+                              </span>
+                            ) : c.status !== 'online' && c.status !== 'offline' ? (
+                              <span style={{ fontSize: '0.62rem', fontWeight: 600, color: styleMeta.text, textTransform: 'uppercase' }}>
+                                {c.status}
+                              </span>
+                            ) : null}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -626,7 +655,7 @@ export const CraftsmenPage: React.FC = () => {
                     <div className="craftsman-mobile-card-top">
                       <div className="craftsman-mobile-avatar-wrapper">
                         <CraftsmanAvatar url={c.avatarUrl} name={c.name} size={32} />
-                        <span className="craftsman-mobile-status-dot" style={{ background: styleMeta.dot }} />
+                        <span className="craftsman-mobile-status-dot" style={{ background: c.isAvailable ? '#22C55E' : '#9CA3AF' }} />
                       </div>
                       <div className="craftsman-mobile-info">
                         <div className="craftsman-mobile-name-row">
@@ -637,9 +666,24 @@ export const CraftsmenPage: React.FC = () => {
                         </div>
                         <span className="craftsman-mobile-trade">{c.trade}</span>
                       </div>
-                      <span className="craftsman-mobile-status-badge" style={{ background: styleMeta.bg, color: styleMeta.text }}>
-                        {c.status}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                        <span 
+                          className="craftsman-mobile-status-badge" 
+                          style={{ 
+                            background: c.isAvailable ? '#F0FDF4' : '#F4F4F5', 
+                            color: c.isAvailable ? '#15803D' : '#71717A',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: c.isAvailable ? '#22C55E' : '#9CA3AF' }} />
+                          {c.isAvailable ? 'Available' : 'Unavailable'}
+                        </span>
+                        {c.status === 'suspended' && (
+                          <span style={{ fontSize: '0.6rem', color: '#DC2626', fontWeight: 700 }}>SUSPENDED</span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="craftsman-mobile-card-metrics">
@@ -809,21 +853,52 @@ export const CraftsmenPage: React.FC = () => {
                     {selectedCraftsman.trade} · Joined {selectedCraftsman.joinedDate}
                   </p>
                   
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
                     <span 
                       style={{ 
-                        fontSize: '0.65rem', 
+                        fontSize: '0.68rem', 
                         fontWeight: 700, 
-                        padding: '2px 8px', 
-                        borderRadius: '4px',
-                        background: getStatusColor(selectedCraftsman.status).bg,
-                        color: getStatusColor(selectedCraftsman.status).text,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
+                        padding: '3px 9px', 
+                        borderRadius: '5px', 
+                        background: selectedCraftsman.isAvailable ? '#F0FDF4' : '#F4F4F5', 
+                        color: selectedCraftsman.isAvailable ? '#15803D' : '#71717A',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px'
                       }}
                     >
-                      {selectedCraftsman.status}
+                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: selectedCraftsman.isAvailable ? '#22C55E' : '#9CA3AF' }} />
+                      {selectedCraftsman.isAvailable ? 'AVAILABLE TO WORK (متاح للعمل)' : 'NOT AVAILABLE (غير متاح)'}
                     </span>
+                    {selectedCraftsman.status === 'suspended' ? (
+                      <span 
+                        style={{ 
+                          fontSize: '0.65rem', 
+                          fontWeight: 700, 
+                          padding: '3px 8px', 
+                          borderRadius: '4px', 
+                          background: '#FEE2E2', 
+                          color: '#991B1B', 
+                          textTransform: 'uppercase' 
+                        }}
+                      >
+                        SUSPENDED
+                      </span>
+                    ) : selectedCraftsman.status !== 'online' && selectedCraftsman.status !== 'offline' ? (
+                      <span 
+                        style={{ 
+                          fontSize: '0.65rem', 
+                          fontWeight: 600, 
+                          padding: '3px 8px', 
+                          borderRadius: '4px', 
+                          background: 'var(--bg-surface-hover)', 
+                          color: 'var(--text-secondary)', 
+                          textTransform: 'uppercase' 
+                        }}
+                      >
+                        {selectedCraftsman.status}
+                      </span>
+                    ) : null}
                     <span style={{ fontSize: '0.72rem', color: 'var(--text-disabled)' }}>
                       ID #{selectedCraftsman.idNumber}
                     </span>
@@ -1121,10 +1196,32 @@ export const CraftsmenPage: React.FC = () => {
                 <div style={{ textAlign: 'start' }}>
                   <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedCraftsman.name}</h3>
                   <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{selectedCraftsman.trade} · ID #{selectedCraftsman.idNumber}</span>
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: getStatusColor(selectedCraftsman.status).bg, color: getStatusColor(selectedCraftsman.status).text, textTransform: 'uppercase' }}>
-                      {selectedCraftsman.status}
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                    <span 
+                      style={{ 
+                        fontSize: '0.68rem', 
+                        fontWeight: 700, 
+                        padding: '2px 8px', 
+                        borderRadius: '4px', 
+                        background: selectedCraftsman.isAvailable ? '#F0FDF4' : '#F4F4F5', 
+                        color: selectedCraftsman.isAvailable ? '#15803D' : '#71717A',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: selectedCraftsman.isAvailable ? '#22C55E' : '#9CA3AF' }} />
+                      {selectedCraftsman.isAvailable ? 'Available (متاح)' : 'Unavailable (غير متاح)'}
                     </span>
+                    {selectedCraftsman.status === 'suspended' ? (
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: '#FEE2E2', color: '#991B1B', textTransform: 'uppercase' }}>
+                        SUSPENDED
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: getStatusColor(selectedCraftsman.status).bg, color: getStatusColor(selectedCraftsman.status).text, textTransform: 'uppercase' }}>
+                        {selectedCraftsman.status}
+                      </span>
+                    )}
                     <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(59,130,246,0.1)', color: '#2563eb' }}>
                       Trust Score {selectedCraftsman.trustScore}
                     </span>
