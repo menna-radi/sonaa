@@ -24,8 +24,12 @@ import {
   Sparkles,
   AlertTriangle,
   RefreshCw,
-  Edit2
+  Edit2,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
+import { apiClient } from '../../../../core/network/apiClient';
+import { resolveMediaUrl } from '../../../../core/utils/mediaUrl';
 
 interface Campaign {
   id: string;
@@ -36,6 +40,9 @@ interface Campaign {
   ctr: number;
   conversions: number;
   budget: number;
+  imageUrl?: string;
+  description?: string;
+  ctaText?: string;
 }
 
 export const AdsPage: React.FC = () => {
@@ -58,6 +65,18 @@ export const AdsPage: React.FC = () => {
   const [newCampName, setNewCampName] = useState('');
   const [newCampPlacement, setNewCampPlacement] = useState('Home Banner');
   const [newCampBudget, setNewCampBudget] = useState('');
+
+  // Edit Campaign Form State
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editBudget, setEditBudget] = useState('');
+  const [editPlacement, setEditPlacement] = useState('Home Banner');
+  const [editObjective, setEditObjective] = useState('');
+  const [editCtaText, setEditCtaText] = useState('Claim Offer');
+  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
@@ -208,6 +227,60 @@ export const AdsPage: React.FC = () => {
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to delete campaign.');
+    }
+  };
+
+  const handleOpenEdit = (camp: Campaign) => {
+    setEditingCampaign(camp);
+    setEditName(camp.name);
+    setEditBudget(String(camp.budget || 5000));
+    setEditPlacement(camp.placement || 'Home Banner');
+    setEditObjective(camp.description || '');
+    setEditCtaText(camp.ctaText || 'Claim Offer');
+    setEditImageUrl(camp.imageUrl || '');
+    setEditImageFile(null);
+    setEditImagePreview(camp.imageUrl || null);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCampaign) return;
+    setEditLoading(true);
+    try {
+      let finalImageUrl = editImageUrl;
+      if (editImageFile) {
+        try {
+          const formData = new FormData();
+          formData.append('file', editImageFile);
+          const uploadRes = await apiClient.post<any>('/uploads', formData);
+          const uploaded = uploadRes?.fileUrl || uploadRes?.data?.fileUrl;
+          if (uploaded) finalImageUrl = uploaded;
+        } catch (uploadErr) {
+          console.error('Failed to upload edited image:', uploadErr);
+        }
+      }
+
+      const numericBudget = parseFloat(editBudget) || editingCampaign.budget || 5000;
+      const res = await adRepository.updateAd(editingCampaign.id, {
+        name: editName,
+        budget: numericBudget,
+        placement: editPlacement,
+        description: editObjective,
+        ctaText: editCtaText,
+        imageUrl: finalImageUrl,
+      });
+
+      if (res.success) {
+        await fetchCampaigns();
+        setEditingCampaign(null);
+      } else {
+        setError(res.error.message || 'Failed to update campaign');
+      }
+    } catch (err) {
+      console.error('Failed to update campaign:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update campaign');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -647,7 +720,54 @@ export const AdsPage: React.FC = () => {
                   ) : (
                     filteredCampaigns.map((camp) => (
                       <tr key={camp.id}>
-                        <td style={{ textAlign: 'start', fontWeight: 600 }}>{camp.name}</td>
+                        <td style={{ textAlign: 'start' }}>
+                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            <div
+                              onClick={() => handleOpenEdit(camp)}
+                              title={isRtl ? 'انقر لتعديل تفاصيل وصورة الإعلان' : 'Click to view / edit ad and image'}
+                              style={{
+                                width: '44px',
+                                height: '44px',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                background: 'var(--bg-surface-hover)',
+                                border: '1.5px solid var(--border-color)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {camp.imageUrl ? (
+                                <img
+                                  src={resolveMediaUrl(camp.imageUrl)}
+                                  alt={camp.name}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <ImageIcon size={18} style={{ color: 'var(--text-muted)' }} />
+                              )}
+                            </div>
+                            <div>
+                              <div
+                                style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}
+                                onClick={() => handleOpenEdit(camp)}
+                                title={isRtl ? 'تعديل الإعلان' : 'Edit Ad'}
+                              >
+                                {camp.name}
+                              </div>
+                              {camp.description && (
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {camp.description}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
                         <td style={{ textAlign: 'start', color: 'var(--text-secondary)' }}>{camp.placement}</td>
                         <td style={{ textAlign: 'start' }}>
                           <span className={`status-pill ${camp.status.toLowerCase()}`}>
@@ -670,9 +790,9 @@ export const AdsPage: React.FC = () => {
                               </button>
                             )}
                             <button
-                              onClick={() => navigate('campaigns')}
+                              onClick={() => handleOpenEdit(camp)}
                               className="action-icon-btn edit"
-                              title="Edit Ad in Active Ads"
+                              title={isRtl ? 'تعديل الإعلان' : 'Edit Ad'}
                               style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
@@ -759,6 +879,207 @@ export const AdsPage: React.FC = () => {
                 <div className="modal-actions-row">
                   <button type="button" className="ads-secondary-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
                   <button type="submit" className="ads-primary-btn">Create Campaign</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal for editing an existing campaign / ad */}
+        {editingCampaign && (
+          <div className="modal-backdrop animate-fade-in" onClick={() => setEditingCampaign(null)}>
+            <div className="modal-content glass-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ direction: isRtl ? 'rtl' : 'ltr', maxWidth: '520px' }}>
+              <div className="modal-header">
+                <h3 className="card-title">
+                  {isRtl ? 'تعديل الإعلان والتصميم' : 'Edit Ad & Creative'}
+                </h3>
+                <button className="modal-close-btn" onClick={() => setEditingCampaign(null)}>
+                  <X size={16} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEdit} className="modal-form">
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'عنوان الإعلان / الحملة' : 'Ad Title / Campaign Name'}</label>
+                  <input
+                    type="text"
+                    required
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'الوصف / النص الترويجي' : 'Description / Subtitle'}</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Special offer available now on Sonaa"
+                    value={editObjective}
+                    onChange={(e) => setEditObjective(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'نص زر الإجراء (CTA)' : 'Button Text (CTA)'}</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Claim Offer / Book Now"
+                    value={editCtaText}
+                    onChange={(e) => setEditCtaText(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'مكان الظهور' : 'Placement'}</label>
+                  <select
+                    value={editPlacement}
+                    onChange={(e) => setEditPlacement(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="Home Banner">Home Banner (شريط الصفحة الرئيسية)</option>
+                    <option value="Featured Slots">Featured Slots (المميز)</option>
+                    <option value="Search Results">Search Results</option>
+                    <option value="Popups">Popups</option>
+                    <option value="Category Page">Category Page</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'الميزانية (شيكل)' : 'Budget (ILS)'}</label>
+                  <input
+                    type="number"
+                    required
+                    value={editBudget}
+                    onChange={(e) => setEditBudget(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                {/* Creative / Banner Image */}
+                <div className="form-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label className="form-label" style={{ margin: 0 }}>
+                      {isRtl ? 'صورة الإعلان / البانر الإبداعي' : 'Creative Banner Image'}
+                    </label>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      {isRtl ? 'الموصى به: 1200×400 (نسبة 3:1)' : '1200×400 recommended · 3:1 ratio'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {editImagePreview ? (
+                      <div
+                        style={{
+                          position: 'relative',
+                          width: '100%',
+                          height: '140px',
+                          borderRadius: '10px',
+                          overflow: 'hidden',
+                          border: '1.5px solid var(--border-color)',
+                          background: '#0f172a',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        <img
+                          src={resolveMediaUrl(editImagePreview)}
+                          alt="Banner Preview"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '8px',
+                            [isRtl ? 'left' : 'right']: '8px',
+                            background: 'rgba(0, 0, 0, 0.75)',
+                            backdropFilter: 'blur(6px)',
+                            color: '#fff',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: editImageFile ? '#3b82f6' : '#10b981' }} />
+                          {editImageFile
+                            ? (isRtl ? 'صورة جديدة جاهزة للحفظ' : 'New Image Selected')
+                            : (isRtl ? 'الصورة الحالية النشطة' : 'Active Banner Image')}
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          height: '100px',
+                          borderRadius: '10px',
+                          border: '1.5px dashed var(--border-color)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'var(--bg-surface-hover)',
+                          color: 'var(--text-muted)',
+                          gap: '6px'
+                        }}
+                      >
+                        <ImageIcon size={28} />
+                        <span style={{ fontSize: '12px' }}>{isRtl ? 'لا توجد صورة حالياً' : 'No active banner image'}</span>
+                      </div>
+                    )}
+
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        border: '1.5px dashed var(--border-color)',
+                        background: 'var(--bg-surface-hover)',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        color: 'var(--text-primary)',
+                        transition: 'border-color 0.2s, background 0.2s'
+                      }}
+                    >
+                      <Upload size={16} style={{ color: 'var(--brand-primary, #6366f1)' }} />
+                      <span>
+                        {editImageFile
+                          ? editImageFile.name
+                          : (isRtl ? 'استبدال صورة الإعلان (اختر صورة من جهازك)' : 'Replace Banner Image (Choose file)')}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            setEditImageFile(file);
+                            setEditImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="modal-actions-row" style={{ marginTop: '16px' }}>
+                  <button type="button" className="ads-secondary-btn" onClick={() => setEditingCampaign(null)} disabled={editLoading}>
+                    {isRtl ? 'إلغاء' : 'Cancel'}
+                  </button>
+                  <button type="submit" className="ads-primary-btn" disabled={editLoading}>
+                    {editLoading ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ التعديلات' : 'Save Changes')}
+                  </button>
                 </div>
               </form>
             </div>

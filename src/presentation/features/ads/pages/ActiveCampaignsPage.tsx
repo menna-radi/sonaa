@@ -6,6 +6,7 @@ import { Header } from '../../../layouts/Header';
 import { MobileBottomTabs } from '../../../layouts/MobileBottomTabs';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
 import { apiClient } from '../../../../core/network/apiClient';
+import { resolveMediaUrl } from '../../../../core/utils/mediaUrl';
 import {
   Search,
   Plus,
@@ -564,12 +565,47 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                           <input type="checkbox" className="custom-table-checkbox" />
                         </td>
                         <td style={{ textAlign: 'start' }}>
-                          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            <div className="campaign-avatar" style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-color)', borderRadius: '8px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <div style={{ width: '20px', height: '12px', background: 'var(--border-color)', borderRadius: '2px' }} />
+                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            <div
+                              className="campaign-avatar-wrap"
+                              onClick={() => handleOpenEdit(camp)}
+                              title={isRtl ? 'انقر لتعديل تفاصيل وصورة الإعلان' : 'Click to view / edit ad and image'}
+                              style={{
+                                width: '48px',
+                                height: '48px',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                background: 'var(--bg-surface-hover)',
+                                border: '1.5px solid var(--border-color)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                cursor: 'pointer',
+                                position: 'relative'
+                              }}
+                            >
+                              {camp.imageUrl ? (
+                                <img
+                                  src={resolveMediaUrl(camp.imageUrl)}
+                                  alt={camp.name}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <ImageIcon size={20} style={{ color: 'var(--text-muted)' }} />
+                              )}
                             </div>
                             <div style={{ textAlign: 'start' }}>
-                              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{camp.name}</div>
+                              <div
+                                style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}
+                                onClick={() => handleOpenEdit(camp)}
+                                title={isRtl ? 'تعديل الإعلان' : 'Edit Ad'}
+                              >
+                                {camp.name}
+                              </div>
                               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{camp.objective}</div>
                             </div>
                           </div>
@@ -865,37 +901,103 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
 
                 {/* Creative / Banner Image */}
                 <div className="form-group">
-                  <label className="form-label">{isRtl ? 'صورة الإعلان / البانر' : 'Creative Banner Image'}</label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {editImagePreview && (
-                      <div style={{ position: 'relative', width: '100%', height: '110px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label className="form-label" style={{ margin: 0 }}>
+                      {isRtl ? 'صورة الإعلان / البانر الإبداعي' : 'Creative Banner Image'}
+                    </label>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      {isRtl ? 'الموصى به: 1200×400 (نسبة 3:1)' : '1200×400 recommended · 3:1 ratio'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {editImagePreview ? (
+                      <div
+                        style={{
+                          position: 'relative',
+                          width: '100%',
+                          height: '140px',
+                          borderRadius: '10px',
+                          overflow: 'hidden',
+                          border: '1.5px solid var(--border-color)',
+                          background: '#0f172a',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                      >
                         <img
-                          src={editImagePreview.startsWith('http') ? editImagePreview : `https://api.arox.digital${editImagePreview.startsWith('/') ? '' : '/'}${editImagePreview}`}
+                          src={resolveMediaUrl(editImagePreview)}
                           alt="Banner Preview"
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           onError={(e) => {
                             (e.target as HTMLElement).style.display = 'none';
                           }}
                         />
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '8px',
+                            [isRtl ? 'left' : 'right']: '8px',
+                            background: 'rgba(0, 0, 0, 0.75)',
+                            backdropFilter: 'blur(6px)',
+                            color: '#fff',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: editImageFile ? '#3b82f6' : '#10b981' }} />
+                          {editImageFile
+                            ? (isRtl ? 'صورة جديدة جاهزة للحفظ' : 'New Image Selected')
+                            : (isRtl ? 'الصورة الحالية النشطة' : 'Active Banner Image')}
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          height: '100px',
+                          borderRadius: '10px',
+                          border: '1.5px dashed var(--border-color)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'var(--bg-surface-hover)',
+                          color: 'var(--text-muted)',
+                          gap: '6px'
+                        }}
+                      >
+                        <ImageIcon size={28} />
+                        <span style={{ fontSize: '12px' }}>{isRtl ? 'لا توجد صورة حالياً' : 'No active banner image'}</span>
                       </div>
                     )}
+
                     <label
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px',
-                        padding: '10px 14px',
+                        padding: '12px 16px',
                         borderRadius: '8px',
-                        border: '1px dashed var(--border-color)',
+                        border: '1.5px dashed var(--border-color)',
                         background: 'var(--bg-surface-hover)',
                         cursor: 'pointer',
                         fontSize: '13px',
-                        color: 'var(--text-secondary)'
+                        fontWeight: 500,
+                        color: 'var(--text-primary)',
+                        transition: 'border-color 0.2s, background 0.2s'
                       }}
                     >
-                      <Upload size={15} />
-                      <span>{editImageFile ? editImageFile.name : (isRtl ? 'تغيير صورة الإعلان' : 'Upload new banner image')}</span>
+                      <Upload size={16} style={{ color: 'var(--brand-primary, #6366f1)' }} />
+                      <span>
+                        {editImageFile
+                          ? editImageFile.name
+                          : (isRtl ? 'استبدال صورة الإعلان (اختر صورة من جهازك)' : 'Replace Banner Image (Choose file)')}
+                      </span>
                       <input
                         type="file"
                         accept="image/*"
