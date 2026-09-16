@@ -32,6 +32,13 @@ class ApiClient {
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        if (config.data instanceof FormData && config.headers) {
+          if (typeof config.headers.delete === 'function') {
+            config.headers.delete('Content-Type');
+          } else {
+            delete (config.headers as any)['Content-Type'];
+          }
+        }
         logger.debug(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
