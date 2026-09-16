@@ -571,8 +571,8 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
       case 'Active':
       default:
         return {
-          title: 'Active Campaigns',
-          subtitle: 'Currently running advertisements across the marketplace',
+          title: isRtl ? 'الإعلانات النشطة' : 'Active Ads',
+          subtitle: isRtl ? 'الإعلانات التي تعمل حالياً عبر المنصة' : 'Currently running advertisements across the marketplace',
           icon: <Megaphone size={20} style={{ color: 'var(--text-primary)' }} />
         };
     }

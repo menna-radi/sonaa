@@ -188,7 +188,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           badge: badgeCounts.notifications > 0 ? String(badgeCounts.notifications) : undefined 
         },
         { key: 'nav_ads', pageKey: 'ads', label: t('nav_ads') || 'Ads Dashboard', icon: <Megaphone size={16} /> },
-        { key: 'nav_campaigns', pageKey: 'campaigns', label: t('nav_campaigns') || 'Active Campaigns', icon: <Compass size={16} /> },
+        { key: 'nav_campaigns', pageKey: 'campaigns', label: t('nav_campaigns') || 'Active Ads', icon: <Compass size={16} /> },
         { key: 'nav_scheduled', pageKey: 'scheduled', label: t('nav_scheduled') || 'Scheduled', icon: <Calendar size={16} /> },
         { key: 'nav_expired', pageKey: 'expired', label: t('nav_expired') || 'Expired', icon: <Clock size={16} /> },
         { key: 'nav_promotions', pageKey: 'promotions', label: t('nav_promotions') || 'Craftsman Promotions', icon: <Percent size={16} /> },

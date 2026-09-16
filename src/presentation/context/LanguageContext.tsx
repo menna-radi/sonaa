@@ -145,9 +145,9 @@ export const translations: TranslationDict = {
     he: 'לוח מודעות'
   },
   nav_campaigns: {
-    en: 'Active Campaigns',
-    ar: 'الحملات النشطة',
-    he: 'קמפיינים פעילים'
+    en: 'Active Ads',
+    ar: 'الإعلانات النشطة',
+    he: 'מודעות פעילות'
   },
   nav_scheduled: {
     en: 'Scheduled',
