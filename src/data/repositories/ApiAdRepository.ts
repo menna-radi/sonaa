@@ -13,6 +13,12 @@ interface ApiAdDTO {
   impressions?: number;
   ctr?: number;
   conversions?: number;
+  imageUrl?: string;
+  description?: string;
+  ctaText?: string;
+  targetType?: string;
+  targetId?: string;
+  targetUrl?: string;
 }
 
 export class ApiAdRepository implements AdRepository {
@@ -23,12 +29,18 @@ export class ApiAdRepository implements AdRepository {
       const mapped: Campaign[] = response.map((ad) => ({
         id: ad.id,
         name: ad.name,
-        placement: ad.placement || 'Home Banner', // Fallback for missing placement field
+        placement: ad.placement || 'Home Banner',
         status: ad.status === 'ACTIVE' ? 'Active' : 'Paused',
-        impressions: ad.impressions || 0, // Fallback for missing analytics fields
+        impressions: ad.impressions || 0,
         ctr: ad.ctr || 0.0,
         conversions: ad.conversions || 0,
         budget: ad.budget,
+        imageUrl: ad.imageUrl,
+        description: ad.description,
+        ctaText: ad.ctaText,
+        targetType: ad.targetType,
+        targetId: ad.targetId,
+        targetUrl: ad.targetUrl,
       }));
 
       return ok(mapped);
@@ -60,6 +72,39 @@ export class ApiAdRepository implements AdRepository {
         ctr: response.ctr || 0.0,
         conversions: response.conversions || 0,
         budget: response.budget,
+      };
+
+      return ok(campaign);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async updateAd(
+    id: string,
+    data: { name?: string; budget?: number; placement?: string; status?: 'Active' | 'Paused' } & AdCreativeDetails
+  ): Promise<Result<Campaign>> {
+    try {
+      const payload: any = {
+        ...data,
+      };
+      if (data.status) {
+        payload.status = data.status === 'Active' ? 'ACTIVE' : 'PAUSED';
+      }
+      const response = await apiClient.put<ApiAdDTO>(`/admin/ads/${id}`, payload);
+
+      const campaign: Campaign = {
+        id: response.id,
+        name: response.name,
+        placement: response.placement || data.placement || 'Home Banner',
+        status: response.status === 'ACTIVE' ? 'Active' : 'Paused',
+        impressions: response.impressions || 0,
+        ctr: response.ctr || 0.0,
+        conversions: response.conversions || 0,
+        budget: response.budget,
+        imageUrl: response.imageUrl || data.imageUrl,
+        description: response.description || data.description,
+        ctaText: response.ctaText || data.ctaText,
       };
 
       return ok(campaign);

@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
 import { Sidebar } from '../../../layouts/Sidebar';
 import { Header } from '../../../layouts/Header';
 import { MobileBottomTabs } from '../../../layouts/MobileBottomTabs';
+import { useDependencies } from '../../../../core/di/DependencyProvider';
+import { apiClient } from '../../../../core/network/apiClient';
 import {
   Search,
   Plus,
@@ -17,7 +19,10 @@ import {
   Calendar,
   Clock,
   Filter,
-  ArrowUpDown
+  ArrowUpDown,
+  Edit2,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface Campaign {
@@ -37,6 +42,8 @@ interface Campaign {
   spend: string;
   budget?: number;
   status: 'Active' | 'Paused' | 'Scheduled' | 'Expired';
+  imageUrl?: string;
+  ctaText?: string;
 }
 
 interface ActiveCampaignsPageProps {
@@ -60,398 +67,107 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
   const [newCampPlacement, setNewCampPlacement] = useState('Home Banner');
   const [newCampAudience, setNewCampAudience] = useState('Customers · All');
   const [newCampBudget, setNewCampBudget] = useState('');
+  const { dependencies } = useDependencies();
+  const { adRepository } = dependencies;
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [_loading, setLoading] = useState(false);
 
-  // Initial Campaigns List (Figma Exact Matches + additional items to match Figma counts)
-  const [campaigns, setCampaigns] = useState<Campaign[]>([
-    // Active / Paused tab items (Active count = 10)
-    {
-      id: 'act-1',
-      name: 'Summer AC Repair Promo',
-      objective: 'Boost AC bookings',
-      placement: 'Home Banner',
-      audience: 'Customers · AC Repair',
-      startDate: 'Oct 12',
-      endDate: 'Nov 12',
-      daysLeft: 24,
-      impressions: '124K',
-      ctr: '4.2%',
-      conversions: 842,
-      spend: '5,000 ILS',
-      status: 'Active'
-    },
-    {
-      id: 'act-2',
-      name: 'Plumbing Emergency Boost',
-      objective: 'Instant Leads',
-      placement: 'Search Top',
-      audience: 'Customers · Emergency',
-      startDate: 'Oct 15',
-      endDate: 'Nov 15',
-      daysLeft: 22,
-      impressions: '89K',
-      ctr: '5.1%',
-      conversions: 612,
-      spend: '3,500 ILS',
-      status: 'Active'
-    },
-    {
-      id: 'act-3',
-      name: 'Jerusalem Deep Cleaning',
-      objective: 'Awareness',
-      placement: 'Category Page',
-      audience: 'Customers · Cleaning',
-      startDate: 'Sep 28',
-      endDate: 'Nov 28',
-      daysLeft: 18,
-      impressions: '210K',
-      ctr: '3.9%',
-      conversions: 1204,
-      spend: '8,000 ILS',
-      status: 'Active'
-    },
-    {
-      id: 'act-4',
-      name: 'Ramallah Movers Special',
-      objective: 'Conversions',
-      placement: 'Home Banner',
-      audience: 'Customers · Movers',
-      startDate: 'Oct 05',
-      endDate: 'Nov 05',
-      daysLeft: 12,
-      impressions: '65K',
-      ctr: '3.1%',
-      conversions: 340,
-      spend: '4,000 ILS',
-      status: 'Active'
-    },
-    {
-      id: 'act-5',
-      name: 'Electricians Featured Slots',
-      objective: 'Featured listings',
-      placement: 'Featured Slots',
-      audience: 'Customers · Electricians',
-      startDate: 'Oct 10',
-      endDate: 'Dec 10',
-      daysLeft: 34,
-      impressions: '152K',
-      ctr: '6.4%',
-      conversions: 980,
-      spend: '6,200 ILS',
-      status: 'Active'
-    },
-    {
-      id: 'act-6',
-      name: 'Painting Pros — Old City',
-      objective: 'Lead gen',
-      placement: 'Craftsmen Listing',
-      audience: 'Customers · Painting',
-      startDate: 'Oct 08',
-      endDate: 'Nov 08',
-      daysLeft: 15,
-      impressions: '78K',
-      ctr: '3.7%',
-      conversions: 420,
-      spend: '2,400 ILS',
-      status: 'Active'
-    },
-    {
-      id: 'act-7',
-      name: 'New Craftsman Onboarding',
-      objective: 'Sign-ups',
-      placement: 'Popups',
-      audience: 'Craftsmen · All',
-      startDate: 'Sep 15',
-      endDate: 'Dec 15',
-      daysLeft: 38,
-      impressions: '45K',
-      ctr: '2.8%',
-      conversions: 124,
-      spend: '2,000 ILS',
-      status: 'Paused'
-    },
-    {
-      id: 'act-8',
-      name: 'Bethlehem Maintenance Week',
-      objective: 'Awareness',
-      placement: 'Notifications',
-      audience: 'Customers · Maintenance',
-      startDate: 'Oct 14',
-      endDate: 'Oct 28',
-      daysLeft: 4,
-      impressions: '28K',
-      ctr: '4.6%',
-      conversions: 186,
-      spend: '1,500 ILS',
-      status: 'Active'
-    },
-    {
-      id: 'act-9',
-      name: 'Carpenters Boost — Hebron',
-      objective: 'Profile views',
-      placement: 'Search Results',
-      audience: 'Customers · Carpenters',
-      startDate: 'Oct 02',
-      endDate: 'Dec 02',
-      daysLeft: 26,
-      impressions: '38K',
-      ctr: '3.3%',
-      conversions: 142,
-      spend: '1,800 ILS',
-      status: 'Active'
-    },
-    {
-      id: 'act-10',
-      name: 'AC Maintenance Reminder',
-      objective: 'Retention',
-      placement: 'Notifications',
-      audience: 'Both · AC Repair',
-      startDate: 'Oct 11',
-      endDate: 'Nov 11',
-      daysLeft: 21,
-      impressions: '96K',
-      ctr: '4.0%',
-      conversions: 512,
-      spend: '3,200 ILS',
-      status: 'Active'
-    },
-
-    // Scheduled tab items (Scheduled count = 8)
-    {
-      id: 'sch-1',
-      name: 'Plumbing Seasonal Push',
-      objective: 'Seasonal push',
-      placement: 'Home Banner',
-      audience: 'Customers · Plumbers',
-      startDate: 'Nov 20',
-      endDate: 'Dec 10',
-      startsInDays: 14,
-      impressions: '0',
-      ctr: '0.0%',
-      conversions: 0,
-      spend: '0 ILS',
-      budget: 6000,
-      status: 'Scheduled'
-    },
-    {
-      id: 'sch-2',
-      name: 'Winter Heater Setup',
-      objective: 'Awareness',
-      placement: 'Search Results',
-      audience: 'Customers · Plumbers',
-      startDate: 'Dec 01',
-      endDate: 'Jan 31',
-      startsInDays: 25,
-      impressions: '0',
-      ctr: '0.0%',
-      conversions: 0,
-      spend: '0 ILS',
-      budget: 8500,
-      status: 'Scheduled'
-    },
-    {
-      id: 'sch-3',
-      name: 'Jerusalem Featured Electricians',
-      objective: 'Featured slots',
-      placement: 'Featured Slots',
-      audience: 'Customers · Electricians',
-      startDate: 'Nov 15',
-      endDate: 'Dec 15',
-      startsInDays: 9,
-      impressions: '0',
-      ctr: '0.0%',
-      conversions: 0,
-      spend: '0 ILS',
-      budget: 7200,
-      status: 'Scheduled'
-    },
-    {
-      id: 'sch-4',
-      name: 'Movers Promotion',
-      objective: 'Conversions',
-      placement: 'Home Banner',
-      audience: 'Customers · Movers',
-      startDate: 'Nov 24',
-      endDate: 'Nov 30',
-      startsInDays: 18,
-      impressions: '0',
-      ctr: '0.0%',
-      conversions: 0,
-      spend: '0 ILS',
-      budget: 4000,
-      status: 'Scheduled'
-    },
-    {
-      id: 'sch-5',
-      name: 'Painting Craftsmen Drive',
-      objective: 'Sign-ups',
-      placement: 'Popups',
-      audience: 'Craftsmen · Painting',
-      startDate: 'Nov 18',
-      endDate: 'Dec 18',
-      startsInDays: 12,
-      impressions: '0',
-      ctr: '0.0%',
-      conversions: 0,
-      spend: '0 ILS',
-      budget: 3000,
-      status: 'Scheduled'
-    },
-    {
-      id: 'sch-6',
-      name: 'Nablus Cleaning Launch',
-      objective: 'Awareness',
-      placement: 'Category Page',
-      audience: 'Customers · Cleaning',
-      startDate: 'Nov 22',
-      endDate: 'Dec 22',
-      startsInDays: 16,
-      impressions: '0',
-      ctr: '0.0%',
-      conversions: 0,
-      spend: '0 ILS',
-      budget: 5500,
-      status: 'Scheduled'
-    },
-    {
-      id: 'sch-7',
-      name: 'Carpenters Regional',
-      objective: 'Lead gen',
-      placement: 'Craftsmen Listing',
-      audience: 'Customers · Carpenters',
-      startDate: 'Dec 05',
-      endDate: 'Jan 05',
-      startsInDays: 29,
-      impressions: '0',
-      ctr: '0.0%',
-      conversions: 0,
-      spend: '0 ILS',
-      budget: 6800,
-      status: 'Scheduled'
-    },
-    {
-      id: 'sch-8',
-      name: 'Year-End Maintenance',
-      objective: 'Retention',
-      placement: 'Notifications',
-      audience: 'Both · Maintenance',
-      startDate: 'Dec 15',
-      endDate: 'Dec 31',
-      startsInDays: 39,
-      impressions: '0',
-      ctr: '0.0%',
-      conversions: 0,
-      spend: '0 ILS',
-      budget: 2500,
-      status: 'Scheduled'
-    },
-
-    // Expired tab items (Expired count = 7)
-    {
-      id: 'exp-1',
-      name: 'Back to School Cleaning',
-      objective: 'Awareness',
-      placement: 'Home Banner',
-      audience: 'Customers · Cleaning',
-      startDate: 'Aug 01',
-      endDate: 'Sep 15',
-      endedText: 'ended 26d ago',
-      impressions: '342K',
-      ctr: '4.8%',
-      conversions: 2180,
-      spend: '9,500 ILS',
-      status: 'Expired'
-    },
-    {
-      id: 'exp-2',
-      name: 'Summer AC Tune-up',
-      objective: 'Lead gen',
-      placement: 'Search Results',
-      audience: 'Customers · AC Repair',
-      startDate: 'Jun 01',
-      endDate: 'Aug 31',
-      endedText: 'ended 71d ago',
-      impressions: '628K',
-      ctr: '5.2%',
-      conversions: 4124,
-      spend: '18,400 ILS',
-      status: 'Expired'
-    },
-    {
-      id: 'exp-3',
-      name: 'Seasonal Cleaning Push',
-      objective: 'Conversions',
-      placement: 'Popups',
-      audience: 'Customers · Cleaning',
-      startDate: 'Mar 10',
-      endDate: 'Apr 09',
-      endedText: 'ended 8mo ago',
-      impressions: '512K',
-      ctr: '6.1%',
-      conversions: 3850,
-      spend: '14,200 ILS',
-      status: 'Expired'
-    },
-    {
-      id: 'exp-4',
-      name: 'Jerusalem Movers Special',
-      objective: 'Awareness',
-      placement: 'Featured Slots',
-      audience: 'Customers · Movers',
-      startDate: 'May 20',
-      endDate: 'Jul 10',
-      endedText: 'ended 4mo ago',
-      impressions: '218K',
-      ctr: '4.4%',
-      conversions: 1210,
-      spend: '8,800 ILS',
-      status: 'Expired'
-    },
-    {
-      id: 'exp-5',
-      name: 'Plumbers Onboarding Q3',
-      objective: 'Sign-ups',
-      placement: 'Popups',
-      audience: 'Craftsmen · Plumbers',
-      startDate: 'Jul 01',
-      endDate: 'Sep 30',
-      endedText: 'ended 10d ago',
-      impressions: '124K',
-      ctr: '3.1%',
-      conversions: 482,
-      spend: '4,500 ILS',
-      status: 'Expired'
-    },
-    {
-      id: 'exp-6',
-      name: 'Painting Summer Sale',
-      objective: 'Conversions',
-      placement: 'Home Banner',
-      audience: 'Customers · Painting',
-      startDate: 'Jul 15',
-      endDate: 'Aug 30',
-      endedText: 'ended 42d ago',
-      impressions: '186K',
-      ctr: '4.0%',
-      conversions: 912,
-      spend: '6,400 ILS',
-      status: 'Expired'
-    },
-    {
-      id: 'exp-7',
-      name: 'Electricians Boost — Jerusalem',
-      objective: 'Featured listings',
-      placement: 'Search Results',
-      audience: 'Customers · Electricians',
-      startDate: 'Aug 10',
-      endDate: 'Sep 30',
-      endedText: 'ended 11d ago',
-      impressions: '198K',
-      ctr: '5.6%',
-      conversions: 1440,
-      spend: '7,200 ILS',
-      status: 'Expired'
+  const fetchCampaigns = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await adRepository.getAds();
+      if (result.success) {
+        setCampaigns(result.data.map(c => ({
+          id: c.id,
+          name: c.name,
+          objective: c.description || 'App Home Banner',
+          placement: c.placement || 'Home Banner',
+          audience: 'Customers · All',
+          startDate: 'Active',
+          endDate: 'Ongoing',
+          impressions: c.impressions >= 1000 ? `${(c.impressions / 1000).toFixed(1)}K` : String(c.impressions || 0),
+          ctr: `${c.ctr || 0}%`,
+          conversions: c.conversions || 0,
+          spend: `${(c.budget || 0).toLocaleString()} ILS`,
+          budget: c.budget,
+          status: c.status,
+          imageUrl: c.imageUrl,
+          ctaText: c.ctaText,
+        })));
+      }
+    } catch (err) {
+      console.error('Failed to load campaigns:', err);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  }, [adRepository]);
+
+  // Edit Modal states
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editBudget, setEditBudget] = useState('');
+  const [editPlacement, setEditPlacement] = useState('Home Banner');
+  const [editObjective, setEditObjective] = useState('');
+  const [editCtaText, setEditCtaText] = useState('Claim Offer');
+  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+
+  const handleOpenEdit = (camp: Campaign) => {
+    setEditingCampaign(camp);
+    setEditName(camp.name);
+    setEditBudget(camp.budget ? String(camp.budget) : '5000');
+    setEditPlacement(camp.placement || 'Home Banner');
+    setEditObjective(camp.objective || '');
+    setEditCtaText(camp.ctaText || 'Claim Offer');
+    setEditImageUrl(camp.imageUrl || '');
+    setEditImageFile(null);
+    setEditImagePreview(camp.imageUrl || null);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCampaign) return;
+    setEditLoading(true);
+    try {
+      let finalImageUrl = editImageUrl;
+      if (editImageFile) {
+        try {
+          const formData = new FormData();
+          formData.append('file', editImageFile);
+          const uploadRes = await apiClient.post<any>('/uploads', formData);
+          const uploaded = uploadRes?.fileUrl || uploadRes?.data?.fileUrl;
+          if (uploaded) finalImageUrl = uploaded;
+        } catch (uploadErr) {
+          console.error('Failed to upload edited image:', uploadErr);
+        }
+      }
+
+      const numericBudget = parseFloat(editBudget) || editingCampaign.budget || 5000;
+      const res = await adRepository.updateAd(editingCampaign.id, {
+        name: editName,
+        budget: numericBudget,
+        placement: editPlacement,
+        description: editObjective,
+        ctaText: editCtaText,
+        imageUrl: finalImageUrl,
+      });
+
+      if (res.success) {
+        await fetchCampaigns();
+        setEditingCampaign(null);
+      }
+    } catch (err) {
+      console.error('Failed to update campaign:', err);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, [fetchCampaigns]);
 
   // Tab count selectors
   const tabCounts = useMemo(() => {
@@ -462,47 +178,52 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
   }, [campaigns]);
 
   // Handle adding new campaign
-  const handleCreateCampaign = (e: React.FormEvent) => {
+  const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCampName || !newCampBudget) return;
 
-    const newCamp: Campaign = {
-      id: `new-${Date.now()}`,
-      name: newCampName,
-      objective: newCampObjective,
-      placement: newCampPlacement,
-      audience: newCampAudience,
-      startDate: 'Nov 01',
-      endDate: 'Dec 01',
-      impressions: '0',
-      ctr: '0.0%',
-      conversions: 0,
-      spend: `${parseFloat(newCampBudget).toLocaleString()} ILS`,
-      status: 'Scheduled' // New campaigns default to Scheduled timeframe
-    };
-
-    setCampaigns([newCamp, ...campaigns]);
-    setNewCampName('');
-    setNewCampBudget('');
-    setIsModalOpen(false);
+    try {
+      const numericBudget = parseFloat(newCampBudget) || 0;
+      const res = await adRepository.createAd(newCampName, numericBudget, newCampPlacement, {
+        description: newCampObjective,
+        ctaText: 'Claim Offer',
+      });
+      if (res.success) {
+        await fetchCampaigns();
+        setNewCampName('');
+        setNewCampBudget('');
+        setIsModalOpen(false);
+      }
+    } catch (err) {
+      console.error('Failed to create campaign:', err);
+    }
   };
 
   // Toggle status
-  const toggleCampaignStatus = (id: string) => {
-    setCampaigns(campaigns.map(c => {
-      if (c.id === id) {
-        return {
-          ...c,
-          status: c.status === 'Active' ? 'Paused' : 'Active'
-        };
+  const toggleCampaignStatus = async (id: string) => {
+    const camp = campaigns.find(c => c.id === id);
+    if (!camp) return;
+    const newStatus = camp.status === 'Active' ? 'Paused' : 'Active';
+    try {
+      const res = await adRepository.updateAdStatus(id, newStatus);
+      if (res.success) {
+        setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
       }
-      return c;
-    }));
+    } catch (err) {
+      console.error('Failed to update status:', err);
+    }
   };
 
   // Delete campaign
-  const deleteCampaign = (id: string) => {
-    setCampaigns(campaigns.filter(c => c.id !== id));
+  const deleteCampaign = async (id: string) => {
+    try {
+      const res = await adRepository.deleteAd(id);
+      if (res.success) {
+        setCampaigns(prev => prev.filter(c => c.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete campaign:', err);
+    }
   };
 
   // Filter and sort campaigns list
@@ -896,6 +617,25 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                               </button>
                             )}
                             <button
+                              onClick={() => handleOpenEdit(camp)}
+                              className="action-icon-btn edit"
+                              title="Edit Ad"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '6px',
+                                border: '1px solid var(--border-color)',
+                                background: 'var(--bg-surface-hover)',
+                                color: 'var(--text-primary)',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <Edit2 size={12} />
+                            </button>
+                            <button
                               onClick={() => deleteCampaign(camp.id)}
                               className="action-icon-btn delete"
                               title="Delete Campaign"
@@ -1048,6 +788,137 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
                 <div className="modal-actions-row">
                   <button type="button" className="ads-secondary-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
                   <button type="submit" className="ads-primary-btn">Create Campaign</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal for Editing a Campaign */}
+        {editingCampaign && (
+          <div className="modal-backdrop animate-fade-in" onClick={() => setEditingCampaign(null)}>
+            <div className="modal-content glass-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ direction: isRtl ? 'rtl' : 'ltr', maxWidth: '520px' }}>
+              <div className="modal-header">
+                <h3 className="card-title">{isRtl ? 'تعديل الإعلان' : 'Edit Advertisement'}</h3>
+                <button className="modal-close-btn" onClick={() => setEditingCampaign(null)}><X size={16} /></button>
+              </div>
+
+              <form onSubmit={handleSaveEdit} className="modal-form">
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'اسم الحملة / الإعلان' : 'Campaign Name'}</label>
+                  <input
+                    type="text"
+                    required
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'الوصف / النص الترويجي' : 'Description / Subtitle'}</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Special offer available now on Sonaa"
+                    value={editObjective}
+                    onChange={(e) => setEditObjective(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'نص زر الإجراء (CTA)' : 'Button Text (CTA)'}</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Claim Offer / Book Now"
+                    value={editCtaText}
+                    onChange={(e) => setEditCtaText(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'مكان الظهور' : 'Placement'}</label>
+                  <select
+                    value={editPlacement}
+                    onChange={(e) => setEditPlacement(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="Home Banner">Home Banner (شريط الصفحة الرئيسية)</option>
+                    <option value="Featured Slots">Featured Slots (المميز)</option>
+                    <option value="Search Results">Search Results</option>
+                    <option value="Popups">Popups</option>
+                    <option value="Category Page">Category Page</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'الميزانية (شيكل)' : 'Budget (ILS)'}</label>
+                  <input
+                    type="number"
+                    required
+                    value={editBudget}
+                    onChange={(e) => setEditBudget(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                {/* Creative / Banner Image */}
+                <div className="form-group">
+                  <label className="form-label">{isRtl ? 'صورة الإعلان / البانر' : 'Creative Banner Image'}</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {editImagePreview && (
+                      <div style={{ position: 'relative', width: '100%', height: '110px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                        <img
+                          src={editImagePreview.startsWith('http') ? editImagePreview : `https://api.arox.digital${editImagePreview.startsWith('/') ? '' : '/'}${editImagePreview}`}
+                          alt="Banner Preview"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        border: '1px dashed var(--border-color)',
+                        background: 'var(--bg-surface-hover)',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        color: 'var(--text-secondary)'
+                      }}
+                    >
+                      <Upload size={15} />
+                      <span>{editImageFile ? editImageFile.name : (isRtl ? 'تغيير صورة الإعلان' : 'Upload new banner image')}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            setEditImageFile(file);
+                            setEditImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="modal-actions-row" style={{ marginTop: '16px' }}>
+                  <button type="button" className="ads-secondary-btn" onClick={() => setEditingCampaign(null)} disabled={editLoading}>
+                    {isRtl ? 'إلغاء' : 'Cancel'}
+                  </button>
+                  <button type="submit" className="ads-primary-btn" disabled={editLoading}>
+                    {editLoading ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ التعديلات' : 'Save Changes')}
+                  </button>
                 </div>
               </form>
             </div>

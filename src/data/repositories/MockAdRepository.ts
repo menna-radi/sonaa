@@ -34,6 +34,21 @@ export class MockAdRepository implements AdRepository {
     return ok(ad);
   }
 
+  public async updateAd(
+    id: string,
+    data: { name?: string; budget?: number; placement?: string; status?: 'Active' | 'Paused' } & AdCreativeDetails
+  ): Promise<Result<Campaign>> {
+    const idx = this.campaigns.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      this.campaigns[idx] = {
+        ...this.campaigns[idx],
+        ...data,
+      };
+      return ok(this.campaigns[idx]);
+    }
+    return ok(this.campaigns[0]);
+  }
+
   public async updateAdStatus(id: string, status: 'Active' | 'Paused'): Promise<Result<Campaign>> {
     const updated = this.campaigns.find(c => c.id === id);
     if (updated) {

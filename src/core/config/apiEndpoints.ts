@@ -89,11 +89,13 @@ export const API_ENDPOINTS = {
     approveSubscriptionRequest: (id: string) => `/admin/subscriptions/requests/${id}/approve`,
     rejectSubscriptionRequest: (id: string) => `/admin/subscriptions/requests/${id}/reject`,
     bitSettings: '/admin/subscriptions/bit-settings',
+    users: '/admin/users',
   },
   chat: {
     rooms: '/chatrooms',
     messages: (roomId: string) => `/chatrooms/${roomId}/messages`,
     sendMessage: (roomId: string) => `/chatrooms/${roomId}/messages`,
+    createRoom: '/chatrooms',
   },
   notifications: {
     list: '/notifications',

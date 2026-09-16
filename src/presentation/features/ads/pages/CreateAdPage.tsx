@@ -265,8 +265,8 @@ export const CreateAdPage: React.FC = () => {
         try {
           const formData = new FormData();
           formData.append('file', imageFile);
-          const uploadRes = await apiClient.post<{ success: boolean; data: { fileUrl: string } }>('/uploads', formData);
-          uploadedImageUrl = uploadRes?.data?.fileUrl;
+          const uploadRes = await apiClient.post<any>('/uploads', formData);
+          uploadedImageUrl = uploadRes?.fileUrl || uploadRes?.data?.fileUrl;
         } catch (uploadErr) {
           console.error('Failed to upload image file to /uploads:', uploadErr);
         }

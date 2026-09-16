@@ -23,7 +23,8 @@ import {
   X,
   Sparkles,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  Edit2
 } from 'lucide-react';
 
 interface Campaign {
@@ -659,12 +660,33 @@ export const AdsPage: React.FC = () => {
                         <td style={{ textAlign: 'end', fontWeight: 600 }}>{camp.budget.toLocaleString()} ILS</td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                            {(camp.status === 'Active' || camp.status === 'Paused') && (
+                              <button
+                                onClick={() => toggleCampaignStatus(camp.id)}
+                                className={`action-icon-btn ${camp.status === 'Active' ? 'pause' : 'play'}`}
+                                title={camp.status === 'Active' ? 'Pause Campaign' : 'Resume Campaign'}
+                              >
+                                {camp.status === 'Active' ? <Pause size={12} /> : <Play size={12} />}
+                              </button>
+                            )}
                             <button
-                              onClick={() => toggleCampaignStatus(camp.id)}
-                              className={`action-icon-btn ${camp.status === 'Active' ? 'pause' : 'play'}`}
-                              title={camp.status === 'Active' ? 'Pause Campaign' : 'Resume Campaign'}
+                              onClick={() => navigate('campaigns')}
+                              className="action-icon-btn edit"
+                              title="Edit Ad in Active Ads"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '6px',
+                                border: '1px solid var(--border-color)',
+                                background: 'var(--bg-surface-hover)',
+                                color: 'var(--text-primary)',
+                                cursor: 'pointer',
+                              }}
                             >
-                              {camp.status === 'Active' ? <Pause size={12} /> : <Play size={12} />}
+                              <Edit2 size={12} />
                             </button>
                             <button
                               onClick={() => handleDeleteCampaign(camp.id)}

@@ -9,6 +9,12 @@ export interface Campaign {
   ctr: number;
   conversions: number;
   budget: number;
+  imageUrl?: string;
+  description?: string;
+  ctaText?: string;
+  targetType?: string;
+  targetId?: string;
+  targetUrl?: string;
 }
 
 export interface PromotionOffer {
@@ -35,6 +41,7 @@ export interface AdCreativeDetails {
 export interface AdRepository {
   getAds(): Promise<Result<Campaign[]>>;
   createAd(name: string, budget: number, placement?: string, details?: AdCreativeDetails): Promise<Result<Campaign>>;
+  updateAd(id: string, data: { name?: string; budget?: number; placement?: string; status?: 'Active' | 'Paused' } & AdCreativeDetails): Promise<Result<Campaign>>;
   updateAdStatus(id: string, status: 'Active' | 'Paused'): Promise<Result<Campaign>>;
   deleteAd(id: string): Promise<Result<boolean>>;
   getPromotions(): Promise<Result<PromotionOffer[]>>;
