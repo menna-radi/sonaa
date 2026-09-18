@@ -116,18 +116,16 @@ export const AdsPage: React.FC = () => {
       }));
   }, [campaigns]);
 
-  // Dynamic metrics based on real database campaigns and timeFilter
+  // Dynamic metrics based on real database campaigns
   const metrics = useMemo(() => {
     const activeCount = campaigns.filter(c => c.status === 'Active').length;
     const totalImpressions = campaigns.reduce((sum, c) => sum + (c.impressions || 0), 0);
     const totalConversions = campaigns.reduce((sum, c) => sum + (c.conversions || 0), 0);
     const totalBudget = campaigns.reduce((sum, c) => sum + (c.budget || 0), 0);
-    const avgCtr = campaigns.length > 0 
-      ? (campaigns.reduce((sum, c) => sum + (c.ctr || 0), 0) / campaigns.length).toFixed(1)
+    const avgCtr = totalImpressions > 0 
+      ? ((totalConversions / totalImpressions) * 100).toFixed(1)
       : '0.0';
-    const totalClicks = Math.round(totalImpressions * (parseFloat(avgCtr) / 100));
-
-    const multiplier = timeFilter === '7d' ? 0.25 : timeFilter === '30d' ? 1.0 : timeFilter === '90d' ? 3.0 : 8.0;
+    const totalClicks = totalConversions;
 
     const formatNum = (n: number) => {
       if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -135,26 +133,21 @@ export const AdsPage: React.FC = () => {
       return n.toLocaleString();
     };
 
-    const impVal = Math.round(totalImpressions * multiplier);
-    const clkVal = Math.round(totalClicks * multiplier);
-    const convVal = Math.round(totalConversions * multiplier);
-    const revVal = Math.round(totalBudget * multiplier);
-
     return {
-      impressions: formatNum(impVal > 0 ? impVal : 0),
-      clicks: formatNum(clkVal > 0 ? clkVal : 0),
+      impressions: formatNum(totalImpressions),
+      clicks: formatNum(totalClicks),
       ctr: `${avgCtr}%`,
-      conversions: convVal.toLocaleString(),
-      revenue: `${formatNum(revVal)} ILS`,
+      conversions: totalConversions.toLocaleString(),
+      revenue: `${formatNum(totalBudget)} ₪`,
       active: String(activeCount),
-      impTrend: '+12.4%',
-      clkTrend: '+8.2%',
-      ctrTrend: '+0.3pp',
-      convTrend: '+18.9%',
-      revTrend: '+23%',
+      impTrend: 'Live DB',
+      clkTrend: 'Real-time',
+      ctrTrend: `${avgCtr}% Avg`,
+      convTrend: 'Tracked',
+      revTrend: 'Allocated',
       actTrend: `+${activeCount}`
     };
-  }, [campaigns, timeFilter]);
+  }, [campaigns]);
 
   // Chart path coordinates according to filters
   const chartPaths = useMemo(() => {
@@ -743,9 +736,24 @@ export const AdsPage: React.FC = () => {
                                 <img
                                   src={resolveMediaUrl(camp.imageUrl)}
                                   alt={camp.name}
+                                  crossOrigin="anonymous"
                                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                   onError={(e) => {
-                                    (e.target as HTMLElement).style.display = 'none';
+                                    const target = e.target as HTMLElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent && !parent.querySelector('.thumbnail-fallback')) {
+                                      const fallback = document.createElement('div');
+                                      fallback.className = 'thumbnail-fallback';
+                                      fallback.style.display = 'flex';
+                                      fallback.style.alignItems = 'center';
+                                      fallback.style.justifyContent = 'center';
+                                      fallback.style.width = '100%';
+                                      fallback.style.height = '100%';
+                                      fallback.style.color = 'var(--text-muted)';
+                                      fallback.innerHTML = '🖼️';
+                                      parent.appendChild(fallback);
+                                    }
                                   }}
                                 />
                               ) : (

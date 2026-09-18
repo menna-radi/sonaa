@@ -21,6 +21,7 @@ import {
 
 export const AnalyticsPage: React.FC = () => {
   const { t } = useLanguage();
+  const [timeFilter, setTimeFilter] = useState<'7d' | '30d' | '90d' | 'ytd'>('30d');
   const {
     loading,
     error,
@@ -32,10 +33,9 @@ export const AnalyticsPage: React.FC = () => {
     zones,
     kpis,
     refresh
-  } = useAnalytics();
+  } = useAnalytics(timeFilter);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [timeFilter, setTimeFilter] = useState<'7d' | '30d' | '90d' | 'ytd'>('7d');
   const [mobileSection, setMobileSection] = useState<'kpis' | 'cohorts' | 'zones'>('kpis');
 
   const handleExportCSV = () => {
