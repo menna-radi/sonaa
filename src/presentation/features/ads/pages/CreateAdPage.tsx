@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
 import { Sidebar } from '../../../../presentation/layouts/Sidebar';
@@ -13,30 +13,28 @@ import {
   CheckCircle2,
   FileImage,
   Globe,
-  Search,
-  Bell,
-  Link as LinkIcon,
-  ChevronDown,
-  X,
+  Users,
   User,
-  Wrench
+  Wrench,
+  MapPin,
+  Tag,
+  Link as LinkIcon,
+  Sparkles,
+  Layers,
+  AlertCircle
 } from 'lucide-react';
 import { AndroidPhoneBannerPreview } from '../components/AndroidPhoneBannerPreview';
 
 interface City {
   name: string;
+  nameAr: string;
   selected: boolean;
   reach: number;
 }
 
 interface Category {
   name: string;
-  selected: boolean;
-}
-
-interface Placement {
-  id: string;
-  label: string;
+  nameAr: string;
   selected: boolean;
 }
 
@@ -47,130 +45,54 @@ export const CreateAdPage: React.FC = () => {
   const { adRepository } = dependencies;
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mobileActiveTab, setMobileActiveTab] = useState<'creative' | 'schedule' | 'placement' | 'targeting'>('creative');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Creative States
-  const [adTitle, setAdTitle] = useState('Summer AC Repair Special');
-  const [description, setDescription] = useState('Get 20% off on all AC maintenance and repair services this summer.');
-  const [ctaText, setCtaText] = useState('Book Now');
-  const [destinationUrl, setDestinationUrl] = useState('');
+  // ── 1. The Banner Creative States ──
+  const [adTitle, setAdTitle] = useState('Summer AC Maintenance Special');
+  const [description, setDescription] = useState('20% discount on all AC maintenance & cleaning services this season');
+  const [imageUrlInput, setImageUrlInput] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  // New Creative Fields: URL, Link Type, and Entity Selection
-  const [adUrl, setAdUrl] = useState('');
-  const [linkType, setLinkType] = useState<'task' | 'craftsman'>('task');
-  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
-  const [selectedEntityLabel, setSelectedEntityLabel] = useState<string | null>(null);
-  const [entitySearchQuery, setEntitySearchQuery] = useState('');
-  const [entityDropdownOpen, setEntityDropdownOpen] = useState(false);
-  const [tasksList, setTasksList] = useState<{id: string; label: string}[]>([]);
-  const [craftsmenList, setCraftsmenList] = useState<{id: string; label: string}[]>([]);
-  const entityDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Schedule States
-  const [startDate, setStartDate] = useState('2026-07-02');
-  const [endDate, setEndDate] = useState('2026-08-02');
-  const [runContinuously, setRunContinuously] = useState(false);
-  const [budget, setBudget] = useState('5000');
-
-  // Placement States
-  const [placements, setPlacements] = useState<Placement[]>([
-    { id: 'home_banner', label: 'Home Page Banner', selected: true },
-    { id: 'search_results', label: 'Search Results', selected: false },
-    { id: 'category_pages', label: 'Category Pages', selected: false },
-    { id: 'craftsmen_listing', label: 'Craftsmen Listing Pages', selected: false },
-    { id: 'task_details', label: 'Task Details Pages', selected: false },
-    { id: 'notifications', label: 'Notifications Section', selected: false },
-    { id: 'popups', label: 'Promotional Popups', selected: false },
-    { id: 'featured_slots', label: 'Featured Craftsman Slots', selected: false },
-  ]);
-
-  // Targeting States
-  const [userType, setUserType] = useState<'Customers' | 'Craftsmen' | 'Both'>('Customers');
+  // ── 2. Who to Reach (Audience & Targeting) States ──
+  const [userType, setUserType] = useState<'Both' | 'Customers' | 'Craftsmen'>('Customers');
+  const [locationMode, setLocationMode] = useState<'All' | 'Specific'>('Specific');
   
-  const [categories, setCategories] = useState<Category[]>([
-    { name: 'Electricians', selected: false },
-    { name: 'Plumbers', selected: false },
-    { name: 'AC Repair', selected: true },
-    { name: 'Painting', selected: false },
-    { name: 'Cleaning', selected: false },
-    { name: 'Maintenance', selected: false },
-    { name: 'Carpenters', selected: false },
-    { name: 'Movers', selected: false },
-  ]);
-
-  const [locationType, setLocationType] = useState<'All' | 'Cities' | 'Districts'>('Cities');
-
   const [cities, setCities] = useState<City[]>([
-    { name: 'Jerusalem (القدس)', selected: true, reach: 45000 },
-    { name: 'Old City (البلدة القديمة)', selected: true, reach: 15000 },
-    { name: 'Beit Hanina (بيت حنينا)', selected: true, reach: 12000 },
-    { name: 'Shuafat (شعفاط)', selected: false, reach: 10000 },
-    { name: 'Sheikh Jarrah (الشيخ جراح)', selected: false, reach: 8000 },
-    { name: 'Silwan (سلوان)', selected: false, reach: 9000 },
-    { name: 'Ramallah (رام الله)', selected: false, reach: 25000 },
-    { name: 'Bethlehem (بيت لحم)', selected: false, reach: 18000 },
-    { name: 'Hebron (الخليل)', selected: false, reach: 20000 },
+    { name: 'Jerusalem (القدس)', nameAr: 'القدس', selected: true, reach: 45000 },
+    { name: 'Old City (البلدة القديمة)', nameAr: 'البلدة القديمة', selected: true, reach: 15000 },
+    { name: 'Beit Hanina (بيت حنينا)', nameAr: 'بيت حنينا', selected: true, reach: 12000 },
+    { name: 'Shuafat (شعفاط)', nameAr: 'شعفاط', selected: false, reach: 10000 },
+    { name: 'Sheikh Jarrah (الشيخ جراح)', nameAr: 'الشيخ جراح', selected: false, reach: 8000 },
+    { name: 'Silwan (سلوان)', nameAr: 'سلوان', selected: false, reach: 9000 },
+    { name: 'Ramallah (رام الله)', nameAr: 'رام الله', selected: false, reach: 25000 },
+    { name: 'Bethlehem (بيت لحم)', nameAr: 'بيت لحم', selected: false, reach: 18000 },
+    { name: 'Hebron (الخليل)', nameAr: 'الخليل', selected: false, reach: 22000 },
+    { name: 'Nablus (نابلس)', nameAr: 'نابلس', selected: false, reach: 20000 },
+    { name: 'Jenin (جنين)', nameAr: 'جنين', selected: false, reach: 12000 },
+    { name: 'Tulkarm (طولكرم)', nameAr: 'طولكرم', selected: false, reach: 11000 },
   ]);
 
-  // Alert/Notification State on Submit
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [categoryMode, setCategoryMode] = useState<'All' | 'Specific'>('Specific');
+  const [categories, setCategories] = useState<Category[]>([
+    { name: 'AC Repair', nameAr: 'تكييف وتبريد', selected: true },
+    { name: 'Plumbers', nameAr: 'سباكة', selected: false },
+    { name: 'Electricians', nameAr: 'كهرباء', selected: false },
+    { name: 'Painting', nameAr: 'دهان وديكور', selected: false },
+    { name: 'Cleaning', nameAr: 'تنظيف', selected: false },
+    { name: 'Carpenters', nameAr: 'نجارة', selected: false },
+    { name: 'Maintenance', nameAr: 'صيانة عامة', selected: false },
+    { name: 'Movers', nameAr: 'نقل أثاث', selected: false },
+  ]);
 
-  // Fetch tasks and craftsmen lists for the entity dropdown
-  useEffect(() => {
-    const fetchEntities = async () => {
-      const tasksResult = await dependencies.taskRepository.getTasks();
-      if (tasksResult.success) {
-        setTasksList(tasksResult.data.map(t => ({ id: t.id, label: `${t.jobNumber} — ${t.title}` })));
-      }
-      const craftsmenResult = await dependencies.craftsmanRepository.getCraftsmen();
-      if (craftsmenResult.success) {
-        setCraftsmenList(craftsmenResult.data.map(c => ({ id: c.id, label: `${c.idNumber} — ${c.name} (${c.trade})` })));
-      }
-    };
-    fetchEntities();
-  }, [dependencies.taskRepository, dependencies.craftsmanRepository]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (entityDropdownRef.current && !entityDropdownRef.current.contains(e.target as Node)) {
-        setEntityDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Reset selection when link type changes
-  useEffect(() => {
-    setSelectedEntityId(null);
-    setSelectedEntityLabel(null);
-    setEntitySearchQuery('');
-    setEntityDropdownOpen(false);
-  }, [linkType]);
-
-  // Filtered entity list based on search
-  const filteredEntities = useMemo(() => {
-    const list = linkType === 'task' ? tasksList : craftsmenList;
-    if (!entitySearchQuery.trim()) return list;
-    return list.filter(item => item.label.toLowerCase().includes(entitySearchQuery.toLowerCase()));
-  }, [linkType, tasksList, craftsmenList, entitySearchQuery]);
-
-  const handleSelectEntity = (id: string, label: string) => {
-    setSelectedEntityId(id);
-    setSelectedEntityLabel(label);
-    setEntityDropdownOpen(false);
-    setEntitySearchQuery('');
-  };
-
-  const handleClearEntity = () => {
-    setSelectedEntityId(null);
-    setSelectedEntityLabel(null);
-  };
+  // Status & Schedule
+  const [isActiveImmediately, setIsActiveImmediately] = useState(true);
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
 
   // File Upload Handlers
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,6 +100,18 @@ export const CreateAdPage: React.FC = () => {
       const file = e.target.files[0];
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
+      setImageUrlInput('');
+    }
+  };
+
+  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setImageUrlInput(val);
+    if (val.trim()) {
+      setImagePreview(val.trim());
+      setImageFile(null);
+    } else {
+      setImagePreview(null);
     }
   };
 
@@ -191,13 +125,13 @@ export const CreateAdPage: React.FC = () => {
       const file = e.dataTransfer.files[0];
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
+      setImageUrlInput('');
     }
   };
 
-  // Toggle handlers
-  const togglePlacement = (id: string) => {
-    setPlacements(prev =>
-      prev.map(p => (p.id === id ? { ...p, selected: !p.selected } : p))
+  const toggleCity = (name: string) => {
+    setCities(prev =>
+      prev.map(c => (c.name === name ? { ...c, selected: !c.selected } : c))
     );
   };
 
@@ -207,62 +141,61 @@ export const CreateAdPage: React.FC = () => {
     );
   };
 
-  const toggleCity = (name: string) => {
-    setCities(prev =>
-      prev.map(c => (c.name === name ? { ...c, selected: !c.selected } : c))
-    );
-  };
+  // Derived selected city label for the Android live phone mockup pin
+  const selectedCityLabel = useMemo(() => {
+    if (locationMode === 'All') return isRtl ? 'القدس والضفة (الكل)' : 'All Palestine (Jerusalem & West Bank)';
+    const selected = cities.filter(c => c.selected);
+    if (selected.length === 0) return isRtl ? 'القدس' : 'Jerusalem';
+    if (selected.length === 1) return isRtl ? selected[0].nameAr : selected[0].name;
+    return `${isRtl ? selected[0].nameAr : selected[0].name} (+${selected.length - 1})`;
+  }, [locationMode, cities, isRtl]);
 
-  // Dynamic Reach Calculation
+  // Estimated Reach Calculation
   const reachMetrics = useMemo(() => {
-    let baseReach = 50000; // base national reach
+    let baseReach = 60000;
 
-    if (locationType === 'Cities') {
+    if (locationMode === 'Specific') {
       const selectedCities = cities.filter(c => c.selected);
       if (selectedCities.length === 0) {
         baseReach = 0;
       } else {
         baseReach = selectedCities.reduce((sum, c) => sum + c.reach, 0);
       }
-    } else if (locationType === 'All') {
-      baseReach = 180000;
     } else {
-      // Districts
-      baseReach = 45000;
+      baseReach = 180000;
     }
 
     // Category multiplier
-    const selectedCats = categories.filter(c => c.selected).length;
-    const catMultiplier = selectedCats === 0 ? 0.2 : 0.8 + selectedCats * 0.1;
+    let catMultiplier = 1.0;
+    if (categoryMode === 'Specific') {
+      const selectedCats = categories.filter(c => c.selected).length;
+      catMultiplier = selectedCats === 0 ? 0.2 : 0.7 + selectedCats * 0.1;
+    }
 
-    // Placement multiplier
-    const selectedPlacements = placements.filter(p => p.selected).length;
-    const placementMultiplier = selectedPlacements === 0 ? 0.5 : 0.9 + selectedPlacements * 0.1;
+    // Audience multiplier
+    let audMultiplier = 1.0;
+    if (userType === 'Customers') audMultiplier = 0.85;
+    if (userType === 'Craftsmen') audMultiplier = 0.25;
 
-    const totalReach = Math.round(baseReach * catMultiplier * placementMultiplier);
+    const totalReach = Math.round(baseReach * catMultiplier * audMultiplier);
 
-    // Format cities list for reach subtext
-    const citiesListStr = locationType === 'All' 
-      ? 'All Jerusalem & Palestine (القدس والضفة)' 
-      : cities.filter(c => c.selected).map(c => c.name).join(' and ') || 'No cities selected';
+    const citiesListStr = locationMode === 'All'
+      ? (isRtl ? 'كافة المدن (القدس والضفة)' : 'All Cities (Jerusalem & West Bank)')
+      : (cities.filter(c => c.selected).map(c => isRtl ? c.nameAr : c.name).join('، ') || (isRtl ? 'لم يتم تحديد مدن' : 'No cities selected'));
 
-    // Format categories list
-    const catsListStr = categories.filter(c => c.selected).map(c => c.name).join(', ') || 'No category';
+    const catsListStr = categoryMode === 'All'
+      ? (isRtl ? 'كافة الخدمات والتخصصات' : 'All Categories')
+      : (categories.filter(c => c.selected).map(c => isRtl ? c.nameAr : c.name).join('، ') || (isRtl ? 'عام' : 'General'));
 
     return {
       formattedReach: totalReach >= 1000 ? `${Math.round(totalReach / 1000)}K` : totalReach.toString(),
-      summaryText: `Based on your selected targeting: ${catsListStr} category in ${citiesListStr}.`
+      citiesListStr,
+      catsListStr,
+      summaryText: isRtl
+        ? `بناءً على الإعدادات: مستخدمي ${catsListStr} في ${citiesListStr}`
+        : `Targeting: ${catsListStr} in ${citiesListStr}`
     };
-  }, [locationType, cities, categories, placements]);
-
-  // Derived selected city for Android live mockup pin
-  const selectedCityLabel = useMemo(() => {
-    if (locationType === 'All') return isRtl ? 'القدس والضفة (الكل)' : 'All Palestine (Jerusalem & West Bank)';
-    const selected = cities.filter(c => c.selected);
-    if (selected.length === 0) return isRtl ? 'القدس' : 'Jerusalem';
-    if (selected.length === 1) return selected[0].name;
-    return `${selected[0].name} (+${selected.length - 1})`;
-  }, [locationType, cities, isRtl]);
+  }, [locationMode, cities, categoryMode, categories, userType, isRtl]);
 
   // Form Submit Action
   const handleLaunch = async (e: React.FormEvent) => {
@@ -270,27 +203,30 @@ export const CreateAdPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      let uploadedImageUrl: string | undefined = undefined;
+      let finalImageUrl = imagePreview || undefined;
+
+      // If user uploaded a physical file, upload it to the server
       if (imageFile) {
         try {
           const formData = new FormData();
           formData.append('file', imageFile);
           const uploadRes = await apiClient.post<any>('/uploads', formData);
-          uploadedImageUrl = uploadRes?.fileUrl || uploadRes?.data?.fileUrl;
+          finalImageUrl = uploadRes?.fileUrl || uploadRes?.data?.fileUrl || finalImageUrl;
         } catch (uploadErr) {
           console.error('Failed to upload image file to /uploads:', uploadErr);
         }
       }
 
-      const placementLabel = placements.find(p => p.selected)?.label || 'Home Banner';
-      const numericBudget = parseFloat(budget.replace(/[^0-9.]/g, '')) || 5000;
-      const result = await adRepository.createAd(adTitle, numericBudget, placementLabel, {
-        imageUrl: uploadedImageUrl,
+      // Format location & category metadata
+      const targetCities = locationMode === 'All' ? ['ALL'] : cities.filter(c => c.selected).map(c => c.name);
+      const targetCats = categoryMode === 'All' ? ['ALL'] : categories.filter(c => c.selected).map(c => c.name);
+
+      const result = await adRepository.createAd(adTitle, 5000, 'Home Banner', {
+        imageUrl: finalImageUrl,
         description: description,
-        ctaText: ctaText,
-        targetType: linkType === 'task' ? 'TASK' : (linkType === 'craftsman' ? 'CRAFTSMAN' : 'NONE'),
-        targetId: selectedEntityId || undefined,
-        targetUrl: adUrl || destinationUrl || undefined,
+        ctaText: isRtl ? 'عرض التفاصيل' : 'Claim Offer',
+        targetType: userType === 'Both' ? 'ALL' : (userType === 'Craftsmen' ? 'CRAFTSMEN' : 'CUSTOMERS'),
+        targetUrl: `/offers/${encodeURIComponent(adTitle)}?cities=${encodeURIComponent(targetCities.join(','))}&cats=${encodeURIComponent(targetCats.join(','))}`
       });
 
       if (result.success) {
@@ -298,20 +234,16 @@ export const CreateAdPage: React.FC = () => {
         setTimeout(() => {
           setShowSuccess(false);
           navigate('ads');
-        }, 2000);
+        }, 1800);
       } else {
         const errResult = result as { success: false; error: { message: string } };
-        setError(errResult.error.message || 'Failed to launch campaign.');
+        setError(errResult.error?.message || 'Failed to launch banner campaign.');
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to launch campaign.');
+      setError(err instanceof Error ? err.message : 'Failed to launch banner campaign.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCancel = () => {
-    navigate('campaigns');
   };
 
   const selectedCities = cities.filter(c => c.selected);
@@ -320,158 +252,82 @@ export const CreateAdPage: React.FC = () => {
     <div className="app-container" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-      
+
       <main className="main-content">
-        {/* Banner success overlay */}
+        {/* Success Alert */}
         {showSuccess && (
           <div className="success-toast">
             <CheckCircle2 size={20} color="#10B981" />
-            <span>Campaign created and queued for launch successfully!</span>
+            <span>
+              {isRtl
+                ? 'تم إنشاء البانر ونشره بنجاح، وسيظهر للمستخدمين فوراً!'
+                : 'Banner created & published successfully! Visible immediately on Android.'}
+            </span>
           </div>
         )}
 
+        {/* Error Alert */}
         {error && (
-          <div className="glass-card status-danger animate-fade-in" style={{ padding: 'var(--spacing-md)', margin: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', color: 'var(--color-danger)' }}>
-              <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>{error}</span>
+          <div className="glass-card status-danger animate-fade-in" style={{ padding: '16px', margin: '16px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-danger)' }}>
+              <AlertCircle size={18} />
+              <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{error}</span>
             </div>
           </div>
         )}
 
-        {/* Mobile Header */}
-        <div className="mobile-header mobile-only">
-          <div className="mobile-header-left">
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(true)}
-              className="mobile-logo-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                textAlign: 'start',
-                fontFamily: 'inherit'
-              }}
-            >
-              <div className="mobile-logo">A</div>
-              <div className="mobile-logo-text">
-                <strong>Arox</strong>
-                <span>Admin</span>
-              </div>
-            </button>
-          </div>
-          <div className="mobile-header-right" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button type="button" className="mobile-action-btn"><Search size={16} /></button>
-            <button type="button" className="mobile-action-btn" style={{ position: 'relative' }}>
-              <Bell size={16} />
-              <span className="mobile-badge" />
-            </button>
-          </div>
-        </div>
-
-        {/* Desktop & Tablet Page Header (Transparent background, no borders) */}
-        <div className="create-ad-header-row desktop-tablet-only">
+        {/* Page Header */}
+        <div className="create-ad-header-row">
           <button 
             type="button" 
-            onClick={handleCancel} 
-            className="back-circle-btn"
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              border: '1px solid var(--border-color)',
-              background: 'var(--bg-surface)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: 'var(--text-primary)',
-              transition: 'background-color 0.2s ease, border-color 0.2s ease',
-              boxShadow: 'var(--shadow-sm)',
-              padding: 0,
-              flexShrink: 0
-            }}
+            onClick={() => navigate('ads')}
+            className="back-nav-btn"
+            title={isRtl ? 'رجوع للإعلانات' : 'Back to Ads'}
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={18} style={{ transform: isRtl ? 'rotate(180deg)' : 'none' }} />
+            <span>{isRtl ? 'الرجوع للإعلانات' : 'Back to Ads'}</span>
           </button>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'start' }}>
-            <h1 className="create-ad-title" style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: '1.2' }}>
-              Create Advertisement
+          <div>
+            <h1 className="create-ad-title">
+              {isRtl ? 'إنشاء إعلان وبانر تطبيق الموبايل' : 'Create Mobile Banner & Targeting'}
             </h1>
-            <p className="create-ad-subtitle" style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)' }}>
-              Set up a new ad campaign
+            <p className="create-ad-subtitle">
+              {isRtl
+                ? 'حدد صورة البانر وإعدادات الجمهور المستهدف الذي سيصل إليه الإعلان على تطبيق أندرويد'
+                : 'Upload the mobile banner image and configure who will see this campaign in the Android app'}
             </p>
           </div>
         </div>
 
-        <div className="create-ad-page-body">
-          {/* Mobile Header Row (Transparent background, no borders) */}
-          <div className="create-ad-header-row mobile-only" style={{ margin: '0 0 24px 0', paddingTop: 0, paddingBottom: 0 }}>
-            <button 
-              type="button" 
-              onClick={handleCancel} 
-              className="back-circle-btn"
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                border: '1px solid var(--border-color)',
-                background: 'var(--bg-surface)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'var(--text-primary)',
-                transition: 'background-color 0.2s ease, border-color 0.2s ease',
-                boxShadow: 'var(--shadow-sm)',
-                padding: 0,
-                flexShrink: 0
-              }}
-            >
-              <ArrowLeft size={18} />
-            </button>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'start' }}>
-              <h1 className="create-ad-title" style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: '1.2' }}>
-                Create Advertisement
-              </h1>
-              <p className="create-ad-subtitle" style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>
-                Set up a new ad campaign
-              </p>
-            </div>
-          </div>
-
-          {/* Two Column Layout matching Figma */}
-          <div className="create-ad-layout">
-          {/* Left Form Column */}
+        {/* Two Column Layout: Left = Simple Form, Right = Authentic Android Mockup */}
+        <div className="create-ad-layout">
+          {/* Left Form: ONLY The Banner & Settings For Who To Reach */}
           <form onSubmit={handleLaunch} className="create-ad-form">
             
-            {/* Mobile Tabs Switcher Bar */}
-            <div className="mobile-only mobile-tabs-bar">
-              {(['creative', 'schedule', 'placement', 'targeting'] as const).map(tab => (
-                <button
-                  type="button"
-                  key={tab}
-                  className={`mobile-tab-btn ${mobileActiveTab === tab ? 'active' : ''}`}
-                  onClick={() => setMobileActiveTab(tab)}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </div>
-            
-            {/* Section 1: Creative */}
-            <div className={`form-card mobile-tab-content ${mobileActiveTab === 'creative' ? 'mobile-tab-active' : ''}`}>
-              <h2 className="form-card-title">Creative</h2>
-              <p className="form-card-subtitle">Upload your ad assets and define the content</p>
-              
+            {/* ══════════════════════════════════════════════════════════════
+                SECTION 1: THE BANNER (تصميم وتفاصيل البانر)
+               ══════════════════════════════════════════════════════════════ */}
+            <div className="form-card">
+              <div className="section-header-badge">
+                <FileImage size={18} className="badge-icon" />
+                <h2 className="form-card-title" style={{ margin: 0 }}>
+                  {isRtl ? '1. تصميم ومحتوى البانر (The Banner)' : '1. Banner Creative (The Banner)'}
+                </h2>
+              </div>
+              <p className="form-card-subtitle">
+                {isRtl
+                  ? 'ارفع صورة البانر وحدد عنوان العرض. ستظهر المعاينة الحية بجانبك فوراً.'
+                  : 'Upload your banner image and enter campaign details. Preview updates live on the right.'}
+              </p>
+
+              {/* Banner Image Upload Box */}
               <div className="form-group">
-                <label className="form-label-styled">Ad Image</label>
+                <label className="form-label-styled">
+                  {isRtl ? 'صورة البانر' : 'Banner Image'}
+                  <span className="required-star">*</span>
+                </label>
+                
                 <div 
                   className="image-dropzone" 
                   onDragOver={handleDragOver}
@@ -487,413 +343,336 @@ export const CreateAdPage: React.FC = () => {
                   <label htmlFor="ad-image-upload" className="dropzone-label">
                     {imagePreview ? (
                       <div className="dropzone-preview-container">
-                        <img src={imagePreview} alt="Ad Preview" className="dropzone-preview-img" />
+                        <img src={imagePreview} alt="Banner Preview" className="dropzone-preview-img" />
                         <div className="dropzone-preview-overlay">
-                          <Upload size={20} />
-                          <span>Change Image</span>
+                          <Upload size={22} />
+                          <span>{isRtl ? 'تغيير صورة البانر' : 'Change Image'}</span>
                         </div>
                       </div>
                     ) : (
                       <>
-                        <Upload size={32} className="upload-icon" />
-                        <span className="upload-primary-text">{isRtl ? 'اسحب الصورة أو انقر للرفع' : 'Drop image or click to upload'}</span>
+                        <Upload size={36} className="upload-icon" />
+                        <span className="upload-primary-text">
+                          {isRtl ? 'اسحب صورة البانر هنا أو انقر للتصفح' : 'Drop banner image here or click to browse'}
+                        </span>
                         <span className="upload-sub-text">
                           {isRtl
-                            ? 'الموصى به: 1200×628 بكسل (نسبة 1.91:1 لأندرويد) · PNG, JPG حتى 5MB'
-                            : '1200×628 px recommended (1.91:1 ratio for Android) · PNG, JPG up to 5MB'}
+                            ? 'المقاس المعتمد في كود أندرويد: 1200×628 بكسل (نسبة 1.91:1) · PNG, JPG حتى 5MB'
+                            : 'Recommended Android Spec: 1200×628 px (1.91:1 ratio) · PNG, JPG up to 5MB'}
                         </span>
                       </>
                     )}
                   </label>
                 </div>
+
+                {/* Optional Image URL Input */}
+                <div style={{ marginTop: '10px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500, display: 'block', marginBottom: '4px' }}>
+                    {isRtl ? 'أو أدخل رابط صورة مباشر (Image URL):' : 'Or paste direct Image URL:'}
+                  </span>
+                  <div className="input-with-icon">
+                    <LinkIcon size={14} className="input-icon" />
+                    <input
+                      type="url"
+                      value={imageUrlInput}
+                      onChange={handleImageUrlChange}
+                      placeholder="https://example.com/banner.jpg"
+                      className="form-text-input icon-padding"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label-styled">Ad Title</label>
+              {/* Android Specification Pill */}
+              <div className="android-spec-callout">
+                <Sparkles size={16} color="var(--color-primary)" />
+                <div style={{ fontSize: '12px', lineHeight: 1.5, color: 'var(--text-primary)' }}>
+                  <strong>{isRtl ? 'معايير أندرويد الدقيقة:' : 'Exact Android Specs:'}</strong>{' '}
+                  <span style={{ color: 'var(--text-secondary)' }}>
+                    {isRtl
+                      ? 'الارتفاع في الصفحة الرئيسية 154dp · الزوايا الدائرية 20dp · التوسيط BoxFit.cover'
+                      : 'Home carousel card height is 154dp · Corner radius 20dp · Centered with BoxFit.cover'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Ad Title */}
+              <div className="form-group" style={{ marginTop: '16px' }}>
+                <label className="form-label-styled">
+                  {isRtl ? 'عنوان البانر / الحملة' : 'Banner / Campaign Title'}
+                  <span className="required-star">*</span>
+                </label>
                 <input 
                   type="text" 
                   required
                   value={adTitle}
                   onChange={(e) => setAdTitle(e.target.value)}
                   className="form-text-input"
-                  placeholder="e.g. Summer AC Repair Special"
+                  placeholder={isRtl ? 'مثال: خصم خاص 20% على صيانة التكييف' : 'e.g. Summer AC Maintenance Special'}
                 />
               </div>
 
+              {/* Subtitle / Short Description */}
               <div className="form-group">
-                <label className="form-label-styled">Description</label>
+                <label className="form-label-styled">
+                  {isRtl ? 'الوصف الترويجي المختصر (يظهر في نافذة التفاصيل)' : 'Offer Description / Subtitle'}
+                </label>
                 <textarea 
-                  required
-                  rows={3}
+                  rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="form-textarea-input"
-                  placeholder="Describe your offer..."
+                  placeholder={isRtl ? 'مثال: احصل على خصم فوري على كافة أعمال الفحص والصيانة هذا الصيف' : 'Short description for the offer details popup'}
                 />
               </div>
 
-              <div className="form-row-2">
-                <div className="form-group">
-                  <label className="form-label-styled">CTA Button Text</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={ctaText}
-                    onChange={(e) => setCtaText(e.target.value)}
-                    className="form-text-input"
-                    placeholder="e.g. Book Now"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label-styled">Destination URL</label>
-                  <input 
-                    type="text" 
-                    value={destinationUrl}
-                    onChange={(e) => setDestinationUrl(e.target.value)}
-                    className="form-text-input"
-                    placeholder="e.g. https://sonaa.com/promo"
-                  />
-                </div>
-              </div>
-
-              {/* ── New Fields: Ad URL, Link Type, Entity Selection ── */}
-              <div className="creative-link-section">
-                <div className="link-section-header">
-                  <LinkIcon size={16} color="#6B7280" />
-                  <span className="link-section-title">Ad Link Settings</span>
-                </div>
-
-                {/* Field 1: Ad URL */}
-                <div className="form-group">
-                  <label className="form-label-styled">Ad URL</label>
-                  <div className="input-with-icon">
-                    <LinkIcon size={16} className="input-icon" />
-                    <input 
-                      type="url" 
-                      value={adUrl}
-                      onChange={(e) => setAdUrl(e.target.value)}
-                      className="form-text-input icon-padding"
-                      placeholder="e.g. https://sonaa.com/ad/summer-deal"
-                    />
-                  </div>
-                </div>
-
-                {/* Field 2: Link Type Toggle (Task / Craftsman) */}
-                <div className="form-group">
-                  <label className="form-label-styled">Link To</label>
-                  <div className="link-type-toggle">
-                    <button
-                      type="button"
-                      className={`link-type-btn ${linkType === 'task' ? 'active' : ''}`}
-                      onClick={() => setLinkType('task')}
-                    >
-                      <Wrench size={14} />
-                      <span>Task</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`link-type-btn ${linkType === 'craftsman' ? 'active' : ''}`}
-                      onClick={() => setLinkType('craftsman')}
-                    >
-                      <User size={14} />
-                      <span>Craftsman</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Field 3: Entity Dropdown (Task ID / Craftsman ID) */}
-                <div className="form-group">
-                  <label className="form-label-styled">
-                    {linkType === 'task' ? 'Select Task' : 'Select Craftsman'}
-                  </label>
-                  <div className="entity-dropdown-wrapper" ref={entityDropdownRef}>
-                    {/* Selected entity pill or trigger */}
-                    {selectedEntityId ? (
-                      <div className="entity-selected-pill">
-                        <div className="entity-pill-icon">
-                          {linkType === 'task' ? <Wrench size={14} color="#6B7280" /> : <User size={14} color="#6B7280" />}
-                        </div>
-                        <span className="entity-pill-text">{selectedEntityLabel}</span>
-                        <button type="button" className="entity-pill-clear" onClick={handleClearEntity}>
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="entity-dropdown-trigger"
-                        onClick={() => setEntityDropdownOpen(!entityDropdownOpen)}
-                      >
-                        <span className="entity-trigger-placeholder">
-                          {linkType === 'task' ? 'Choose a task...' : 'Choose a craftsman...'}
-                        </span>
-                        <ChevronDown size={16} className={`entity-chevron ${entityDropdownOpen ? 'open' : ''}`} />
-                      </button>
-                    )}
-
-                    {/* Dropdown panel */}
-                    {entityDropdownOpen && (
-                      <div className="entity-dropdown-panel">
-                        {/* Search input */}
-                        <div className="entity-search-box">
-                          <Search size={14} className="entity-search-icon" />
-                          <input
-                            type="text"
-                            value={entitySearchQuery}
-                            onChange={(e) => setEntitySearchQuery(e.target.value)}
-                            className="entity-search-input"
-                            placeholder={linkType === 'task' ? 'Search tasks...' : 'Search craftsmen...'}
-                            autoFocus
-                          />
-                        </div>
-                        {/* Options list */}
-                        <div className="entity-options-list">
-                          {filteredEntities.length === 0 ? (
-                            <div className="entity-no-results">No results found</div>
-                          ) : (
-                            filteredEntities.map(item => (
-                              <button
-                                type="button"
-                                key={item.id}
-                                className={`entity-option ${selectedEntityId === item.id ? 'selected' : ''}`}
-                                onClick={() => handleSelectEntity(item.id, item.label)}
-                              >
-                                <div className="entity-option-icon">
-                                  {linkType === 'task' ? <Wrench size={14} /> : <User size={14} />}
-                                </div>
-                                <span className="entity-option-label">{item.label}</span>
-                                {selectedEntityId === item.id && <Check size={14} color="#10B981" />}
-                              </button>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Section 2: Schedule */}
-            <div className={`form-card mobile-tab-content ${mobileActiveTab === 'schedule' ? 'mobile-tab-active' : ''}`}>
-              <h2 className="form-card-title">Schedule</h2>
-              <p className="form-card-subtitle">Set when your campaign should start and end</p>
-              
-              <div className="form-row-2" style={{ marginBottom: '16px' }}>
-                <div className="form-group">
-                  <label className="form-label-styled">Start Date</label>
-                  <div className="input-with-icon">
-                    <CalendarIcon size={16} className="input-icon" />
-                    <input 
-                      type="date" 
-                      required
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="form-text-input icon-padding"
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className={`form-label-styled ${runContinuously ? 'disabled-label' : ''}`}>End Date</label>
-                  <div className="input-with-icon">
-                    <CalendarIcon size={16} className={`input-icon ${runContinuously ? 'disabled-icon' : ''}`} />
-                    <input 
-                      type="date" 
-                      required={!runContinuously}
-                      disabled={runContinuously}
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="form-text-input icon-padding"
-                      style={{ 
-                        backgroundColor: runContinuously ? 'var(--bg-surface-hover)' : 'var(--bg-base)',
-                        borderColor: 'var(--border-color)',
-                        color: runContinuously ? 'var(--text-muted)' : 'var(--text-primary)',
-                        cursor: runContinuously ? 'not-allowed' : 'text'
-                      }}
-                    />
-                  </div>
-                </div>
+            {/* ══════════════════════════════════════════════════════════════
+                SECTION 2: SETTINGS FOR WHO TO REACH (إعدادات الجمهور والوصول)
+               ══════════════════════════════════════════════════════════════ */}
+            <div className="form-card">
+              <div className="section-header-badge">
+                <Users size={18} className="badge-icon" />
+                <h2 className="form-card-title" style={{ margin: 0 }}>
+                  {isRtl ? '2. إعدادات الجمهور والوصول (Who to Reach)' : '2. Who to Reach (Audience & Targeting)'}
+                </h2>
               </div>
+              <p className="form-card-subtitle">
+                {isRtl
+                  ? 'حدد من سيرى هذا البانر في التطبيق، المدن المستهدفة، ومجال الخدمة.'
+                  : 'Control who will see this banner on their Android app: target users, locations, and trade category.'}
+              </p>
 
-              <label className="checkbox-container">
-                <input 
-                  type="checkbox" 
-                  checked={runContinuously} 
-                  onChange={(e) => setRunContinuously(e.target.checked)}
-                  className="checkbox-input"
-                />
-                <span className="checkbox-label">Run continuously (no end date)</span>
-              </label>
-            </div>
-
-            {/* Section 3: Placement */}
-            <div className={`form-card mobile-tab-content ${mobileActiveTab === 'placement' ? 'mobile-tab-active' : ''}`}>
-              <h2 className="form-card-title">Placement</h2>
-              <p className="form-card-subtitle">Choose where your ad will appear across Sonaa App</p>
-              
-              <div className="placement-grid">
-                {placements.map(p => (
-                  <div 
-                    key={p.id}
-                    onClick={() => togglePlacement(p.id)}
-                    className={`placement-item ${p.selected ? 'selected' : ''}`}
+              {/* Target Audience: Who to Reach */}
+              <div className="form-group-spaced">
+                <label className="form-label-styled">
+                  {isRtl ? 'الفئة المستهدفة (من سيرى البانر؟)' : 'Target Audience (Who should see this?)'}
+                </label>
+                
+                <div className="audience-toggle-grid">
+                  <button
+                    type="button"
+                    onClick={() => setUserType('Customers')}
+                    className={`audience-card ${userType === 'Customers' ? 'active' : ''}`}
                   >
-                    <div className={`placement-radio ${p.selected ? 'checked' : ''}`}>
-                      {p.selected && <Check size={10} color="#FFFFFF" strokeWidth={3} />}
+                    <User size={20} />
+                    <div>
+                      <div className="aud-title">{isRtl ? 'العملاء فقط' : 'Customers Only'}</div>
+                      <div className="aud-desc">{isRtl ? 'أصحاب المنازل والطلبات' : 'Homeowners & requesters'}</div>
                     </div>
-                    <span className="placement-label-text">{p.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  </button>
 
-            {/* Section 4: Targeting */}
-            <div className={`form-card mobile-tab-content ${mobileActiveTab === 'targeting' ? 'mobile-tab-active' : ''}`}>
-              <h2 className="form-card-title">Targeting</h2>
-              <p className="form-card-subtitle">Define who should see this advertisement</p>
+                  <button
+                    type="button"
+                    onClick={() => setUserType('Craftsmen')}
+                    className={`audience-card ${userType === 'Craftsmen' ? 'active' : ''}`}
+                  >
+                    <Wrench size={20} />
+                    <div>
+                      <div className="aud-title">{isRtl ? 'الصناع فقط' : 'Craftsmen Only'}</div>
+                      <div className="aud-desc">{isRtl ? 'الفنيين والمهنيين' : 'Active service providers'}</div>
+                    </div>
+                  </button>
 
-              {/* User Type */}
-              <div className="form-group-spaced">
-                <label className="form-label-styled">User Type</label>
-                <div className="radio-group">
-                  {(['Customers', 'Craftsmen', 'Both'] as const).map(type => (
-                    <label key={type} className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="userType"
-                        checked={userType === type}
-                        onChange={() => setUserType(type)}
-                        className="radio-input"
-                      />
-                      <span className="radio-text">{type === 'Both' ? 'Both' : `${type} only`}</span>
-                    </label>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setUserType('Both')}
+                    className={`audience-card ${userType === 'Both' ? 'active' : ''}`}
+                  >
+                    <Users size={20} />
+                    <div>
+                      <div className="aud-title">{isRtl ? 'الجميع (الكل)' : 'All Users'}</div>
+                      <div className="aud-desc">{isRtl ? 'عملاء وصناع معاً' : 'Both customers & craftsmen'}</div>
+                    </div>
+                  </button>
                 </div>
               </div>
 
-              {/* Categories */}
-              <div className="form-group-spaced">
-                <label className="form-label-styled">Categories</label>
-                <div className="tag-cloud">
-                  {categories.map(c => (
+              {/* Target Location / Cities */}
+              <div className="form-group-spaced" style={{ marginTop: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <label className="form-label-styled" style={{ margin: 0 }}>
+                    <MapPin size={15} style={{ display: 'inline', marginInlineEnd: '6px' }} />
+                    {isRtl ? 'الموقع والمدن المستهدفة' : 'Target Location / Cities'}
+                  </label>
+
+                  {/* Mode switcher */}
+                  <div className="mode-toggle-pill">
                     <button
                       type="button"
-                      key={c.name}
-                      onClick={() => toggleCategory(c.name)}
-                      className={`tag-btn ${c.selected ? 'selected' : ''}`}
+                      onClick={() => setLocationMode('All')}
+                      className={`pill-btn ${locationMode === 'All' ? 'active' : ''}`}
                     >
-                      {c.name}
+                      {isRtl ? 'كافة المناطق' : 'All Palestine'}
                     </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Location Type */}
-              <div className="form-group-spaced" style={{ marginBottom: '16px' }}>
-                <label className="form-label-styled">Location</label>
-                <div className="radio-group">
-                  <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="locationType"
-                      checked={locationType === 'All'}
-                      onChange={() => setLocationType('All')}
-                      className="radio-input"
-                    />
-                    <span className="radio-text">{isRtl ? 'القدس والضفة الغربية (الكل)' : 'All Jerusalem & West Bank'}</span>
-                  </label>
-                  <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="locationType"
-                      checked={locationType === 'Cities'}
-                      onChange={() => setLocationType('Cities')}
-                      className="radio-input"
-                    />
-                    <span className="radio-text">Specific Cities</span>
-                  </label>
-                  <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="locationType"
-                      checked={locationType === 'Districts'}
-                      onChange={() => setLocationType('Districts')}
-                      className="radio-input"
-                    />
-                    <span className="radio-text">Specific Districts</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Cities panel - active when locationType is 'Cities' */}
-              {locationType === 'Cities' && (
-                <div className="cities-box">
-                  {/* Selected Cities */}
-                  <div className="selected-cities-row">
-                    {selectedCities.length === 0 ? (
-                      <span className="no-cities-placeholder">Click cities below to add...</span>
-                    ) : (
-                      selectedCities.map(c => (
-                        <div key={c.name} className="city-pill">
-                          <span>{c.name}</span>
-                          <button 
-                            type="button" 
-                            onClick={() => toggleCity(c.name)}
-                            className="city-pill-close"
-                          >
-                            &times;
-                          </button>
-                        </div>
-                      ))
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setLocationMode('Specific')}
+                      className={`pill-btn ${locationMode === 'Specific' ? 'active' : ''}`}
+                    >
+                      {isRtl ? 'مدن محددة' : 'Specific Cities'}
+                    </button>
                   </div>
-                  
-                  {/* Available Cities Grid */}
-                  <div className="available-cities-grid">
-                    {cities.map(c => (
+                </div>
+
+                {locationMode === 'Specific' ? (
+                  <div className="cities-box">
+                    {/* Selected Cities summary */}
+                    <div className="selected-cities-row">
+                      {selectedCities.length === 0 ? (
+                        <span className="no-cities-placeholder">
+                          {isRtl ? 'انقر على المدن بالأسفل لإضافتها للاستهداف...' : 'Click cities below to add to targeting...'}
+                        </span>
+                      ) : (
+                        selectedCities.map(c => (
+                          <div key={c.name} className="city-pill">
+                            <span>{isRtl ? c.nameAr : c.name}</span>
+                            <button 
+                              type="button" 
+                              onClick={() => toggleCity(c.name)}
+                              className="city-pill-close"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    
+                    {/* Available Cities Grid */}
+                    <div className="available-cities-grid">
+                      {cities.map(c => (
+                        <button
+                          type="button"
+                          key={c.name}
+                          onClick={() => toggleCity(c.name)}
+                          className={`city-select-btn ${c.selected ? 'selected' : ''}`}
+                        >
+                          {isRtl ? c.nameAr : c.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="info-box-simple">
+                    <Globe size={16} color="var(--color-primary)" />
+                    <span>
+                      {isRtl
+                        ? 'سيظهر الإعلان لجميع المستخدمين في كافة محافظات القدس والضفة الغربية.'
+                        : 'The banner will be displayed to all users across Jerusalem and the West Bank.'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Target Service / Category */}
+              <div className="form-group-spaced" style={{ marginTop: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <label className="form-label-styled" style={{ margin: 0 }}>
+                    <Tag size={15} style={{ display: 'inline', marginInlineEnd: '6px' }} />
+                    {isRtl ? 'مجال الخدمة والتخصص (اختياري)' : 'Service Category / Trade (Optional)'}
+                  </label>
+
+                  <div className="mode-toggle-pill">
+                    <button
+                      type="button"
+                      onClick={() => setCategoryMode('All')}
+                      className={`pill-btn ${categoryMode === 'All' ? 'active' : ''}`}
+                    >
+                      {isRtl ? 'كافة الخدمات' : 'All Trades'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCategoryMode('Specific')}
+                      className={`pill-btn ${categoryMode === 'Specific' ? 'active' : ''}`}
+                    >
+                      {isRtl ? 'تخصص معين' : 'Specific Trades'}
+                    </button>
+                  </div>
+                </div>
+
+                {categoryMode === 'Specific' && (
+                  <div className="tag-cloud" style={{ marginTop: '8px' }}>
+                    {categories.map(cat => (
                       <button
                         type="button"
-                        key={c.name}
-                        onClick={() => toggleCity(c.name)}
-                        className={`city-select-btn ${c.selected ? 'selected' : ''}`}
+                        key={cat.name}
+                        onClick={() => toggleCategory(cat.name)}
+                        className={`tag-btn ${cat.selected ? 'selected' : ''}`}
                       >
-                        {c.name}
+                        {cat.selected && <Check size={13} style={{ display: 'inline', marginInlineEnd: '4px' }} />}
+                        {isRtl ? cat.nameAr : cat.name}
                       </button>
                     ))}
                   </div>
+                )}
+              </div>
+
+              {/* Status & Schedule */}
+              <div className="form-group" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <label className="form-label-styled" style={{ margin: 0 }}>
+                      {isRtl ? 'تفعيل الإعلان فوراً في التطبيق' : 'Activate Immediately on Publish'}
+                    </label>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      {isRtl ? 'سيظهر البانر في واجهة التطبيق فور الحفظ' : 'Banner appears in Android app immediately'}
+                    </span>
+                  </div>
+                  
+                  <label className="switch-container">
+                    <input
+                      type="checkbox"
+                      checked={isActiveImmediately}
+                      onChange={(e) => setIsActiveImmediately(e.target.checked)}
+                    />
+                    <span className="slider-round" />
+                  </label>
                 </div>
-              )}
+              </div>
+
             </div>
 
             {/* Action Buttons */}
             <div className="form-actions">
               <button 
                 type="button" 
-                onClick={handleCancel}
+                onClick={() => navigate('ads')}
                 className="btn-cancel"
               >
-                Cancel
+                {isRtl ? 'إلغاء' : 'Cancel'}
               </button>
+              
               <button 
                 type="submit" 
+                disabled={loading || !adTitle.trim()}
                 className="btn-launch"
               >
-                Launch Campaign
+                {loading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="btn-spinner" />
+                    <span>{isRtl ? 'جاري النشر...' : 'Publishing...'}</span>
+                  </div>
+                ) : (
+                  <span>{isRtl ? 'حفظ ونشر البانر' : 'Publish Banner Campaign'}</span>
+                )}
               </button>
             </div>
           </form>
 
-          {/* Right Preview Column */}
+          {/* ══════════════════════════════════════════════════════════════
+              RIGHT COLUMN: AUTHENTIC ANDROID PHONE PREVIEW & REACH
+             ══════════════════════════════════════════════════════════════ */}
           <div className="create-ad-preview-col">
-            
-            {/* Live Preview Panel */}
             <div className="preview-sticky">
+              
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <h3 className="preview-section-title" style={{ margin: 0 }}>
                   {isRtl ? 'معاينة جهاز أندرويد الحية' : 'Live Android Device Preview'}
                 </h3>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  {isRtl ? 'مطابق لـ Flutter (154dp)' : 'Flutter Spec (154dp)'}
+                <span className="spec-badge-header">
+                  {isRtl ? 'Flutter Spec (154dp)' : 'Flutter Spec (154dp)'}
                 </span>
               </div>
               
@@ -902,64 +681,69 @@ export const CreateAdPage: React.FC = () => {
                 imageUrl={imagePreview}
                 adTitle={adTitle}
                 description={description}
-                ctaText={ctaText}
+                ctaText={isRtl ? 'احصل على العرض' : 'Claim Offer'}
                 selectedCity={selectedCityLabel}
-                placement={placements.find(p => p.selected)?.label || 'Home Banner'}
+                placement="Home Banner"
                 isRtl={isRtl}
               />
 
-              {/* Estimated Reach Panel */}
+              {/* Estimated Reach Summary Card */}
               <div className="reach-panel">
                 <div className="reach-header">
-                  <Globe size={16} color="#6B7280" />
-                  <span className="reach-title">Estimated Reach</span>
+                  <Globe size={16} color="var(--color-primary)" />
+                  <span className="reach-title">
+                    {isRtl ? 'الجمهور والوصول المتوقع' : 'Target Reach Summary'}
+                  </span>
                 </div>
+                
                 <div className="reach-metric-row">
                   <span className="reach-number">{reachMetrics.formattedReach}</span>
-                  <span className="reach-label">users / day</span>
+                  <span className="reach-label">
+                    {isRtl ? 'مستخدم نشط / يومياً' : 'active users / day'}
+                  </span>
                 </div>
+                
                 <p className="reach-description">
                   {reachMetrics.summaryText}
                 </p>
-              </div>
-            </div>
 
+                <div className="reach-tags-row">
+                  <span className="reach-tag">
+                    {userType === 'Customers' ? (isRtl ? 'العملاء' : 'Customers') : (userType === 'Craftsmen' ? (isRtl ? 'الصناع' : 'Craftsmen') : (isRtl ? 'الكل' : 'All Users'))}
+                  </span>
+                  <span className="reach-tag">
+                    {locationMode === 'All' ? (isRtl ? 'كافة فلسطين' : 'All Palestine') : `${selectedCities.length} ${isRtl ? 'مدن' : 'cities'}`}
+                  </span>
+                  <span className="reach-tag">
+                    {categoryMode === 'All' ? (isRtl ? 'كافة الخدمات' : 'All Trades') : (isRtl ? 'خدمات محددة' : 'Specific Trades')}
+                  </span>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 
-        {/* Embedded Style Block for CreateAdPage */}
+        {/* Embedded Style Block */}
         <style>{`
-          .mobile-tabs-bar {
-            display: none;
-          }
-          
-          .mobile-tab-content {
-            display: block;
-          }
-
           .create-ad-header-row {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 16px;
-            padding-top: 36px;
+            padding-top: 24px;
             padding-bottom: 12px;
-            margin-bottom: 24px;
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            text-align: start;
-            box-sizing: border-box;
+            margin-bottom: 20px;
           }
 
           .create-ad-title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             color: var(--text-primary);
             margin: 0 0 4px 0;
           }
 
           .create-ad-subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
             margin: 0;
           }
@@ -967,134 +751,110 @@ export const CreateAdPage: React.FC = () => {
           .back-nav-btn {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 500;
+            gap: 6px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
-            padding: 0;
-            transition: color 0.2s ease;
+            padding: 8px 12px;
+            transition: all 0.2s ease;
           }
 
           .back-nav-btn:hover {
+            border-color: var(--color-primary);
             color: var(--text-primary);
           }
 
           .create-ad-layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 360px;
-            gap: 32px;
+            grid-template-columns: minmax(0, 1fr) 375px;
+            gap: 28px;
             align-items: start;
-            margin-top: 16px;
           }
 
-          @media (max-width: 991px) {
+          @media (max-width: 1024px) {
             .create-ad-layout {
               grid-template-columns: 1fr;
             }
           }
 
-          /* Cards styling */
           .form-card {
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-sizing: border-box;
+            padding: 22px;
+            margin-bottom: 20px;
             box-shadow: var(--shadow-sm);
+          }
+
+          .section-header-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+          }
+
+          .badge-icon {
+            color: var(--color-primary);
           }
 
           .form-card-title {
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-primary);
-            margin: 0 0 4px 0;
           }
 
           .form-card-subtitle {
             font-size: 13px;
             color: var(--text-muted);
-            margin: 0 0 20px 0;
+            margin: 0 0 18px 0;
           }
 
-          /* Form group and fields */
           .form-group {
             display: flex;
             flex-direction: column;
             gap: 6px;
             margin-bottom: 16px;
             width: 100%;
-            box-sizing: border-box;
           }
 
           .form-group-spaced {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            margin-bottom: 20px;
-          }
-
-          .form-row-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-          }
-
-          @media (max-width: 576px) {
-            .form-row-2 {
-              grid-template-columns: 1fr;
-            }
+            margin-bottom: 18px;
           }
 
           .form-label-styled {
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-primary);
           }
 
-          .disabled-label {
-            color: var(--text-muted);
+          .required-star {
+            color: #EF4444;
+            margin-inline-start: 4px;
           }
 
-          .form-text-input {
+          .form-text-input, .form-textarea-input {
             width: 100%;
-            box-sizing: border-box;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: var(--text-primary);
-            outline: none;
             background: var(--bg-base);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-          }
-
-          .form-text-input:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-          }
-
-          .form-textarea-input {
-            width: 100%;
-            box-sizing: border-box;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 10px 14px;
             font-size: 13px;
             color: var(--text-primary);
+            box-sizing: border-box;
             outline: none;
-            resize: vertical;
+            transition: border-color 0.2s;
             font-family: inherit;
-            background: var(--bg-base);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
           }
 
-          .form-textarea-input:focus {
+          .form-text-input:focus, .form-textarea-input:focus {
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
           }
 
           .input-with-icon {
@@ -1104,29 +864,15 @@ export const CreateAdPage: React.FC = () => {
 
           .input-icon {
             position: absolute;
-            left: 12px;
+            inset-inline-start: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
             pointer-events: none;
           }
 
-          [dir="rtl"] .input-icon {
-            left: auto;
-            right: 12px;
-          }
-
-          .disabled-icon {
-            color: var(--border-color);
-          }
-
           .icon-padding {
-            padding-left: 36px;
-          }
-
-          [dir="rtl"] .icon-padding {
-            padding-left: 14px;
-            padding-right: 36px;
+            padding-inline-start: 36px;
           }
 
           /* Dropzone image styling */
@@ -1136,7 +882,7 @@ export const CreateAdPage: React.FC = () => {
             border-radius: 12px;
             background: var(--bg-base);
             box-sizing: border-box;
-            transition: border-color 0.2s ease, background 0.2s ease;
+            transition: all 0.2s ease;
             cursor: pointer;
             overflow: hidden;
           }
@@ -1155,23 +901,24 @@ export const CreateAdPage: React.FC = () => {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 32px 16px;
+            padding: 28px 16px;
             width: 100%;
-            height: 100%;
-            box-sizing: border-box;
             cursor: pointer;
+            box-sizing: border-box;
           }
 
           .upload-icon {
-            color: var(--text-muted);
-            margin-bottom: 12px;
+            color: var(--color-primary);
+            margin-bottom: 10px;
+            opacity: 0.85;
           }
 
           .upload-primary-text {
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 4px;
+            text-align: center;
           }
 
           .upload-sub-text {
@@ -1203,9 +950,9 @@ export const CreateAdPage: React.FC = () => {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             opacity: 0;
             transition: opacity 0.2s ease;
           }
@@ -1214,110 +961,111 @@ export const CreateAdPage: React.FC = () => {
             opacity: 1;
           }
 
-          /* Checkbox Container */
-          .checkbox-container {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            user-select: none;
-          }
-
-          .checkbox-input {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            accent-color: var(--color-primary);
-          }
-
-          .checkbox-label {
-            font-size: 13px;
-            color: var(--text-primary);
-          }
-
-          /* Radio Buttons */
-          .radio-group {
+          .android-spec-callout {
             display: flex;
-            gap: 20px;
             align-items: center;
-          }
-
-          .radio-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-          }
-
-          .radio-input {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            accent-color: var(--color-primary);
-          }
-
-          .radio-text {
-            font-size: 13px;
-            color: var(--text-primary);
-          }
-
-          /* Tag clouds / buttons selection */
-          .tag-cloud {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-          }
-
-          .tag-btn {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
+            gap: 10px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
             border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-weight: 500;
+            padding: 10px 14px;
+            margin-top: 10px;
+          }
+
+          /* Audience cards */
+          .audience-toggle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+          }
+
+          @media (max-width: 600px) {
+            .audience-toggle-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+
+          .audience-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-base);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
             cursor: pointer;
-            box-sizing: border-box;
+            transition: all 0.2s ease;
+            text-align: start;
+            color: var(--text-primary);
+          }
+
+          .audience-card:hover {
+            border-color: var(--color-primary);
+          }
+
+          .audience-card.active {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light, rgba(37, 99, 235, 0.08));
+            color: var(--color-primary);
+          }
+
+          .aud-title {
+            font-size: 13px;
+            font-weight: 700;
+          }
+
+          .aud-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+          }
+
+          /* Mode toggle pill */
+          .mode-toggle-pill {
+            display: flex;
+            background: var(--bg-base);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2px;
+          }
+
+          .pill-btn {
+            background: transparent;
+            border: none;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-radius: 16px;
+            cursor: pointer;
             transition: all 0.15s ease;
           }
 
-          .tag-btn:hover {
-            border-color: var(--color-primary);
-            color: var(--text-primary);
-          }
-
-          .tag-btn.selected {
+          .pill-btn.active {
             background: var(--color-primary);
-            border-color: var(--color-primary);
             color: #FFFFFF;
-            box-shadow: 0 1px 4px rgba(37, 99, 235, 0.4);
           }
 
-          /* Cities selection layout */
+          /* Cities box */
           .cities-box {
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 12px;
             background: var(--bg-base);
-            box-sizing: border-box;
-            margin-top: 12px;
           }
 
           .selected-cities-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            min-height: 33px;
+            gap: 6px;
+            min-height: 28px;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
-            margin-bottom: 12px;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
           }
 
           .no-cities-placeholder {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
             font-style: italic;
           }
@@ -1329,44 +1077,41 @@ export const CreateAdPage: React.FC = () => {
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 12px;
-            font-weight: 500;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 600;
             color: var(--text-primary);
           }
 
           .city-pill-close {
             background: none;
             border: none;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1;
             color: var(--text-muted);
             cursor: pointer;
             padding: 0;
-            display: flex;
-            align-items: center;
           }
 
           .city-pill-close:hover {
-            color: #f87171;
+            color: #EF4444;
           }
 
           .available-cities-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 6px;
           }
 
           .city-select-btn {
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 6px;
-            font-size: 12px;
-            font-weight: 500;
+            padding: 6px 8px;
+            font-size: 11px;
+            font-weight: 600;
             color: var(--text-secondary);
             cursor: pointer;
-            box-sizing: border-box;
             text-align: center;
             transition: all 0.15s ease;
           }
@@ -1382,61 +1127,92 @@ export const CreateAdPage: React.FC = () => {
             color: #FFFFFF;
           }
 
-          /* Placement layout */
-          .placement-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-          }
-
-          @media (max-width: 576px) {
-            .placement-grid {
-              grid-template-columns: 1fr;
-            }
-          }
-
-          .placement-item {
+          .info-box-simple {
             display: flex;
             align-items: center;
             gap: 10px;
+            background: var(--bg-base);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 12px;
-            cursor: pointer;
-            box-sizing: border-box;
-            background: var(--bg-surface);
-            transition: all 0.15s ease;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: var(--text-secondary);
           }
 
-          .placement-item:hover {
-            border-color: var(--color-primary);
-          }
-
-          .placement-item.selected {
-            border-color: var(--color-primary);
-            background: var(--bg-surface-hover);
-          }
-
-          .placement-radio {
-            width: 16px;
-            height: 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
+          /* Tag cloud */
+          .tag-cloud {
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+          }
+
+          .tag-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
             transition: all 0.15s ease;
           }
 
-          .placement-radio.checked {
+          .tag-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--text-primary);
+          }
+
+          .tag-btn.selected {
             background: var(--color-primary);
             border-color: var(--color-primary);
+            color: #FFFFFF;
           }
 
-          .placement-label-text {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-primary);
+          /* Switch toggle */
+          .switch-container {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+          }
+
+          .switch-container input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+          }
+
+          .slider-round {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .2s;
+            border-radius: 24px;
+          }
+
+          .slider-round:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .2s;
+            border-radius: 50%;
+          }
+
+          .switch-container input:checked + .slider-round {
+            background-color: var(--color-primary);
+          }
+
+          .switch-container input:checked + .slider-round:before {
+            transform: translateX(20px);
           }
 
           /* Form Actions */
@@ -1445,605 +1221,162 @@ export const CreateAdPage: React.FC = () => {
             justify-content: flex-end;
             gap: 12px;
             padding: 16px 0;
-            border-top: 1px solid var(--border-color);
           }
 
           .btn-cancel {
-            background: transparent;
+            background: var(--bg-surface);
             border: 1px solid var(--border-color);
             border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
             color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
             cursor: pointer;
-            padding: 8px 16px;
             transition: all 0.15s ease;
           }
 
           .btn-cancel:hover {
-            background: var(--bg-surface-hover);
             color: var(--text-primary);
+            border-color: var(--text-muted);
           }
 
           .btn-launch {
             background: var(--color-primary);
             border: none;
-            color: #FFFFFF;
             border-radius: 8px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s ease;
-          }
-
-          .btn-launch:hover {
-            opacity: 0.9;
-          }
-
-          /* Success Toast */
-          .success-toast {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            background: var(--bg-surface);
-            border: 1px solid #10B981;
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: var(--shadow-lg);
-            z-index: 1000;
+            padding: 10px 24px;
             font-size: 13px;
-            font-weight: 500;
-            color: var(--text-primary);
-            animation: slideInRight 0.3s ease;
+            font-weight: 700;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
           }
 
-          @keyframes slideInRight {
-            from {
-              transform: translateX(100%);
-              opacity: 0;
-            }
-            to {
-              transform: translateX(0);
-              opacity: 1;
-            }
+          .btn-launch:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
           }
 
-          /* Preview Column sticky */
+          .btn-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #FFFFFF;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+          }
+
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+
+          /* Right column */
           .create-ad-preview-col {
             position: relative;
-            width: 100%;
-            height: 100%;
           }
 
           .preview-sticky {
             position: sticky;
             top: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
           }
 
           .preview-section-title {
             font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0;
-          }
-
-          /* Mobile Viewport styling */
-          .mobile-viewport {
-            width: 100%;
-            max-width: 320px;
-            height: 520px;
-            border: 10px solid var(--border-color);
-            border-radius: 36px;
-            background: var(--bg-base);
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-            margin: 0 auto;
-          }
-
-          .mobile-header {
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border-color);
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-          }
-
-          .mobile-header-title {
-            font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-primary);
           }
 
-          .mobile-body {
-            flex: 1;
-            padding: 12px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-          }
-
-          /* Mock ad card in mobile screen */
-          .preview-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            box-sizing: border-box;
-          }
-
-          .preview-card-img {
-            width: 100%;
-            height: 110px;
-            object-fit: cover;
-            background: var(--bg-surface-hover);
-          }
-
-          .preview-card-img-placeholder {
-            width: 100%;
-            height: 110px;
-            background: var(--bg-surface-hover);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .preview-card-details {
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-          }
-
-          .ad-badge {
-            background: var(--bg-surface-hover);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            font-size: 9px;
-            font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            line-height: 1.2;
-            margin-top: 2px;
-          }
-
-          .preview-card-title-text {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0;
-            line-height: 1.3;
-            word-break: break-word;
-            flex: 1;
-          }
-
-          .preview-card-desc-text {
+          .spec-badge-header {
             font-size: 11px;
-            color: var(--text-muted);
-            margin: 0 0 10px 0;
-            line-height: 1.4;
-            word-break: break-word;
-          }
-
-          .preview-card-cta-btn {
-            width: 100%;
-            background: var(--color-primary);
-            border: none;
-            color: #FFFFFF;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 12px;
             font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            box-sizing: border-box;
-          }
-
-          .dummy-mobile-item {
-            height: 72px;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
+            color: var(--color-primary);
+            background: rgba(37, 99, 235, 0.08);
+            padding: 2px 8px;
             border-radius: 12px;
-            opacity: 0.6;
           }
 
-          /* Reach Panel */
+          /* Reach panel */
           .reach-panel {
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 18px;
-            box-sizing: border-box;
-            box-shadow: var(--shadow-sm);
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 14px;
           }
 
           .reach-header {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
           }
 
           .reach-title {
             font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 700;
+            color: var(--text-primary);
           }
 
           .reach-metric-row {
             display: flex;
             align-items: baseline;
             gap: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
           }
 
           .reach-number {
-            font-size: 32px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
             color: var(--text-primary);
             line-height: 1;
+            font-family: var(--font-title, sans-serif);
           }
 
           .reach-label {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-muted);
             font-weight: 500;
           }
 
           .reach-description {
             font-size: 12px;
-            color: var(--text-muted);
-            margin: 0;
-            line-height: 1.5;
+            color: var(--text-secondary);
+            margin: 0 0 10px 0;
+            line-height: 1.4;
           }
 
-          /* Creative Link Section Styling */
-          .creative-link-section {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border-color);
+          .reach-tags-row {
             display: flex;
-            flex-direction: column;
-            gap: 16px;
-          }
-
-          .link-section-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-            text-align: start;
-          }
-
-          .link-section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-          }
-
-          .link-type-toggle {
-            display: flex;
-            gap: 8px;
-            background: var(--bg-base);
-            padding: 4px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-          }
-
-          .link-type-btn {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-wrap: wrap;
             gap: 6px;
-            background: transparent;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s ease;
           }
 
-          .link-type-btn:hover {
-            color: var(--text-primary);
-          }
-
-          .link-type-btn.active {
-            background: var(--bg-surface);
-            color: var(--text-primary);
-            box-shadow: var(--shadow-sm);
-            font-weight: 600;
-          }
-
-          .entity-dropdown-wrapper {
-            position: relative;
-            width: 100%;
-          }
-
-          .entity-dropdown-trigger {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+          .reach-tag {
             background: var(--bg-base);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: start;
-            color: var(--text-primary);
-          }
-
-          .entity-dropdown-trigger:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-            outline: none;
-          }
-
-          .entity-trigger-placeholder {
-            color: var(--text-muted);
-          }
-
-          .entity-chevron {
-            color: var(--text-muted);
-            transition: transform 0.2s ease;
-          }
-
-          .entity-chevron.open {
-            transform: rotate(180deg);
-          }
-
-          .entity-selected-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-surface-hover);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px 12px;
-            width: 100%;
-            box-sizing: border-box;
-            text-align: start;
-          }
-
-          .entity-pill-icon {
-            display: flex;
-            align-items: center;
-          }
-
-          .entity-pill-text {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-primary);
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-align: start;
-          }
-
-          .entity-pill-clear {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 2px;
             border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-          }
-
-          .entity-pill-clear:hover {
-            background: var(--bg-surface);
-            color: var(--text-primary);
-          }
-
-          .entity-dropdown-panel {
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            right: 0;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: var(--shadow-lg);
-            z-index: 50;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            max-height: 250px;
-          }
-
-          .entity-search-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--bg-surface-hover);
-          }
-
-          .entity-search-icon {
-            color: var(--text-muted);
-          }
-
-          .entity-search-input {
-            width: 100%;
-            border: none;
-            background: transparent;
-            font-size: 13px;
-            color: var(--text-primary);
-            outline: none;
-            padding: 4px 0;
-          }
-
-          .entity-options-list {
-            overflow-y: auto;
-            flex: 1;
-            max-height: 200px;
-          }
-
-          .entity-option {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 12px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            text-align: start;
-            color: var(--text-primary);
-            transition: background 0.15s ease;
-          }
-
-          .entity-option:hover {
-            background: var(--bg-surface-hover);
-          }
-
-          .entity-option.selected {
-            background: var(--bg-surface-hover);
+            padding: 2px 6px;
+            font-size: 10px;
             font-weight: 600;
+            color: var(--text-muted);
           }
 
-          .entity-option-icon {
-            color: var(--text-muted);
+          .success-toast {
             display: flex;
             align-items: center;
-          }
-
-          .entity-option-label {
+            gap: 10px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid #10B981;
+            color: #10B981;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-weight: 600;
             font-size: 13px;
-            color: var(--text-primary);
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-align: start;
-          }
-
-          .entity-no-results {
-            padding: 16px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 13px;
-          }
-
-          /* Responsive adjustments */
-          .create-ad-page-body {
-            padding: 0;
-            box-sizing: border-box;
-          }
-
-          @media (max-width: 1024px) {
-            .main-content {
-              margin-inline-start: var(--sidebar-collapsed-width) !important;
-              padding: 24px var(--spacing-md) !important;
-              width: calc(100% - var(--sidebar-collapsed-width)) !important;
-            }
-          }
-
-          @media (max-width: 768px) {
-            .main-content {
-              margin-inline-start: 0 !important;
-              padding-top: 0 !important;
-              padding-bottom: 84px !important;
-              padding-inline-start: 0 !important;
-              padding-inline-end: 0 !important;
-              width: 100% !important;
-            }
-
-            .create-ad-page-body {
-              padding: 12px 16px 16px !important;
-            }
-
-            .mobile-subheader {
-              height: auto !important;
-              padding: 14px 20px !important;
-            }
-
-            .create-ad-header-row {
-              padding-top: 24px !important;
-              padding-bottom: 8px !important;
-              margin-bottom: 20px !important;
-            }
-
-            .mobile-tabs-bar {
-              display: flex !important;
-              gap: 8px;
-              overflow-x: auto;
-              padding: 4px 0 16px 0;
-              margin-bottom: 8px;
-              scrollbar-width: none;
-            }
-
-            .mobile-tabs-bar::-webkit-scrollbar {
-              display: none;
-            }
-
-            .mobile-tab-btn {
-              flex: 1;
-              min-width: 80px;
-              background: var(--bg-surface);
-              border: 1px solid var(--border-color);
-              border-radius: 8px;
-              padding: 8px 12px;
-              font-size: 13px;
-              font-weight: 500;
-              color: var(--text-muted);
-              cursor: pointer;
-              white-space: nowrap;
-              transition: all 0.2s ease;
-              text-align: center;
-            }
-
-            .mobile-tab-btn.active {
-              background: var(--color-primary);
-              border-color: var(--color-primary);
-              color: #FFFFFF;
-              font-weight: 600;
-            }
-
-            .mobile-tab-content {
-              display: none;
-            }
-
-            .mobile-tab-content.mobile-tab-active {
-              display: block;
-            }
+            margin-bottom: 16px;
           }
         `}</style>
-      </div>
       </main>
     </div>
   );
 };
-
-export default CreateAdPage;
