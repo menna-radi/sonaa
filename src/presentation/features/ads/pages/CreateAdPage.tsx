@@ -21,6 +21,7 @@ import {
   User,
   Wrench
 } from 'lucide-react';
+import { AndroidPhoneBannerPreview } from '../components/AndroidPhoneBannerPreview';
 
 interface City {
   name: string;
@@ -254,6 +255,15 @@ export const CreateAdPage: React.FC = () => {
     };
   }, [locationType, cities, categories, placements]);
 
+  // Derived selected city for Android live mockup pin
+  const selectedCityLabel = useMemo(() => {
+    if (locationType === 'All') return isRtl ? 'القدس والضفة (الكل)' : 'All Palestine (Jerusalem & West Bank)';
+    const selected = cities.filter(c => c.selected);
+    if (selected.length === 0) return isRtl ? 'القدس' : 'Jerusalem';
+    if (selected.length === 1) return selected[0].name;
+    return `${selected[0].name} (+${selected.length - 1})`;
+  }, [locationType, cities, isRtl]);
+
   // Form Submit Action
   const handleLaunch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -486,8 +496,12 @@ export const CreateAdPage: React.FC = () => {
                     ) : (
                       <>
                         <Upload size={32} className="upload-icon" />
-                        <span className="upload-primary-text">Drop image or click to upload</span>
-                        <span className="upload-sub-text">1200×400 recommended · PNG, JPG up to 5MB</span>
+                        <span className="upload-primary-text">{isRtl ? 'اسحب الصورة أو انقر للرفع' : 'Drop image or click to upload'}</span>
+                        <span className="upload-sub-text">
+                          {isRtl
+                            ? 'الموصى به: 1200×628 بكسل (نسبة 1.91:1 لأندرويد) · PNG, JPG حتى 5MB'
+                            : '1200×628 px recommended (1.91:1 ratio for Android) · PNG, JPG up to 5MB'}
+                        </span>
                       </>
                     )}
                   </label>
@@ -874,49 +888,25 @@ export const CreateAdPage: React.FC = () => {
             
             {/* Live Preview Panel */}
             <div className="preview-sticky">
-              <h3 className="preview-section-title">Live Preview</h3>
-              
-              {/* Mobile Viewport Wrapper */}
-              <div className="mobile-viewport">
-                {/* Mobile screen header mockup */}
-                <div className="mobile-header">
-                  <span className="mobile-header-title">Home</span>
-                </div>
-                
-                {/* Mobile screen body */}
-                <div className="mobile-body">
-                  <div className="preview-card">
-                    {/* Image */}
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Ad Preview Image" className="preview-card-img" />
-                    ) : (
-                      <div className="preview-card-img-placeholder">
-                        <FileImage size={24} color="#A1A1AA" />
-                      </div>
-                    )}
-                    
-                    {/* Details block */}
-                    <div className="preview-card-details">
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '6px' }}>
-                        <span className="ad-badge">Ad</span>
-                        <h4 className="preview-card-title-text">{adTitle || 'Ad Title'}</h4>
-                      </div>
-                      <p className="preview-card-desc-text">
-                        {description || 'Ad description will display here...'}
-                      </p>
-                      
-                      {/* CTA Button */}
-                      <button type="button" className="preview-card-cta-btn">
-                        {ctaText || 'CTA Text'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Dummy content background items */}
-                  <div className="dummy-mobile-item"></div>
-                  <div className="dummy-mobile-item"></div>
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <h3 className="preview-section-title" style={{ margin: 0 }}>
+                  {isRtl ? 'معاينة جهاز أندرويد الحية' : 'Live Android Device Preview'}
+                </h3>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  {isRtl ? 'مطابق لـ Flutter (154dp)' : 'Flutter Spec (154dp)'}
+                </span>
               </div>
+              
+              {/* Authentic Android Phone Mockup & Dimension Fit Analyzer */}
+              <AndroidPhoneBannerPreview
+                imageUrl={imagePreview}
+                adTitle={adTitle}
+                description={description}
+                ctaText={ctaText}
+                selectedCity={selectedCityLabel}
+                placement={placements.find(p => p.selected)?.label || 'Home Banner'}
+                isRtl={isRtl}
+              />
 
               {/* Estimated Reach Panel */}
               <div className="reach-panel">
@@ -994,7 +984,7 @@ export const CreateAdPage: React.FC = () => {
 
           .create-ad-layout {
             display: grid;
-            grid-template-columns: 1fr 340px;
+            grid-template-columns: minmax(0, 1fr) 360px;
             gap: 32px;
             align-items: start;
             margin-top: 16px;

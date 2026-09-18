@@ -965,7 +965,7 @@ export const AdsPage: React.FC = () => {
                       {isRtl ? 'صورة الإعلان / البانر الإبداعي' : 'Creative Banner Image'}
                     </label>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                      {isRtl ? 'الموصى به: 1200×400 (نسبة 3:1)' : '1200×400 recommended · 3:1 ratio'}
+                      {isRtl ? 'الموصى به: 1200×628 (نسبة 1.91:1) لأندرويد' : '1200×628 recommended (1.91:1 ratio) for Android'}
                     </span>
                   </div>
 
