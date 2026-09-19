@@ -15,6 +15,8 @@ export interface Campaign {
   targetType?: string;
   targetId?: string;
   targetUrl?: string;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 export interface PromotionOffer {
@@ -26,6 +28,8 @@ export interface PromotionOffer {
   bannerType: 'PROMO' | 'EMERGENCY_SOS';
   placement: 'TOP' | 'FEATURED';
   isActive: boolean;
+  startDate?: string | null;
+  endDate?: string | null;
   createdAt: string;
 }
 
@@ -36,6 +40,9 @@ export interface AdCreativeDetails {
   targetType?: string;
   targetId?: string;
   targetUrl?: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  durationHours?: number;
 }
 
 export interface AdRepository {

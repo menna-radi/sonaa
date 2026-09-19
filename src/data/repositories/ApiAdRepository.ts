@@ -8,7 +8,7 @@ interface ApiAdDTO {
   id: string;
   name: string;
   budget: number;
-  status: 'ACTIVE' | 'PAUSED';
+  status: 'ACTIVE' | 'PAUSED' | 'ENDED';
   placement?: string;
   impressions?: number;
   ctr?: number;
@@ -19,6 +19,8 @@ interface ApiAdDTO {
   targetType?: string;
   targetId?: string;
   targetUrl?: string;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 export class ApiAdRepository implements AdRepository {
@@ -41,6 +43,8 @@ export class ApiAdRepository implements AdRepository {
         targetType: ad.targetType,
         targetId: ad.targetId,
         targetUrl: ad.targetUrl,
+        startDate: ad.startDate || null,
+        endDate: ad.endDate || null,
       }));
 
       return ok(mapped);
@@ -72,6 +76,11 @@ export class ApiAdRepository implements AdRepository {
         ctr: response.ctr || 0.0,
         conversions: response.conversions || 0,
         budget: response.budget,
+        imageUrl: response.imageUrl || details?.imageUrl,
+        description: response.description || details?.description,
+        ctaText: response.ctaText || details?.ctaText,
+        startDate: response.startDate || details?.startDate || null,
+        endDate: response.endDate || details?.endDate || null,
       };
 
       return ok(campaign);
@@ -105,6 +114,8 @@ export class ApiAdRepository implements AdRepository {
         imageUrl: response.imageUrl || data.imageUrl,
         description: response.description || data.description,
         ctaText: response.ctaText || data.ctaText,
+        startDate: response.startDate || data.startDate || null,
+        endDate: response.endDate || data.endDate || null,
       };
 
       return ok(campaign);

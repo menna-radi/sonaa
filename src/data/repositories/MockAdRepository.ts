@@ -18,7 +18,7 @@ export class MockAdRepository implements AdRepository {
     name: string,
     budget: number,
     placement?: string,
-    _details?: AdCreativeDetails
+    details?: AdCreativeDetails
   ): Promise<Result<Campaign>> {
     const ad: Campaign = {
       id: String(this.campaigns.length + 1),
@@ -29,6 +29,8 @@ export class MockAdRepository implements AdRepository {
       ctr: 0.0,
       conversions: 0,
       budget,
+      startDate: details?.startDate || null,
+      endDate: details?.endDate || null,
     };
     this.campaigns = [...this.campaigns, ad];
     return ok(ad);

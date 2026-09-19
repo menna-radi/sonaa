@@ -21,7 +21,8 @@ import {
   Link as LinkIcon,
   Sparkles,
   Layers,
-  AlertCircle
+  AlertCircle,
+  Clock
 } from 'lucide-react';
 import { AndroidPhoneBannerPreview } from '../components/AndroidPhoneBannerPreview';
 
@@ -114,12 +115,82 @@ export const CreateAdPage: React.FC = () => {
     { name: 'Movers', nameAr: 'نقل أثاث', selected: false },
   ]);
 
-  // Status & Schedule
+  // Status & Schedule States
   const [isActiveImmediately, setIsActiveImmediately] = useState(true);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  );
+  const [durationPreset, setDurationPreset] = useState<'24h' | '48h' | '3d' | '7d' | 'until_date' | 'indefinite'>('24h');
+  const [startScheduleType, setStartScheduleType] = useState<'now' | 'scheduled'>('now');
+
+  const formatForDateTimeLocal = (d: Date) => {
+    const pad = (n: number) => (n < 10 ? '0' + n : String(n));
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const [customStartDateTime, setCustomStartDateTime] = useState(() => formatForDateTimeLocal(new Date()));
+  const [customEndDateTime, setCustomEndDateTime] = useState(() => {
+    const tomorrow = new Date(Date.now() + 24 * 3600 * 1000);
+    return formatForDateTimeLocal(tomorrow);
+  });
+
+  const scheduleDetails = useMemo(() => {
+    const baseStart = startScheduleType === 'now' ? new Date() : new Date(customStartDateTime || Date.now());
+    let end: Date | null = null;
+
+    if (durationPreset === '24h') {
+      end = new Date(baseStart.getTime() + 24 * 3600 * 1000);
+    } else if (durationPreset === '48h') {
+      end = new Date(baseStart.getTime() + 48 * 3600 * 1000);
+    } else if (durationPreset === '3d') {
+      end = new Date(baseStart.getTime() + 3 * 24 * 3600 * 1000);
+    } else if (durationPreset === '7d') {
+      end = new Date(baseStart.getTime() + 7 * 24 * 3600 * 1000);
+    } else if (durationPreset === 'until_date') {
+      end = customEndDateTime ? new Date(customEndDateTime) : null;
+    } else if (durationPreset === 'indefinite') {
+      end = null;
+    }
+
+    let summary = '';
+    let durationLabel = '';
+
+    if (end) {
+      const options: Intl.DateTimeFormatOptions = { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      };
+      const formattedEnd = end.toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', options);
+      
+      const diffMs = end.getTime() - baseStart.getTime();
+      const diffHours = Math.max(1, Math.round(diffMs / (3600 * 1000)));
+      const diffDays = Math.floor(diffHours / 24);
+      const remainingHours = diffHours % 24;
+
+      if (diffDays > 0) {
+        durationLabel = isRtl
+          ? `${diffDays} أيام${remainingHours > 0 ? ` و ${remainingHours} ساعة` : ''}`
+          : `${diffDays}d ${remainingHours > 0 ? `${remainingHours}h` : ''}`;
+      } else {
+        durationLabel = isRtl ? `${diffHours} ساعة` : `${diffHours} hours`;
+      }
+
+      summary = isRtl
+        ? `ينتهي الإعلان في: ${formattedEnd} (المدة: ${durationLabel})`
+        : `Campaign runs until: ${formattedEnd} (Duration: ${durationLabel})`;
+    } else {
+      durationLabel = isRtl ? 'حملة مستمرة' : 'Continuous';
+      summary = isRtl
+        ? 'حملة مستمرة دون موعد انتهاء محدد حتى يتم إيقافها يدوياً.'
+        : 'Continuous campaign with no expiration until paused manually.';
+    }
+
+    return {
+      startDate: baseStart,
+      endDate: end,
+      durationLabel,
+      summary,
+    };
+  }, [startScheduleType, customStartDateTime, durationPreset, customEndDateTime, isRtl]);
 
   // File Upload Handlers
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -261,7 +332,9 @@ export const CreateAdPage: React.FC = () => {
         description: description,
         ctaText: isRtl ? 'عرض التفاصيل' : 'Claim Offer',
         targetType: userType === 'Both' ? 'ALL' : (userType === 'Craftsmen' ? 'CRAFTSMEN' : 'CUSTOMERS'),
-        targetUrl: `/offers/${encodeURIComponent(adTitle)}?cities=${encodeURIComponent(targetCities.join(','))}&cats=${encodeURIComponent(targetCats.join(','))}`
+        targetUrl: `/offers/${encodeURIComponent(adTitle)}?cities=${encodeURIComponent(targetCities.join(','))}&cats=${encodeURIComponent(targetCats.join(','))}`,
+        startDate: scheduleDetails.startDate.toISOString(),
+        endDate: scheduleDetails.endDate ? scheduleDetails.endDate.toISOString() : null,
       });
 
       if (result.success) {
@@ -644,7 +717,7 @@ export const CreateAdPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Status & Schedule */}
+              {/* Status & Immediate Activation */}
               <div className="form-group" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
@@ -652,7 +725,7 @@ export const CreateAdPage: React.FC = () => {
                       {isRtl ? 'تفعيل الإعلان فوراً في التطبيق' : 'Activate Immediately on Publish'}
                     </label>
                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      {isRtl ? 'سيظهر البانر في واجهة التطبيق فور الحفظ' : 'Banner appears in Android app immediately'}
+                      {isRtl ? 'سيظهر البانر في واجهة التطبيق فور الحفظ وخلال الموعد المحدد' : 'Banner appears in Android app once scheduled'}
                     </span>
                   </div>
                   
@@ -667,6 +740,178 @@ export const CreateAdPage: React.FC = () => {
                 </div>
               </div>
 
+            </div>
+
+            {/* ══════════════════════════════════════════════════════════════
+                SECTION 3: SCHEDULE & DURATION (فترة وجدولة عرض الإعلان)
+               ══════════════════════════════════════════════════════════════ */}
+            <div className="form-card" style={{ marginTop: '20px' }}>
+              <div className="section-header-badge">
+                <Clock size={18} className="badge-icon" />
+                <h2 className="form-card-title" style={{ margin: 0 }}>
+                  {isRtl ? '3. فترة وجدولة عرض الإعلان (Duration & Schedule)' : '3. Campaign Duration & Schedule'}
+                </h2>
+              </div>
+              <p className="form-card-subtitle">
+                {isRtl
+                  ? 'حدد مدة بقاء البانر فعالاً للمستخدمين (مثال: لمدة 24 ساعة، حتى 24 سبتمبر، أو حملة مستمرة).'
+                  : 'Specify how long the banner remains active (e.g. 24 hours, until a specific date like 24 Sep, or continuous).'}
+              </p>
+
+              {/* Start Time Option */}
+              <div className="form-group">
+                <label className="form-label-styled">
+                  {isRtl ? 'موعد بدء ظهور الإعلان' : 'Campaign Start Time'}
+                </label>
+                <div className="mode-toggle-pill" style={{ marginBottom: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setStartScheduleType('now')}
+                    className={`pill-btn ${startScheduleType === 'now' ? 'active' : ''}`}
+                  >
+                    {isRtl ? '⚡ ابدأ فوراً عند النشر' : '⚡ Start Immediately'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStartScheduleType('scheduled')}
+                    className={`pill-btn ${startScheduleType === 'scheduled' ? 'active' : ''}`}
+                  >
+                    {isRtl ? '📅 جدولة لتاريخ ووقت لاحق' : '📅 Schedule for Later'}
+                  </button>
+                </div>
+
+                {startScheduleType === 'scheduled' && (
+                  <div style={{ marginTop: '8px' }}>
+                    <input
+                      type="datetime-local"
+                      value={customStartDateTime}
+                      onChange={(e) => setCustomStartDateTime(e.target.value)}
+                      className="form-text-input"
+                      style={{ maxWidth: '300px' }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Duration Presets */}
+              <div className="form-group" style={{ marginTop: '16px' }}>
+                <label className="form-label-styled">
+                  {isRtl ? 'فترة عرض الإعلان (مدة الحملة أو موعد الانتهاء)' : 'Campaign Duration / Expiration'}
+                  <span className="required-star">*</span>
+                </label>
+
+                {/* Quick Presets Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', marginTop: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setDurationPreset('24h')}
+                    className={`city-select-btn ${durationPreset === '24h' ? 'selected' : ''}`}
+                    style={{ textAlign: 'center', padding: '10px 8px' }}
+                  >
+                    <strong>{isRtl ? '⏱️ 24 ساعة' : '⏱️ 24 Hours'}</strong>
+                    <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>{isRtl ? 'يوم كامل' : '1 Day'}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDurationPreset('48h')}
+                    className={`city-select-btn ${durationPreset === '48h' ? 'selected' : ''}`}
+                    style={{ textAlign: 'center', padding: '10px 8px' }}
+                  >
+                    <strong>{isRtl ? '⏱️ 48 ساعة' : '⏱️ 48 Hours'}</strong>
+                    <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>{isRtl ? 'يومان' : '2 Days'}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDurationPreset('3d')}
+                    className={`city-select-btn ${durationPreset === '3d' ? 'selected' : ''}`}
+                    style={{ textAlign: 'center', padding: '10px 8px' }}
+                  >
+                    <strong>{isRtl ? '🗓️ 3 أيام' : '🗓️ 3 Days'}</strong>
+                    <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>{isRtl ? 'عرض نهاية أسبوع' : 'Weekend special'}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDurationPreset('7d')}
+                    className={`city-select-btn ${durationPreset === '7d' ? 'selected' : ''}`}
+                    style={{ textAlign: 'center', padding: '10px 8px' }}
+                  >
+                    <strong>{isRtl ? '🗓️ أسبوع' : '🗓️ 7 Days'}</strong>
+                    <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>{isRtl ? 'أسبوع كامل' : '1 Week'}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDurationPreset('until_date')}
+                    className={`city-select-btn ${durationPreset === 'until_date' ? 'selected' : ''}`}
+                    style={{ textAlign: 'center', padding: '10px 8px' }}
+                  >
+                    <strong>{isRtl ? '🎯 حتى تاريخ محدد' : '🎯 Until Date'}</strong>
+                    <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>{isRtl ? 'مثال: حتى 24 سبتمبر' : 'e.g. til 24 Sep'}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDurationPreset('indefinite')}
+                    className={`city-select-btn ${durationPreset === 'indefinite' ? 'selected' : ''}`}
+                    style={{ textAlign: 'center', padding: '10px 8px' }}
+                  >
+                    <strong>{isRtl ? '♾️ مستمر' : '♾️ Continuous'}</strong>
+                    <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>{isRtl ? 'دون موعد انتهاء' : 'No Expiry'}</div>
+                  </button>
+                </div>
+
+                {/* Custom End Date Time Picker when 'until_date' is selected */}
+                {durationPreset === 'until_date' && (
+                  <div style={{ marginTop: '14px', background: 'var(--bg-surface-hover)', padding: '12px 16px', borderRadius: '10px', border: '1.5px solid var(--border-color)' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '6px', color: 'var(--text-primary)' }}>
+                      {isRtl ? 'حدد تاريخ ووقت انتهاء الإعلان بدقة:' : 'Pick Target Expiration Date & Time:'}
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <input
+                        type="datetime-local"
+                        value={customEndDateTime}
+                        onChange={(e) => setCustomEndDateTime(e.target.value)}
+                        className="form-text-input"
+                        style={{ maxWidth: '300px' }}
+                      />
+                      {/* Quick shortcut helper button for Sep 24 */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const target = new Date();
+                          target.setMonth(8); // September (0-indexed)
+                          target.setDate(24);
+                          target.setHours(23, 59, 0, 0);
+                          setCustomEndDateTime(formatForDateTimeLocal(target));
+                        }}
+                        style={{
+                          fontSize: '11px',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          background: 'rgba(59, 130, 246, 0.1)',
+                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          color: 'var(--color-primary)',
+                          cursor: 'pointer',
+                          fontWeight: 500
+                        }}
+                      >
+                        {isRtl ? '⚡ تعيين حتى 24 سبتمبر (23:59)' : '⚡ Set til 24 Sep (23:59)'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Dynamic Schedule Summary Box */}
+                <div className="info-box-simple" style={{ marginTop: '14px' }}>
+                  <CalendarIcon size={16} color="var(--color-primary)" />
+                  <span style={{ fontWeight: 500, fontSize: '12.5px' }}>
+                    {scheduleDetails.summary}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -752,6 +997,26 @@ export const CreateAdPage: React.FC = () => {
                   <span className="reach-tag">
                     {categoryMode === 'All' ? (isRtl ? 'كافة الخدمات' : 'All Trades') : (isRtl ? 'خدمات محددة' : 'Specific Trades')}
                   </span>
+                </div>
+
+                {/* Campaign Schedule Overview */}
+                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Clock size={16} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    <strong style={{ color: 'var(--text-primary)', marginInlineEnd: '4px' }}>
+                      {isRtl ? 'مدة الحملة:' : 'Campaign Duration:'}
+                    </strong>
+                    <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
+                      {scheduleDetails.durationLabel}
+                    </span>
+                    {scheduleDetails.endDate && (
+                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {isRtl
+                          ? `ينتهي: ${scheduleDetails.endDate.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+                          : `Ends: ${scheduleDetails.endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

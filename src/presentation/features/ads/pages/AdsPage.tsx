@@ -26,7 +26,8 @@ import {
   RefreshCw,
   Edit2,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Clock
 } from 'lucide-react';
 import { apiClient } from '../../../../core/network/apiClient';
 import { resolveMediaUrl } from '../../../../core/utils/mediaUrl';
@@ -35,7 +36,7 @@ interface Campaign {
   id: string;
   name: string;
   placement: string;
-  status: 'Active' | 'Paused';
+  status: 'Active' | 'Paused' | 'Ended';
   impressions: number;
   ctr: number;
   conversions: number;
@@ -43,6 +44,8 @@ interface Campaign {
   imageUrl?: string;
   description?: string;
   ctaText?: string;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 export const AdsPage: React.FC = () => {
@@ -77,6 +80,71 @@ export const AdsPage: React.FC = () => {
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
   const [editLoading, setEditLoading] = useState(false);
+  const [editStartDate, setEditStartDate] = useState('');
+  const [editEndDate, setEditEndDate] = useState('');
+  const [editDurationPreset, setEditDurationPreset] = useState<'24h' | '48h' | '3d' | '7d' | 'until_date' | 'indefinite'>('indefinite');
+
+  const formatForDateTimeLocal = (d: Date) => {
+    const pad = (n: number) => (n < 10 ? '0' + n : String(n));
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const getScheduleBadge = (camp: Campaign, isRtlLang: boolean) => {
+    if (!camp.endDate) {
+      return (
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+          <Clock size={11} />
+          {isRtlLang ? 'حملة مستمرة' : 'Continuous'}
+        </span>
+      );
+    }
+
+    const end = new Date(camp.endDate);
+    const now = new Date();
+
+    if (camp.startDate && new Date(camp.startDate) > now) {
+      const start = new Date(camp.startDate);
+      return (
+        <span style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '3px' }}>
+          <Clock size={11} />
+          {isRtlLang
+            ? `مجدول (${start.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })})`
+            : `Starts ${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+        </span>
+      );
+    }
+
+    if (end < now) {
+      return (
+        <span style={{ fontSize: '11px', color: '#EF4444', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '3px' }}>
+          <Clock size={11} />
+          {isRtlLang
+            ? `منتهي (${end.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })})`
+            : `Ended (${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`}
+        </span>
+      );
+    }
+
+    const diffMs = end.getTime() - now.getTime();
+    const diffHours = Math.round(diffMs / (3600 * 1000));
+    if (diffHours <= 48) {
+      return (
+        <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
+          <Clock size={11} />
+          {isRtlLang ? `متبقي ${diffHours}س` : `${diffHours}h left`}
+        </span>
+      );
+    }
+
+    return (
+      <span style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '3px' }}>
+        <Clock size={11} />
+        {isRtlLang
+          ? `حتى ${end.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}`
+          : `Until ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+      </span>
+    );
+  };
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
@@ -233,6 +301,18 @@ export const AdsPage: React.FC = () => {
     setEditImageUrl(camp.imageUrl || '');
     setEditImageFile(null);
     setEditImagePreview(camp.imageUrl || null);
+    if (camp.endDate) {
+      setEditEndDate(formatForDateTimeLocal(new Date(camp.endDate)));
+      setEditDurationPreset('until_date');
+    } else {
+      setEditEndDate('');
+      setEditDurationPreset('indefinite');
+    }
+    if (camp.startDate) {
+      setEditStartDate(formatForDateTimeLocal(new Date(camp.startDate)));
+    } else {
+      setEditStartDate(formatForDateTimeLocal(new Date()));
+    }
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -253,6 +333,23 @@ export const AdsPage: React.FC = () => {
         }
       }
 
+      let finalEndDate: string | null = null;
+      const baseStart = editStartDate ? new Date(editStartDate) : new Date();
+
+      if (editDurationPreset === '24h') {
+        finalEndDate = new Date(baseStart.getTime() + 24 * 3600 * 1000).toISOString();
+      } else if (editDurationPreset === '48h') {
+        finalEndDate = new Date(baseStart.getTime() + 48 * 3600 * 1000).toISOString();
+      } else if (editDurationPreset === '3d') {
+        finalEndDate = new Date(baseStart.getTime() + 3 * 24 * 3600 * 1000).toISOString();
+      } else if (editDurationPreset === '7d') {
+        finalEndDate = new Date(baseStart.getTime() + 7 * 24 * 3600 * 1000).toISOString();
+      } else if (editDurationPreset === 'until_date' && editEndDate) {
+        finalEndDate = new Date(editEndDate).toISOString();
+      } else if (editDurationPreset === 'indefinite') {
+        finalEndDate = null;
+      }
+
       const numericBudget = parseFloat(editBudget) || editingCampaign.budget || 5000;
       const res = await adRepository.updateAd(editingCampaign.id, {
         name: editName,
@@ -261,6 +358,8 @@ export const AdsPage: React.FC = () => {
         description: editObjective,
         ctaText: editCtaText,
         imageUrl: finalImageUrl,
+        startDate: baseStart.toISOString(),
+        endDate: finalEndDate,
       });
 
       if (res.success) {
@@ -778,9 +877,12 @@ export const AdsPage: React.FC = () => {
                         </td>
                         <td style={{ textAlign: 'start', color: 'var(--text-secondary)' }}>{camp.placement}</td>
                         <td style={{ textAlign: 'start' }}>
-                          <span className={`status-pill ${camp.status.toLowerCase()}`}>
-                            {camp.status}
-                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                            <span className={`status-pill ${camp.status.toLowerCase()}`}>
+                              {camp.status}
+                            </span>
+                            {getScheduleBadge(camp, isRtl)}
+                          </div>
                         </td>
                         <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)' }}>{camp.impressions.toLocaleString()}</td>
                         <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)' }}>{camp.ctr > 0 ? `${camp.ctr}%` : '—'}</td>
@@ -964,6 +1066,139 @@ export const AdsPage: React.FC = () => {
                     onChange={(e) => setEditBudget(e.target.value)}
                     className="form-input"
                   />
+                </div>
+
+                {/* Campaign Duration / Expiration in Edit Modal */}
+                <div className="form-group" style={{ padding: '12px', background: 'var(--bg-surface-hover)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                    <Clock size={14} color="var(--color-primary)" />
+                    {isRtl ? 'مدة الحملة وموعد الانتهاء' : 'Campaign Duration & Expiry'}
+                  </label>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditDurationPreset('24h')}
+                      style={{
+                        padding: '6px 4px',
+                        fontSize: '11px',
+                        borderRadius: '6px',
+                        border: editDurationPreset === '24h' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
+                        background: editDurationPreset === '24h' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
+                        color: editDurationPreset === '24h' ? 'var(--color-primary)' : 'var(--text-secondary)',
+                        fontWeight: editDurationPreset === '24h' ? 600 : 400,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isRtl ? '24 ساعة' : '24 Hours'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditDurationPreset('3d')}
+                      style={{
+                        padding: '6px 4px',
+                        fontSize: '11px',
+                        borderRadius: '6px',
+                        border: editDurationPreset === '3d' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
+                        background: editDurationPreset === '3d' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
+                        color: editDurationPreset === '3d' ? 'var(--color-primary)' : 'var(--text-secondary)',
+                        fontWeight: editDurationPreset === '3d' ? 600 : 400,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isRtl ? '3 أيام' : '3 Days'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditDurationPreset('7d')}
+                      style={{
+                        padding: '6px 4px',
+                        fontSize: '11px',
+                        borderRadius: '6px',
+                        border: editDurationPreset === '7d' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
+                        background: editDurationPreset === '7d' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
+                        color: editDurationPreset === '7d' ? 'var(--color-primary)' : 'var(--text-secondary)',
+                        fontWeight: editDurationPreset === '7d' ? 600 : 400,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isRtl ? '7 أيام' : '7 Days'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditDurationPreset('until_date')}
+                      style={{
+                        padding: '6px 4px',
+                        fontSize: '11px',
+                        borderRadius: '6px',
+                        border: editDurationPreset === 'until_date' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
+                        background: editDurationPreset === 'until_date' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
+                        color: editDurationPreset === 'until_date' ? 'var(--color-primary)' : 'var(--text-secondary)',
+                        fontWeight: editDurationPreset === 'until_date' ? 600 : 400,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isRtl ? 'حتى تاريخ محدد' : 'Until Date'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const target = new Date();
+                        target.setMonth(8); // September
+                        target.setDate(24);
+                        target.setHours(23, 59, 0, 0);
+                        setEditEndDate(formatForDateTimeLocal(target));
+                        setEditDurationPreset('until_date');
+                      }}
+                      style={{
+                        padding: '6px 4px',
+                        fontSize: '11px',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(59, 130, 246, 0.4)',
+                        background: 'rgba(59, 130, 246, 0.08)',
+                        color: 'var(--color-primary)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isRtl ? 'حتى 24 سبت' : 'til 24 Sep'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditDurationPreset('indefinite')}
+                      style={{
+                        padding: '6px 4px',
+                        fontSize: '11px',
+                        borderRadius: '6px',
+                        border: editDurationPreset === 'indefinite' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
+                        background: editDurationPreset === 'indefinite' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
+                        color: editDurationPreset === 'indefinite' ? 'var(--color-primary)' : 'var(--text-secondary)',
+                        fontWeight: editDurationPreset === 'indefinite' ? 600 : 400,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isRtl ? 'مستمر' : 'Continuous'}
+                    </button>
+                  </div>
+
+                  {editDurationPreset === 'until_date' && (
+                    <div style={{ marginTop: '6px' }}>
+                      <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                        {isRtl ? 'تاريخ ووقت الانتهاء:' : 'Target End Date & Time:'}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={editEndDate}
+                        onChange={(e) => setEditEndDate(e.target.value)}
+                        className="form-input"
+                        style={{ fontSize: '12px' }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Creative / Banner Image */}
