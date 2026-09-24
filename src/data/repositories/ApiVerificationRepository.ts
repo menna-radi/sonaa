@@ -105,7 +105,9 @@ export class ApiVerificationRepository implements VerificationRepository {
 
             // Step 3: Selfie Verification
             selfieImageUrl: resolveImageUrl(sub.selfieImageUrl),
-            faceMatchScore: sub.faceMatchScore ? Math.round(sub.faceMatchScore * 100) : 95,
+            faceMatchScore: sub.faceMatchScore != null
+              ? (Number(sub.faceMatchScore) <= 1 ? Math.round(Number(sub.faceMatchScore) * 100) : Math.min(100, Math.round(Number(sub.faceMatchScore))))
+              : 95,
             livenessPassed: Boolean(sub.livenessPassed || sub.selfieImageUrl),
 
             // Step 4: Skills & Certifications
