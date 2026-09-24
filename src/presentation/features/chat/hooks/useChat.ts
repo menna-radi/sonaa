@@ -232,6 +232,33 @@ export const useChat = () => {
     return rooms.find(r => r.id === selectedRoomId) || null;
   }, [rooms, selectedRoomId]);
 
+  const startNewChat = useCallback(async (targetUserId: string): Promise<string | null> => {
+    try {
+      const result = await chatRepository.createChatRoom(targetUserId);
+      if (result.success) {
+        const newRoom = result.data;
+        setRooms(prev => {
+          const exists = prev.find(r => r.id === newRoom.id);
+          if (exists) return prev;
+          return [newRoom, ...prev];
+        });
+        setSelectedRoomId(newRoom.id);
+        fetchMessages(newRoom.id, true);
+        return newRoom.id;
+      } else {
+        setError(result.error.message);
+        return null;
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create chat room');
+      return null;
+    }
+  }, [chatRepository, fetchMessages]);
+
+  const searchUsers = useCallback(async (query?: string, role?: string) => {
+    return await chatRepository.searchUsers(query, role);
+  }, [chatRepository]);
+
   return {
     rooms: filteredRooms,
     allRoomsCount: rooms.length,
@@ -249,6 +276,8 @@ export const useChat = () => {
     error,
     selectRoom: setSelectedRoomId,
     sendMessage,
+    startNewChat,
+    searchUsers,
     refreshRooms: () => fetchRooms(false),
   };
 };

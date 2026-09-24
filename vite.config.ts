@@ -26,6 +26,12 @@ export default defineConfig({
           });
         },
       },
+      '/socket.io': {
+        target: 'https://72.62.154.98',
+        ws: true,
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   build: {

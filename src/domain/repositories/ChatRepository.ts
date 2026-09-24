@@ -6,4 +6,6 @@ export interface ChatRepository {
   getChatRoomMessages(chatRoomId: string): Promise<Result<ChatMessage[]>>;
   sendMessage(chatRoomId: string, content: string, imageUrl?: string): Promise<Result<ChatMessage>>;
   markAsRead(chatRoomId: string): Promise<Result<boolean>>;
+  createChatRoom(participantId: string): Promise<Result<ChatRoom>>;
+  searchUsers(query?: string, role?: string): Promise<Result<any[]>>;
 }

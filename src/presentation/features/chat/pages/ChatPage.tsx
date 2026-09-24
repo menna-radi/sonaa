@@ -32,7 +32,8 @@ import {
   ArrowRight,
   RotateCcw,
   ShieldCheck,
-  Inbox
+  Inbox,
+  UserPlus
 } from 'lucide-react';
 
 export const ChatPage: React.FC = () => {
@@ -57,12 +58,54 @@ export const ChatPage: React.FC = () => {
     error,
     selectRoom,
     sendMessage,
+    startNewChat,
+    searchUsers,
     refreshRooms
   } = useChat();
 
   const [inputContent, setInputContent] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [previewModalImg, setPreviewModalImg] = useState<string | null>(null);
+
+  // New Chat Modal States
+  const [newChatModalOpen, setNewChatModalOpen] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userSearchRole, setUserSearchRole] = useState<'ALL' | 'CUSTOMER' | 'CRAFTSMAN'>('ALL');
+  const [searchedUsers, setSearchedUsers] = useState<any[]>([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
+  const [startingChatUserId, setStartingChatUserId] = useState<string | null>(null);
+
+  // Live user search effect
+  useEffect(() => {
+    if (!newChatModalOpen) return;
+    let isMounted = true;
+    setSearchingUsers(true);
+
+    const timer = setTimeout(async () => {
+      const res = await searchUsers(userSearchQuery, userSearchRole);
+      if (isMounted) {
+        if (res.success) {
+          setSearchedUsers(res.data);
+        }
+        setSearchingUsers(false);
+      }
+    }, 250);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [newChatModalOpen, userSearchQuery, userSearchRole, searchUsers]);
+
+  const handleStartChat = async (targetUser: any) => {
+    setStartingChatUserId(targetUser.id);
+    const roomId = await startNewChat(targetUser.id);
+    setStartingChatUserId(null);
+    if (roomId) {
+      setNewChatModalOpen(false);
+      setUserSearchQuery('');
+    }
+  };
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -144,6 +187,14 @@ export const ChatPage: React.FC = () => {
           </div>
 
           <div className="chat-top-actions">
+            <button
+              className="btn-new-chat"
+              onClick={() => setNewChatModalOpen(true)}
+              title={isRtl ? 'بدء محادثة مع أي مستخدم' : 'Message Any User'}
+            >
+              <UserPlus size={15} />
+              <span>{isRtl ? 'رسالة جديدة' : 'New Message'}</span>
+            </button>
             <button className="btn-chat-refresh" onClick={() => refreshRooms()} title="Refresh Rooms">
               <RefreshCw size={15} />
               <span>{isRtl ? 'تحديث' : 'Refresh'}</span>
@@ -583,6 +634,134 @@ export const ChatPage: React.FC = () => {
               </div>
               <div className="lightbox-body">
                 <img src={previewModalImg} alt="Proof Large" className="lightbox-full-img" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Message Any User Modal */}
+        {newChatModalOpen && (
+          <div className="new-chat-modal-overlay" onClick={() => setNewChatModalOpen(false)}>
+            <div className="new-chat-modal-box" onClick={e => e.stopPropagation()}>
+              <div className="new-chat-modal-header">
+                <div className="modal-title-wrap">
+                  <div className="modal-title-icon">
+                    <UserPlus size={20} color="var(--color-primary)" />
+                  </div>
+                  <div>
+                    <h3 className="modal-title">
+                      {isRtl ? 'بدء محادثة مباشرة مع أي مستخدم' : 'Message Any User'}
+                    </h3>
+                    <p className="modal-subtitle">
+                      {isRtl
+                        ? 'تواصل مباشرة مع أي حرفي أو عميل في القدس والضفة الغربية'
+                        : 'Search and start a direct real-time chat with any customer or craftsman.'}
+                    </p>
+                  </div>
+                </div>
+                <button className="modal-close-btn" onClick={() => setNewChatModalOpen(false)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="new-chat-search-bar">
+                <Search size={16} className="search-icon" />
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder={isRtl ? 'بحث بالاسم، رقم الهاتف، أو البريد...' : 'Search by name, phone, or email...'}
+                  value={userSearchQuery}
+                  onChange={e => setUserSearchQuery(e.target.value)}
+                  className="modal-search-input"
+                />
+                {userSearchQuery && (
+                  <button className="clear-search-btn" onClick={() => setUserSearchQuery('')}>
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Role Filter Tabs */}
+              <div className="new-chat-role-tabs">
+                {[
+                  { id: 'ALL', en: 'All Users', ar: 'جميع المستخدمين' },
+                  { id: 'CUSTOMER', en: 'Customers', ar: 'العملاء' },
+                  { id: 'CRAFTSMAN', en: 'Craftsmen', ar: 'الحرفيين' },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    className={`role-tab-btn ${userSearchRole === tab.id ? 'active' : ''}`}
+                    onClick={() => setUserSearchRole(tab.id as any)}
+                  >
+                    {isRtl ? tab.ar : tab.en}
+                  </button>
+                ))}
+              </div>
+
+              {/* Users List */}
+              <div className="new-chat-user-list">
+                {searchingUsers ? (
+                  <div className="modal-loading-state">
+                    <div className="mini-spinner" />
+                    <span>{isRtl ? 'جاري البحث في دليل المستخدمين...' : 'Searching users...'}</span>
+                  </div>
+                ) : searchedUsers.length === 0 ? (
+                  <div className="modal-empty-state">
+                    <User size={36} style={{ opacity: 0.35 }} />
+                    <p>{isRtl ? 'لم يتم العثور على مستخدمين بهذا الاسم أو الرقم' : 'No users found matching your search.'}</p>
+                  </div>
+                ) : (
+                  searchedUsers.map(usr => (
+                    <div key={usr.id} className="user-search-card">
+                      <div className="user-card-main">
+                        <div className="user-avatar-wrap">
+                          {usr.avatarUrl ? (
+                            <img src={usr.avatarUrl} alt={usr.name} className="user-avatar-img" />
+                          ) : (
+                            <div className="user-avatar-initials">
+                              {(usr.name || 'U').slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="user-info-wrap">
+                          <div className="user-name-row">
+                            <span className="user-card-name">{usr.name}</span>
+                            <span className={`role-pill ${usr.role?.toLowerCase() || 'customer'}`}>
+                              {usr.role === 'CRAFTSMAN'
+                                ? (isRtl ? 'حرفي' : 'Craftsman')
+                                : (isRtl ? 'عميل' : 'Customer')}
+                            </span>
+                          </div>
+                          <div className="user-contact-row">
+                            {usr.phoneNumber && (
+                              <span className="user-contact-item">
+                                <Phone size={12} /> {usr.phoneNumber}
+                              </span>
+                            )}
+                            {usr.trade && (
+                              <span className="user-trade-item">
+                                <Briefcase size={12} /> {usr.trade}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        className="btn-start-chat"
+                        disabled={startingChatUserId === usr.id}
+                        onClick={() => handleStartChat(usr)}
+                      >
+                        {startingChatUserId === usr.id ? (
+                          <div className="mini-spinner-sm" />
+                        ) : (
+                          <MessageSquare size={14} />
+                        )}
+                        <span>{isRtl ? 'محادثة' : 'Chat'}</span>
+                      </button>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -1663,6 +1842,325 @@ export const ChatPage: React.FC = () => {
           border: 1px solid var(--border-color);
           color: var(--text-primary);
           cursor: pointer;
+        }
+
+        .btn-new-chat {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 7px 14px;
+          border-radius: 8px;
+          background: var(--color-primary);
+          color: #ffffff;
+          border: none;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.15s ease, transform 0.1s ease;
+        }
+
+        .btn-new-chat:hover {
+          opacity: 0.92;
+          transform: translateY(-1px);
+        }
+
+        .new-chat-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.65);
+          backdrop-filter: blur(4px);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 16px;
+        }
+
+        .new-chat-modal-box {
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
+          width: 100%;
+          max-width: 540px;
+          max-height: 85vh;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+          overflow: hidden;
+          animation: modalPop 0.2s ease-out;
+        }
+
+        @keyframes modalPop {
+          from { opacity: 0; transform: scale(0.96); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        .new-chat-modal-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          padding: 18px 20px;
+          border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title-wrap {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+        }
+
+        .modal-title-icon {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          background: rgba(37, 99, 235, 0.1);
+          border: 1px solid rgba(37, 99, 235, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .modal-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin: 0;
+        }
+
+        .modal-subtitle {
+          font-size: 12px;
+          color: var(--text-muted);
+          margin: 4px 0 0 0;
+          line-height: 1.4;
+        }
+
+        .modal-close-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          padding: 6px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal-close-btn:hover {
+          background: var(--bg-surface-hover);
+          color: var(--text-primary);
+        }
+
+        .new-chat-search-bar {
+          position: relative;
+          padding: 14px 20px 8px 20px;
+        }
+
+        .modal-search-input {
+          width: 100%;
+          height: 40px;
+          padding: 0 38px;
+          background: var(--bg-base);
+          border: 1px solid var(--border-color);
+          border-radius: 10px;
+          font-size: 13.5px;
+          color: var(--text-primary);
+          outline: none;
+          box-sizing: border-box;
+          transition: border-color 0.15s ease;
+        }
+
+        .modal-search-input:focus {
+          border-color: var(--color-primary);
+        }
+
+        .new-chat-role-tabs {
+          display: flex;
+          gap: 8px;
+          padding: 0 20px 12px 20px;
+          border-bottom: 1px solid var(--border-color);
+        }
+
+        .role-tab-btn {
+          padding: 6px 14px;
+          border-radius: 20px;
+          background: var(--bg-base);
+          border: 1px solid var(--border-color);
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+
+        .role-tab-btn.active {
+          background: var(--color-primary);
+          color: #ffffff;
+          border-color: var(--color-primary);
+        }
+
+        .new-chat-user-list {
+          flex: 1;
+          overflow-y: auto;
+          padding: 12px 20px 18px 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-height: 220px;
+          max-height: 380px;
+        }
+
+        .user-search-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 14px;
+          border-radius: 10px;
+          background: var(--bg-base);
+          border: 1px solid var(--border-color);
+          transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .user-search-card:hover {
+          background: var(--bg-surface-hover);
+          border-color: var(--color-primary);
+        }
+
+        .user-card-main {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        .user-avatar-wrap {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          overflow: hidden;
+          background: var(--color-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .user-avatar-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .user-avatar-initials {
+          font-size: 13px;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .user-info-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .user-name-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .user-card-name {
+          font-size: 13.5px;
+          font-weight: 600;
+          color: var(--text-primary);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .role-pill {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 7px;
+          border-radius: 6px;
+          text-transform: uppercase;
+        }
+
+        .role-pill.craftsman {
+          background: rgba(34, 197, 94, 0.12);
+          color: #16a34a;
+          border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .role-pill.customer {
+          background: rgba(59, 130, 246, 0.12);
+          color: #2563eb;
+          border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .user-contact-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 11.5px;
+          color: var(--text-muted);
+        }
+
+        .user-contact-item, .user-trade-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .btn-start-chat {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 13px;
+          border-radius: 8px;
+          background: var(--color-primary);
+          color: #ffffff;
+          border: none;
+          font-size: 12.5px;
+          font-weight: 600;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: opacity 0.15s ease;
+        }
+
+        .btn-start-chat:hover:not(:disabled) {
+          opacity: 0.9;
+        }
+
+        .btn-start-chat:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .mini-spinner-sm {
+          width: 13px;
+          height: 13px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: #ffffff;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        .modal-loading-state, .modal-empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 36px 16px;
+          color: var(--text-muted);
+          font-size: 13px;
+          gap: 10px;
+          text-align: center;
         }
 
         @media (max-width: 768px) {

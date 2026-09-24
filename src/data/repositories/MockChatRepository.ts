@@ -43,6 +43,31 @@ export class MockChatRepository implements ChatRepository {
     }
     return ok(true);
   }
+
+  public async createChatRoom(participantId: string): Promise<Result<ChatRoom>> {
+    const newRoom: ChatRoom = {
+      id: `room-${Date.now()}`,
+      task: null,
+      otherParticipant: {
+        id: participantId,
+        craftsmanProfileId: null,
+        customerProfileId: null,
+        firstName: 'Mock',
+        lastName: 'User',
+        avatarUrl: null,
+        role: 'CUSTOMER',
+      },
+      lastMessage: null,
+      unreadCount: 0,
+      createdAt: new Date().toISOString(),
+    };
+    this.rooms.unshift(newRoom);
+    return ok(newRoom);
+  }
+
+  public async searchUsers(_query?: string, _role?: string): Promise<Result<any[]>> {
+    return ok([]);
+  }
 }
 
 export default MockChatRepository;

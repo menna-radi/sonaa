@@ -1,4 +1,4 @@
-export type NotificationCategory = 'emergency' | 'verification' | 'payments' | 'fraud' | 'reports' | 'system';
+export type NotificationCategory = 'emergency' | 'verification' | 'payments' | 'fraud' | 'reports' | 'system' | 'chat';
 
 export interface NotificationItem {
   id: string;

@@ -24,6 +24,46 @@ export interface VerificationRequest {
   deviceOs?: string;
   appVersion?: string;
   registeredDate?: string;
+
+  // 5-Step Verification Flow
+  completedStepsCount?: number;
+  totalSteps?: number;
+  verificationStatus?: string;
+
+  // Step 1: Personal Info
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  nationality?: string;
+  residentialAddress?: string;
+  emergencyContactPhone?: string;
+
+  // Step 2: National ID
+  idFrontImageUrl?: string;
+  idBackImageUrl?: string;
+  idDocumentType?: string;
+  ocrDetectedName?: string;
+  ocrConfidence?: number;
+  idExpiryDate?: string;
+
+  // Step 3: Selfie & Liveness
+  selfieImageUrl?: string;
+  faceMatchScore?: number;
+  livenessPassed?: boolean;
+
+  // Step 4: Skills & Certifications
+  tradeCategory?: string;
+  yearsExperience?: number;
+  bio?: string;
+  certImageUrl?: string;
+  certAuthority?: string;
+  insuranceLimit?: number;
+
+  // Step 5: Review & Decision
+  submittedAt?: string;
+  slaDeadline?: string;
+  moderatorNotes?: string;
 }
 
 export interface VerificationRepository {

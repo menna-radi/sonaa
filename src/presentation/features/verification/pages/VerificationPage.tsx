@@ -55,9 +55,49 @@ interface Submission {
   deviceOs?: string;
   appVersion?: string;
   registeredDate?: string;
+
+  // 5-Step Flow Fields
+  completedStepsCount?: number;
+  totalSteps?: number;
+  verificationStatus?: string;
+
+  // Step 1: Personal Info
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  nationality?: string;
+  residentialAddress?: string;
+  emergencyContactPhone?: string;
+
+  // Step 2: National ID
+  idFrontImageUrl?: string;
+  idBackImageUrl?: string;
+  idDocumentType?: string;
+  ocrDetectedName?: string;
+  ocrConfidence?: number;
+  idExpiryDate?: string;
+
+  // Step 3: Selfie & Liveness
+  selfieImageUrl?: string;
+  faceMatchScore?: number;
+  livenessPassed?: boolean;
+
+  // Step 4: Skills & Certifications
+  tradeCategory?: string;
+  yearsExperience?: number;
+  bio?: string;
+  certImageUrl?: string;
+  certAuthority?: string;
+  insuranceLimit?: number;
+
+  // Step 5: Review & Decision
+  submittedAt?: string;
+  slaDeadline?: string;
+  moderatorNotes?: string;
 }
 
-type VerificationTab = 'profile_info' | 'national_id' | 'face_match' | 'portfolio' | 'skills';
+type VerificationTab = 'profile_info' | 'national_id' | 'face_match' | 'skills' | 'portfolio' | 'review_decision';
 
 
 
@@ -125,15 +165,42 @@ const IdCardPreview: React.FC<{
   hasUploadedDoc?: boolean;
   craftsmanName?: string;
   docType?: string;
-}> = ({ imageUrl, hasUploadedDoc = false, craftsmanName, docType = 'National ID' }) => {
+  onZoom?: (url: string) => void;
+}> = ({ imageUrl, hasUploadedDoc = false, craftsmanName, docType = 'National ID', onZoom }) => {
   if (imageUrl) {
     return (
-      <div style={{ background: 'var(--bg-surface-hover)', borderRadius: 12, padding: 12, overflow: 'hidden' }}>
+      <div 
+        style={{ 
+          background: 'var(--bg-surface-hover)', 
+          borderRadius: 12, 
+          padding: 8, 
+          overflow: 'hidden',
+          position: 'relative',
+          cursor: onZoom ? 'pointer' : 'default',
+        }}
+        onClick={() => onZoom && onZoom(imageUrl)}
+      >
         <img
           src={imageUrl}
           alt={docType}
-          style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 8 }}
+          style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 8, display: 'block' }}
         />
+        <div style={{
+          position: 'absolute',
+          bottom: 14,
+          right: 14,
+          background: 'rgba(0,0,0,0.65)',
+          color: '#fff',
+          padding: '4px 8px',
+          borderRadius: 6,
+          fontSize: 11,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4
+        }}>
+          <ZoomIn size={12} />
+          <span>Zoom</span>
+        </div>
       </div>
     );
   }
@@ -201,17 +268,18 @@ const IdDocumentCard: React.FC<{
   craftsmanName?: string;
   imageUrl?: string;
   fields: { label: string; value: string; valueColor?: string }[];
-}> = ({ title, hasUploadedDoc, craftsmanName, imageUrl, fields }) => (
+  onZoom?: (url: string) => void;
+}> = ({ title, hasUploadedDoc, craftsmanName, imageUrl, fields, onZoom }) => (
   <div className="vr-doc-card">
     <div className="vr-doc-card-header">
       <span className="vr-doc-card-title">{title}</span>
-      {hasUploadedDoc && (
-        <button className="vr-zoom-btn" title="Zoom in">
+      {imageUrl && onZoom && (
+        <button className="vr-zoom-btn" title="Zoom in" onClick={() => onZoom(imageUrl)}>
           <ZoomIn size={14} />
         </button>
       )}
     </div>
-    <IdCardPreview imageUrl={imageUrl} hasUploadedDoc={hasUploadedDoc} craftsmanName={craftsmanName} docType={title} />
+    <IdCardPreview imageUrl={imageUrl} hasUploadedDoc={hasUploadedDoc} craftsmanName={craftsmanName} docType={title} onZoom={onZoom} />
     <div className="vr-doc-fields">
       {fields.map((f, i) => (
         <div key={i} className="vr-doc-field-row">
@@ -225,17 +293,17 @@ const IdDocumentCard: React.FC<{
   </div>
 );
 
-// ── Craftsman Profile Info Tab Content ─────────────────────────────────────────
+// ── Step 1: Craftsman Profile Info Tab Content ─────────────────────────────────
 const ProfileInfoContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
   if (!submission) return null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Contact & General Info */}
+      {/* Contact & Personal Details */}
       <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 20 }}>
         <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
           <User size={16} style={{ color: '#3b82f6' }} />
-          Contact & Personal Details
+          Step 1: Contact & Personal Details
         </h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -262,6 +330,22 @@ const ProfileInfoContent: React.FC<{ submission?: Submission }> = ({ submission 
               <MapPin size={13} style={{ color: '#ef4444' }} />
               {submission.city || 'Jerusalem (القدس)'}
             </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Date of Birth</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission.dateOfBirth || 'Not specified'}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Gender & Nationality</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission.gender || 'MALE'} · {submission.nationality || 'Palestinian'}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Residential Address</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission.residentialAddress || submission.city || 'Jerusalem'}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Emergency Contact Phone</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission.emergencyContactPhone || 'Not specified'}</span>
           </div>
         </div>
       </div>
@@ -305,9 +389,9 @@ const ProfileInfoContent: React.FC<{ submission?: Submission }> = ({ submission 
         </h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
           {[
-            { label: 'National ID Identity', ok: submission.isVerifiedId },
-            { label: 'Face Match Liveness', ok: submission.isVerifiedSelfie },
-            { label: 'TVTC Trade License', ok: submission.isVerifiedCert },
+            { label: 'National ID Identity', ok: submission.isVerifiedId || Boolean(submission.idFrontImageUrl) },
+            { label: 'Face Match Liveness', ok: submission.isVerifiedSelfie || Boolean(submission.selfieImageUrl) },
+            { label: 'TVTC Trade License', ok: submission.isVerifiedCert || Boolean(submission.certImageUrl) },
             { label: 'Liability Insurance', ok: submission.isInsured },
             { label: 'Bank IBAN Account', ok: submission.isVerifiedBankIban },
             { label: 'Background Check', ok: submission.isVerifiedBackground },
@@ -338,17 +422,31 @@ const ProfileInfoContent: React.FC<{ submission?: Submission }> = ({ submission 
   );
 };
 
-// ── Face Match Tab Content ─────────────────────────────────────────────────────
-const FaceMatchContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
+// ── Step 3: Face Match & Selfie Tab Content ────────────────────────────────────
+const FaceMatchContent: React.FC<{ submission?: Submission; onZoom?: (url: string) => void }> = ({ submission, onZoom }) => {
   const { t } = useLanguage();
-  const score = submission ? submission.faceScore : 95;
+  const score = submission ? (submission.faceMatchScore ?? submission.faceScore ?? 95) : 95;
+  const idImg = submission?.idFrontImageUrl || submission?.idFrontUrl || submission?.avatar;
+  const selfieImg = submission?.selfieImageUrl || submission?.selfieUrl;
+
   return (
     <div className="vr-fm-grid">
       <div className="vr-fm-card">
-        <span className="vr-fm-card-title">{t('vr_id_photo') || 'ID photo'}</span>
-        <div className="vr-fm-photo-container">
-          {(submission?.idFrontUrl || submission?.avatar) ? (
-            <img src={submission.idFrontUrl || submission.avatar} alt={submission.name} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 8 }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span className="vr-fm-card-title">{t('vr_id_photo') || 'ID Photo (Front Document)'}</span>
+          {idImg && onZoom && (
+            <button className="vr-zoom-btn" title="Zoom in" onClick={() => onZoom(idImg)}>
+              <ZoomIn size={14} />
+            </button>
+          )}
+        </div>
+        <div 
+          className="vr-fm-photo-container" 
+          style={{ position: 'relative', cursor: idImg && onZoom ? 'pointer' : 'default' }}
+          onClick={() => idImg && onZoom && onZoom(idImg)}
+        >
+          {idImg ? (
+            <img src={idImg} alt={submission?.name} style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 8, display: 'block' }} />
           ) : (
             <div className="vr-id-mockup">
               <div className="vr-id-photo-badge">ID</div>
@@ -361,10 +459,21 @@ const FaceMatchContent: React.FC<{ submission?: Submission }> = ({ submission })
       </div>
 
       <div className="vr-fm-card">
-        <span className="vr-fm-card-title">{t('vr_selfie_liveness') || 'Selfie · liveness check'}</span>
-        <div className="vr-fm-photo-container">
-          {(submission?.selfieUrl || submission?.avatar) ? (
-            <img src={submission.selfieUrl || submission.avatar} alt="Selfie" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 8 }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span className="vr-fm-card-title">{t('vr_selfie_liveness') || 'Live Camera Selfie'}</span>
+          {selfieImg && onZoom && (
+            <button className="vr-zoom-btn" title="Zoom in" onClick={() => onZoom(selfieImg)}>
+              <ZoomIn size={14} />
+            </button>
+          )}
+        </div>
+        <div 
+          className="vr-fm-photo-container" 
+          style={{ position: 'relative', cursor: selfieImg && onZoom ? 'pointer' : 'default' }}
+          onClick={() => selfieImg && onZoom && onZoom(selfieImg)}
+        >
+          {selfieImg ? (
+            <img src={selfieImg} alt="Selfie" style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 8, display: 'block' }} />
           ) : (
             <div className="vr-selfie-mockup">
               <div className="vr-selfie-photo-avatar">
@@ -372,18 +481,19 @@ const FaceMatchContent: React.FC<{ submission?: Submission }> = ({ submission })
               </div>
             </div>
           )}
-          <div className="vr-selfie-liveness-indicator" style={{ position: 'absolute', bottom: 12, left: 12 }}>
-            <span className="vr-liveness-dot" /> LIVENESS OK
+          <div className="vr-selfie-liveness-indicator" style={{ position: 'absolute', bottom: 12, left: 12, background: 'rgba(0,0,0,0.75)', color: '#4ade80', padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="vr-liveness-dot" style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} /> 
+            {submission?.livenessPassed || selfieImg ? 'LIVENESS OK' : 'PENDING'}
           </div>
         </div>
         {/* Match Score overlay */}
-        <div className="vr-score-overlay">
-          <div className="vr-score-info">
-            <span className="vr-score-label">{t('vr_face_match_score') || 'Face match score'}</span>
-            <span className="vr-score-value">{score}%</span>
+        <div className="vr-score-overlay" style={{ marginTop: 14 }}>
+          <div className="vr-score-info" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span className="vr-score-label" style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('vr_face_match_score') || 'Biometric Face Match'}</span>
+            <span className="vr-score-value" style={{ fontSize: 13, fontWeight: 700, color: '#22c55e' }}>{score}% Match</span>
           </div>
-          <div className="vr-score-progress-track">
-            <div className="vr-score-progress-bar" style={{ width: `${score}%` }} />
+          <div className="vr-score-progress-track" style={{ width: '100%', height: 8, background: 'var(--bg-surface-hover)', borderRadius: 999, overflow: 'hidden' }}>
+            <div className="vr-score-progress-bar" style={{ width: `${score}%`, height: '100%', background: score >= 90 ? '#22c55e' : (score >= 75 ? '#eab308' : '#ef4444') }} />
           </div>
         </div>
       </div>
@@ -416,56 +526,305 @@ const PortfolioContent: React.FC<{ submission?: Submission }> = ({ submission })
   );
 };
 
-// ── Skills Tab Content ─────────────────────────────────────────────────────────
-const SkillsContent: React.FC<{ submission?: Submission }> = ({ submission }) => {
+// ── Step 4: Skills & Trade Certifications Content ──────────────────────────────
+const SkillsContent: React.FC<{ submission?: Submission; onZoom?: (url: string) => void }> = ({ submission, onZoom }) => {
   const { t } = useLanguage();
 
-
   const items = [
-    { key: 'id', label: 'National ID & Identity Verification', status: submission?.isVerifiedId ? 'verified' : 'missing' },
-    { key: 'cert', label: 'TVTC Certification & Trade License', status: submission?.isVerifiedCert ? 'verified' : 'missing' },
-    { key: 'insurance', label: 'Liability Insurance Coverage', status: submission?.isInsured ? 'verified' : 'missing' },
-    { key: 'selfie', label: 'Selfie & Liveness Verification', status: submission?.isVerifiedSelfie ? 'verified' : 'missing' },
-    { key: 'bg', label: 'Background Check Verification', status: submission?.isVerifiedBackground ? 'verified' : 'missing' },
+    { key: 'id', label: 'National ID & Identity Verification', status: (submission?.isVerifiedId || submission?.idFrontImageUrl) ? 'verified' : 'missing' },
+    { key: 'cert', label: 'Trade License & Vocational Certificate', status: (submission?.isVerifiedCert || submission?.certImageUrl) ? 'verified' : 'missing' },
+    { key: 'insurance', label: 'Commercial Liability Insurance', status: submission?.isInsured ? 'verified' : 'missing' },
+    { key: 'selfie', label: 'Live Camera Selfie & Biometrics', status: (submission?.isVerifiedSelfie || submission?.selfieImageUrl) ? 'verified' : 'missing' },
+    { key: 'bg', label: 'Background Security Check', status: submission?.isVerifiedBackground ? 'verified' : 'missing' },
   ];
 
   if (submission?.skills && submission.skills.length > 0) {
     submission.skills.forEach((s, idx) => {
       items.push({
         key: `skill_${idx}`,
-        label: `Specialized Skill: ${s}`,
-        status: submission?.isVerifiedCert ? 'verified' : 'missing'
+        label: `Trade Specialization: ${s}`,
+        status: 'verified'
       });
     });
   }
 
   return (
-    <div className="vr-skills-card">
-      <span className="vr-skills-title">
-        {submission ? `${submission.name} — ` : ''}{t('vr_skills_certifications') || 'Skills & certifications'}
-      </span>
-      <div className="vr-skills-list">
-        {items.map((item) => (
-          <div key={item.key} className="vr-skills-item">
-            <div className="vr-skills-item-left">
-              <Award size={16} className="vr-skill-icon" />
-              <span className="vr-skill-label">{item.label}</span>
-            </div>
-            <div className={`vr-skill-status-badge ${item.status}`}>
-              {item.status === 'verified' ? (
-                <>
-                  <Check size={10} style={{ marginInlineEnd: 4 }} />
-                  <span>{t('vr_badge_verified') || 'Verified'}</span>
-                </>
-              ) : (
-                <>
-                  <AlertCircle size={10} style={{ marginInlineEnd: 4 }} />
-                  <span>{t('vr_badge_missing') || 'Pending'}</span>
-                </>
-              )}
-            </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Trade Overview */}
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Award size={16} style={{ color: '#eab308' }} />
+          Step 4: Trade Specialization & Experience
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Primary Trade</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission?.tradeCategory || submission?.role || 'General Technician'}</span>
           </div>
-        ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Years of Experience</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission?.yearsExperience ?? 5} Years</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Licensing Authority</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{submission?.certAuthority || 'Jerusalem Vocational Board'}</span>
+          </div>
+          {submission?.insuranceLimit && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>Insurance Limit</span>
+              <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>₪{submission.insuranceLimit}</span>
+            </div>
+          )}
+        </div>
+        {submission?.bio && (
+          <div style={{ marginTop: 8, padding: 12, background: 'var(--bg-surface-hover)', borderRadius: 8, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <strong>Bio: </strong>{submission.bio}
+          </div>
+        )}
+      </div>
+
+      {/* Trade Certificate Preview if Uploaded */}
+      {submission?.certImageUrl && (
+        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Award size={15} style={{ color: '#eab308' }} />
+              Trade Certificate & Vocational License Document
+            </span>
+            {onZoom && (
+              <button className="vr-zoom-btn" title="Zoom certificate" onClick={() => onZoom(submission.certImageUrl!)}>
+                <ZoomIn size={14} />
+              </button>
+            )}
+          </div>
+          <div 
+            style={{ borderRadius: 8, overflow: 'hidden', cursor: onZoom ? 'pointer' : 'default', border: '1px solid var(--border-color)' }}
+            onClick={() => onZoom && onZoom(submission.certImageUrl!)}
+          >
+            <img src={submission.certImageUrl} alt="Trade Certificate" style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }} />
+          </div>
+        </div>
+      )}
+
+      {/* Credential Checklist */}
+      <div className="vr-skills-card">
+        <span className="vr-skills-title">
+          {submission ? `${submission.name} — ` : ''}{t('vr_skills_certifications') || 'Credentials & Badges Checklist'}
+        </span>
+        <div className="vr-skills-list">
+          {items.map((item) => (
+            <div key={item.key} className="vr-skills-item">
+              <div className="vr-skills-item-left">
+                <Award size={16} className="vr-skill-icon" />
+                <span className="vr-skill-label">{item.label}</span>
+              </div>
+              <div className={`vr-skill-status-badge ${item.status}`}>
+                {item.status === 'verified' ? (
+                  <>
+                    <Check size={10} style={{ marginInlineEnd: 4 }} />
+                    <span>{t('vr_badge_verified') || 'Verified'}</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle size={10} style={{ marginInlineEnd: 4 }} />
+                    <span>{t('vr_badge_missing') || 'Pending'}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Step 5: Review & Moderation Decision Tab Content ───────────────────────────
+const ReviewDecisionContent: React.FC<{
+  submission: Submission;
+  notes: string;
+  setNotes: (n: string) => void;
+  onApprove: () => void;
+  onReject: () => void;
+  onFlag: () => void;
+}> = ({ submission, notes, setNotes, onApprove, onReject, onFlag }) => {
+  const { t } = useLanguage();
+  const presets = [
+    'Verified national ID and selfie match successfully.',
+    'ID document photo is blurry; please re-upload clear photos.',
+    'Selfie does not match photo on national ID card.',
+    'Trade certification verified with local licensing board.',
+    'Applicant approved for marketplace dispatch.',
+  ];
+
+  const steps = [
+    { step: 1, name: 'Personal Details', status: (submission.firstName || submission.name) ? 'complete' : 'pending', desc: `${submission.name} · ${submission.phoneNumber || 'Phone on file'}` },
+    { step: 2, name: 'National ID Documents', status: (submission.idFrontImageUrl || submission.isVerifiedId) ? 'complete' : 'pending', desc: submission.idDocumentType || 'Jerusalem / Palestinian ID' },
+    { step: 3, name: 'Live Selfie & Liveness', status: (submission.selfieImageUrl || submission.isVerifiedSelfie) ? 'complete' : 'pending', desc: `Match: ${submission.faceScore}% · Liveness passed` },
+    { step: 4, name: 'Trade Skills & Certifications', status: (submission.skills?.length || submission.isVerifiedCert) ? 'complete' : 'pending', desc: `${submission.role} · ${submission.yearsExperience ?? 5} yrs exp` },
+    { step: 5, name: 'Admin Moderation', status: submission.isVerifiedId ? 'complete' : 'in_review', desc: `Status: ${submission.verificationStatus || (submission.isVerifiedId ? 'APPROVED' : 'UNDER_REVIEW')}` },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* 5-Step Review Summary Card */}
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <ShieldCheck size={16} style={{ color: '#22c55e' }} />
+          5-Step Verification Audit Checklist
+        </h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {steps.map((st) => (
+            <div 
+              key={st.step}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                borderRadius: 8,
+                background: st.status === 'complete' ? 'rgba(34, 197, 94, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+                border: `1px solid ${st.status === 'complete' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  background: st.status === 'complete' ? '#22c55e' : '#f59e0b',
+                  color: '#fff',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {st.step}
+                </span>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{st.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{st.desc}</div>
+                </div>
+              </div>
+              <span style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: st.status === 'complete' ? '#16a34a' : '#d97706',
+                textTransform: 'uppercase'
+              }}>
+                {st.status === 'complete' ? 'Verified' : 'Pending'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Moderation Notes & Decision Box */}
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 12, padding: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: 'var(--text-primary)' }}>
+          {t('vr_moderator_notes') || 'Moderator Audit Notes'}
+        </h4>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+          {presets.map((p, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setNotes(p)}
+              style={{
+                fontSize: 11,
+                padding: '4px 10px',
+                borderRadius: 6,
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-surface-hover)',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer'
+              }}
+            >
+              + {p}
+            </button>
+          ))}
+        </div>
+        <textarea
+          className="vr-notes-textarea"
+          placeholder="Enter reason or notes for the audit log..."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={3}
+          style={{
+            width: '100%',
+            padding: 12,
+            borderRadius: 8,
+            border: '1px solid var(--border-color)',
+            background: 'var(--bg-surface-hover)',
+            color: 'var(--text-primary)',
+            fontSize: 13,
+            marginBottom: 16,
+            fontFamily: 'inherit',
+            resize: 'vertical'
+          }}
+        />
+
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          <button
+            onClick={onFlag}
+            style={{
+              padding: '10px 18px',
+              borderRadius: 8,
+              border: '1px solid #f59e0b',
+              background: 'rgba(245, 158, 11, 0.1)',
+              color: '#d97706',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}
+          >
+            <Flag size={14} />
+            Flag for Review
+          </button>
+          <button
+            onClick={onReject}
+            style={{
+              padding: '10px 18px',
+              borderRadius: 8,
+              border: '1px solid #ef4444',
+              background: 'rgba(239, 68, 68, 0.1)',
+              color: '#dc2626',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}
+          >
+            <X size={14} />
+            Reject Application
+          </button>
+          <button
+            onClick={onApprove}
+            style={{
+              padding: '10px 22px',
+              borderRadius: 8,
+              border: 'none',
+              background: '#16a34a',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)'
+            }}
+          >
+            <CheckCircle size={15} />
+            Approve & Grant Verified Badge
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -496,6 +855,7 @@ export const VerificationPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<VerificationTab>('profile_info');
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [approvedIds, setApprovedIds] = useState<Set<string>>(new Set());
   const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
@@ -616,12 +976,12 @@ export const VerificationPage: React.FC = () => {
   const handleReject = () => handleModerate('REJECTED');
   const handleFlag = () => handleModerate('FLAGGED');
 
-  const TABS: { key: VerificationTab; label: string }[] = [
-    { key: 'profile_info', label: t('vr_tab_profile_info') || 'Craftsman Profile' },
-    { key: 'national_id', label: t('vr_tab_national_id') || 'National ID' },
-    { key: 'face_match', label: t('vr_tab_face_match') || 'Face match' },
-    { key: 'portfolio', label: t('vr_tab_portfolio') || 'Portfolio' },
-    { key: 'skills', label: t('vr_tab_skills') || 'Skills & Certifications' },
+  const TABS: { key: VerificationTab; label: string; stepNumber: number }[] = [
+    { key: 'profile_info', label: '1. Personal Details', stepNumber: 1 },
+    { key: 'national_id', label: '2. National ID', stepNumber: 2 },
+    { key: 'face_match', label: '3. Selfie & Liveness', stepNumber: 3 },
+    { key: 'skills', label: '4. Trade & Skills', stepNumber: 4 },
+    { key: 'review_decision', label: '5. Review & Decision', stepNumber: 5 },
   ];
 
   return (
@@ -759,12 +1119,12 @@ export const VerificationPage: React.FC = () => {
                       <button
                         key={sub.id}
                         className={`vr-queue-item ${isSelected ? 'selected' : ''} ${isApproved ? 'approved' : ''} ${isRejected ? 'rejected' : ''}`}
-                        onClick={() => { setSelectedId(sub.id); setActiveTab('national_id'); }}
+                        onClick={() => { setSelectedId(sub.id); setActiveTab('profile_info'); }}
                       >
                         <AvatarCircle name={sub.name} src={sub.avatar} size={40} />
                         <div className="vr-queue-item-info">
                           <span className="vr-queue-item-name">{sub.name}</span>
-                          <span className="vr-queue-item-meta">{roleText} - {sub.submittedAgo}</span>
+                          <span className="vr-queue-item-meta">{roleText} · Step {sub.completedStepsCount ?? (sub.isVerifiedId ? 5 : 4)}/5 · {sub.submittedAgo}</span>
                         </div>
                         {isApproved && <CheckCircle size={14} style={{ color: '#16A34A', flexShrink: 0 }} />}
                         {isRejected && <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />}
@@ -938,8 +1298,70 @@ export const VerificationPage: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* 5-Step Visual Stepper Bar */}
+                      <div className="vr-stepper-bar" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 14px',
+                        background: 'var(--bg-surface-hover)',
+                        borderRadius: '12px',
+                        border: '1px solid var(--border-color)',
+                        marginBottom: '14px',
+                        gap: '8px',
+                        overflowX: 'auto'
+                      }}>
+                        {TABS.map((tab) => {
+                          const stepNum = tab.stepNumber;
+                          const isCompleted = (selected.completedStepsCount ?? (selected.isVerifiedId ? 5 : 0)) >= stepNum;
+                          const isCurrent = activeTab === tab.key;
+                          return (
+                            <button
+                              key={tab.key}
+                              onClick={() => setActiveTab(tab.key)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                background: isCurrent ? 'var(--bg-surface)' : 'transparent',
+                                border: isCurrent ? '1px solid var(--border-color)' : '1px solid transparent',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                textAlign: 'start',
+                                transition: 'all 0.15s ease',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              <div style={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: '50%',
+                                background: isCompleted ? '#16A34A' : isCurrent ? '#171717' : 'var(--text-muted)',
+                                color: '#FFFFFF',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                              }}>
+                                {isCompleted ? <Check size={12} strokeWidth={3} /> : stepNum}
+                              </div>
+                              <span style={{
+                                fontSize: '12px',
+                                fontWeight: isCurrent ? 700 : 500,
+                                color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)'
+                              }}>
+                                {tab.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
                       {/* Modern Clean Tabs */}
-                      <div className="vr-tabs-row" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #E5E5E5', paddingBottom: '10px', marginBottom: '16px' }}>
+                      <div className="vr-tabs-row" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #E5E5E5', paddingBottom: '10px', marginBottom: '16px', overflowX: 'auto' }}>
                         {TABS.map(tab => {
                           const isActive = activeTab === tab.key;
                           return (
@@ -959,7 +1381,8 @@ export const VerificationPage: React.FC = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
-                                fontFamily: 'inherit'
+                                fontFamily: 'inherit',
+                                whiteSpace: 'nowrap'
                               }}
                             >
                               {tab.label}
@@ -975,49 +1398,65 @@ export const VerificationPage: React.FC = () => {
 
                       {/* ID Documents Section */}
                       <div className="vr-docs-area">
-                      {activeTab === 'national_id' && (
-                        <div className="vr-docs-grid">
-                          <IdDocumentCard
-                            title={t('vr_front_side') || 'Front side'}
-                            hasUploadedDoc={selected.isVerifiedId}
-                            craftsmanName={selected.name}
-                            fields={[
-                              { label: t('vr_doc_type') || 'Document type', value: 'Jerusalem / Palestinian ID' },
-                              { label: 'Craftsman Full Name', value: selected.name },
-                              { label: 'Verification Status', value: selected.isVerifiedId ? 'Verified' : 'Pending Upload / Review', valueColor: selected.isVerifiedId ? '#16A34A' : '#D97706' },
-                              { label: t('vr_ocr_confidence') || 'OCR confidence', value: selected.isVerifiedId ? '98.4%' : 'N/A', valueColor: selected.isVerifiedId ? '#16A34A' : '#6B7280' },
-                            ]}
+                        {activeTab === 'national_id' && (
+                          <div className="vr-docs-grid">
+                            <IdDocumentCard
+                              title={t('vr_front_side') || 'Front side'}
+                              hasUploadedDoc={Boolean(selected.isVerifiedId || selected.idFrontImageUrl)}
+                              imageUrl={selected.idFrontImageUrl}
+                              craftsmanName={selected.name}
+                              onZoom={setLightboxUrl}
+                              fields={[
+                                { label: t('vr_doc_type') || 'Document type', value: selected.idDocumentType || 'Jerusalem / Palestinian ID' },
+                                { label: 'Craftsman Full Name', value: selected.name },
+                                { label: 'Verification Status', value: (selected.isVerifiedId || selected.idFrontImageUrl) ? 'Uploaded' : 'Pending Upload', valueColor: (selected.isVerifiedId || selected.idFrontImageUrl) ? '#16A34A' : '#D97706' },
+                                { label: t('vr_ocr_confidence') || 'OCR confidence', value: selected.ocrConfidence ? `${selected.ocrConfidence}%` : (selected.isVerifiedId ? '98.4%' : 'N/A'), valueColor: '#16A34A' },
+                              ]}
+                            />
+                            <IdDocumentCard
+                              title={t('vr_back_side') || 'Back side'}
+                              hasUploadedDoc={Boolean(selected.isVerifiedId || selected.idBackImageUrl)}
+                              imageUrl={selected.idBackImageUrl}
+                              craftsmanName={selected.name}
+                              onZoom={setLightboxUrl}
+                              fields={[
+                                { label: t('vr_doc_type') || 'Document type', value: selected.idDocumentType || 'Jerusalem / Palestinian ID' },
+                                { label: 'Craftsman Full Name', value: selected.name },
+                                { label: 'Verification Status', value: (selected.isVerifiedId || selected.idBackImageUrl) ? 'Uploaded' : 'Pending Upload', valueColor: (selected.isVerifiedId || selected.idBackImageUrl) ? '#16A34A' : '#D97706' },
+                                { label: t('vr_expiry') || 'Expiry', value: selected.idExpiryDate || (selected.isVerifiedId ? 'Mar 2031' : 'N/A') },
+                              ]}
+                            />
+                          </div>
+                        )}
+                        {activeTab === 'face_match' && <FaceMatchContent submission={selected} onZoom={setLightboxUrl} />}
+                        {activeTab === 'portfolio' && <PortfolioContent submission={selected} />}
+                        {activeTab === 'skills' && <SkillsContent submission={selected} onZoom={setLightboxUrl} />}
+                        {activeTab === 'review_decision' && (
+                          <ReviewDecisionContent
+                            submission={selected}
+                            notes={notes}
+                            setNotes={setNotes}
+                            onApprove={handleApprove}
+                            onReject={handleReject}
+                            onFlag={handleFlag}
                           />
-                          <IdDocumentCard
-                            title={t('vr_back_side') || 'Back side'}
-                            hasUploadedDoc={selected.isVerifiedId}
-                            craftsmanName={selected.name}
-                            fields={[
-                              { label: t('vr_doc_type') || 'Document type', value: 'Jerusalem / Palestinian ID' },
-                              { label: 'Craftsman Full Name', value: selected.name },
-                              { label: 'Verification Status', value: selected.isVerifiedId ? 'Verified' : 'Pending Upload / Review', valueColor: selected.isVerifiedId ? '#16A34A' : '#D97706' },
-                              { label: t('vr_expiry') || 'Expiry', value: selected.isVerifiedId ? 'Mar 2031' : 'N/A' },
-                            ]}
+                        )}
+                      </div>
+
+                      {/* Moderator Notes (Shown on non-decision tabs) */}
+                      {activeTab !== 'review_decision' && (
+                        <div className="vr-notes-card">
+                          <span className="vr-notes-label">{t('vr_moderator_notes') || 'Moderator notes'}</span>
+                          <textarea
+                            className="vr-notes-textarea"
+                            placeholder={t('vr_notes_placeholder') || 'Add a note for the audit log...'}
+                            value={notes}
+                            onChange={e => setNotes(e.target.value)}
+                            rows={3}
                           />
                         </div>
                       )}
-                {activeTab === 'face_match' && <FaceMatchContent submission={selected} />}
-                {activeTab === 'portfolio' && <PortfolioContent submission={selected} />}
-                {activeTab === 'skills' && <SkillsContent submission={selected} />}
-              </div>
-
-                {/* Moderator Notes */}
-                <div className="vr-notes-card">
-                  <span className="vr-notes-label">{t('vr_moderator_notes') || 'Moderator notes'}</span>
-                  <textarea
-                    className="vr-notes-textarea"
-                    placeholder={t('vr_notes_placeholder') || 'Add a note for the audit log...'}
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-              </div>
+                    </div>
             </>
           ) : (
             <div className="vr-placeholder-tab">
@@ -1061,6 +1500,65 @@ export const VerificationPage: React.FC = () => {
           >
             Undo
           </button>
+        </div>
+      )}
+
+      {/* Image Lightbox Modal */}
+      {lightboxUrl && (
+        <div 
+          onClick={() => setLightboxUrl(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            cursor: 'zoom-out'
+          }}
+        >
+          <div 
+            style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setLightboxUrl(null)}
+              style={{
+                position: 'absolute',
+                top: -16,
+                right: -16,
+                background: '#171717',
+                border: '2px solid #fff',
+                borderRadius: '50%',
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                zIndex: 1
+              }}
+            >
+              <X size={18} />
+            </button>
+            <img 
+              src={lightboxUrl} 
+              alt="Verification Document Preview" 
+              style={{
+                maxWidth: '90vw',
+                maxHeight: '85vh',
+                borderRadius: 12,
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)',
+                objectFit: 'contain',
+                display: 'block'
+              }}
+            />
+          </div>
         </div>
       )}
     </div>

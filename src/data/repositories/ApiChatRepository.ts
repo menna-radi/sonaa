@@ -133,6 +133,62 @@ export class ApiChatRepository implements ChatRepository {
       return fail(error as AppError);
     }
   }
+
+  public async createChatRoom(participantId: string): Promise<Result<ChatRoom>> {
+    try {
+      const response = await apiClient.post<any>(API_ENDPOINTS.chat.createRoom, {
+        targetUserId: participantId,
+      });
+
+      const other = response.otherParticipant || {};
+      const room: ChatRoom = {
+        id: response.id,
+        task: response.task ? {
+          id: response.task.id,
+          title: response.task.title || 'Service Task',
+          displayId: response.task.displayId || `#TSK-${response.task.id.slice(0, 4)}`,
+          status: response.task.status || 'IN_PROGRESS',
+          budgetAmount: response.task.budgetAmount,
+        } : null,
+        otherParticipant: {
+          id: other.id || null,
+          craftsmanProfileId: other.craftsmanProfileId || response.craftsmanProfile?.id || null,
+          customerProfileId: other.customerProfileId || response.customerProfile?.id || null,
+          firstName: other.firstName || 'User',
+          lastName: other.lastName || '',
+          avatarUrl: other.avatarUrl || null,
+          role: other.role || 'CRAFTSMAN',
+          phoneNumber: other.phoneNumber,
+          email: other.email,
+          trade: other.trade,
+          rating: other.rating,
+        },
+        customerProfile: response.customerProfile,
+        craftsmanProfile: response.craftsmanProfile,
+        lastMessage: null,
+        unreadCount: 0,
+        createdAt: response.createdAt || new Date().toISOString(),
+      };
+
+      return ok(room);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async searchUsers(query?: string, role?: string): Promise<Result<any[]>> {
+    try {
+      const params: Record<string, any> = {};
+      if (query && query.trim()) params.q = query.trim();
+      if (role && role !== 'ALL') params.role = role;
+
+      const response = await apiClient.get<any>(API_ENDPOINTS.admin.users, { params });
+      const userList = response?.users || (Array.isArray(response) ? response : []);
+      return ok(userList);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
 }
 
 export default ApiChatRepository;

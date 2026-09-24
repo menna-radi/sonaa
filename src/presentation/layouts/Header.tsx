@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguage, type Language } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { Search, Bell, LogOut, Globe, Menu, AlertTriangle, UserCheck, AlertCircle, ShieldAlert, TrendingUp, Check } from 'lucide-react';
+import { Search, Bell, LogOut, Globe, Menu, AlertTriangle, UserCheck, AlertCircle, ShieldAlert, TrendingUp, Check, MessageSquare } from 'lucide-react';
+import { io, Socket } from 'socket.io-client';
+import { storageService } from '../../core/storage/StorageService';
 import { useNavigation } from '../context/NavigationContext';
 import { useDependencies } from '../../core/di/DependencyProvider';
-import { NotificationItem } from '../../domain/entities/Notification';
+import { NotificationItem, NotificationCategory } from '../../domain/entities/Notification';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -14,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const { t, language, setLanguage, isRtl } = useLanguage();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
+  const [isRinging, setIsRinging] = useState(false);
   const { user, logout } = useAuth();
   const { navigate, searchQuery, setSearchQuery } = useNavigation();
   const { dependencies } = useDependencies();
@@ -21,6 +24,51 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
 
   // Local notifications state loaded from API / Repository
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const socketRef = useRef<Socket | null>(null);
+
+  // Pleasant Web Audio API Chime (Two-tone crystal chime)
+  const playNotificationSound = useCallback(() => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+
+      const now = ctx.currentTime;
+      // Note 1: 587.33 Hz (D5)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(587.33, now);
+      gain1.gain.setValueAtTime(0.18, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.35);
+
+      // Note 2: 880 Hz (A5)
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(880, now + 0.12);
+      gain2.gain.setValueAtTime(0.22, now + 0.12);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.12);
+      osc2.stop(now + 0.55);
+    } catch {
+      // Audio policies / silent fallback
+    }
+  }, []);
+
+  const triggerBellRing = useCallback(() => {
+    setIsRinging(true);
+    playNotificationSound();
+    setTimeout(() => {
+      setIsRinging(false);
+    }, 1200);
+  }, [playNotificationSound]);
 
   const fetchNotifications = useCallback(async () => {
     const res = await notificationRepository.getNotifications();
@@ -39,6 +87,55 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
       fetchNotifications();
     }
   }, [notifMenuOpen, fetchNotifications]);
+
+  // Real-time WebSocket connection for live notifications and ringing bell
+  useEffect(() => {
+    const token = storageService.getToken();
+    const socket = io(window.location.origin, {
+      path: '/socket.io/',
+      transports: ['websocket', 'polling'],
+      auth: { token },
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+    });
+
+    socketRef.current = socket;
+
+    socket.on('notification:new', (notif: any) => {
+      const newNotif: NotificationItem = {
+        id: notif.id || `notif_${Date.now()}`,
+        title: notif.title || 'New Notification',
+        subtitle: notif.subtitle || notif.body || '',
+        category: (notif.category || notif.type || 'system') as NotificationCategory,
+        time: notif.time || 'Just now',
+        unread: true,
+        critical: Boolean(notif.critical),
+      };
+
+      setNotifications(prev => [newNotif, ...prev.filter(n => n.id !== newNotif.id)]);
+      triggerBellRing();
+    });
+
+    socket.on('chat:message', (msg: any) => {
+      if (msg.senderRole !== 'ADMIN') {
+        const notif: NotificationItem = {
+          id: `chat_notif_${msg.id || Date.now()}`,
+          title: `Message from ${msg.senderName || 'User'}`,
+          subtitle: msg.content || 'Sent an attachment',
+          category: 'chat',
+          time: 'Just now',
+          unread: true,
+          critical: false,
+        };
+        setNotifications(prev => [notif, ...prev.filter(n => n.id !== notif.id)]);
+        triggerBellRing();
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [triggerBellRing]);
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
@@ -59,6 +156,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
     setNotifMenuOpen(false);
     // 3. Navigate to relevant dashboard page
     switch (item.category) {
+      case 'chat':
+        navigate('chat');
+        break;
       case 'emergency':
         navigate('live_activity');
         break;
@@ -82,6 +182,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
+      case 'chat':
+        return <div style={{ background: '#ecfdf5', color: '#059669', padding: '6px', borderRadius: '50%', display: 'flex' }}><MessageSquare size={14} /></div>;
       case 'emergency':
         return <div style={{ background: '#fef2f2', color: '#dc2626', padding: '6px', borderRadius: '50%', display: 'flex' }}><AlertTriangle size={14} /></div>;
       case 'verification':
@@ -168,7 +270,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           {/* Notification Bell */}
           <div className="notification-bell-wrapper" style={{ position: 'relative' }}>
             <button 
-              className="notification-bell" 
+              className={`notification-bell ${isRinging ? 'bell-ringing' : ''}`} 
               onClick={() => {
                 setNotifMenuOpen(!notifMenuOpen);
                 setLangMenuOpen(false);
@@ -180,19 +282,19 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center', 
-                color: 'var(--text-primary)', 
+                color: isRinging ? 'var(--color-primary)' : 'var(--text-primary)', 
                 borderRadius: '50%',
                 background: notifMenuOpen ? 'var(--bg-surface-hover)' : 'transparent',
                 cursor: 'pointer',
                 border: 'none',
                 outline: 'none',
-                transition: 'background var(--transition-fast)',
+                transition: 'background var(--transition-fast), color var(--transition-fast)',
               }}
               title={t('nav_notifications') || 'Notifications'}
             >
               <Bell size={18} />
               {unreadCount > 0 && (
-                <span style={{ 
+                <span className={isRinging ? 'notif-badge-pulse' : ''} style={{ 
                   position: 'absolute', 
                   top: '-2px', 
                   right: '-2px', 
@@ -204,7 +306,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   fontSize: '0.65rem', 
                   display: 'flex', 
                   alignItems: 'center', 
-                  justifyContent: 'center',
+                  justifyContent: 'center', 
                   fontWeight: 700 
                 }}>
                   {unreadCount}
@@ -505,6 +607,27 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
         }
         .view-all-notifs-btn:hover {
           background: #fafafa !important;
+        }
+        @keyframes bellRing {
+          0% { transform: rotate(0); }
+          15% { transform: rotate(18deg); }
+          30% { transform: rotate(-18deg); }
+          45% { transform: rotate(12deg); }
+          60% { transform: rotate(-12deg); }
+          75% { transform: rotate(6deg); }
+          85% { transform: rotate(-4deg); }
+          100% { transform: rotate(0); }
+        }
+        @keyframes notifBadgePulse {
+          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+          70% { transform: scale(1.2); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .bell-ringing {
+          animation: bellRing 0.9s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        .notif-badge-pulse {
+          animation: notifBadgePulse 0.9s infinite;
         }
       `}</style>
     </div>
