@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { Sidebar } from '../../../../presentation/layouts/Sidebar';
 import { Header } from '../../../../presentation/layouts/Header';
@@ -648,7 +648,9 @@ const ReviewDecisionContent: React.FC<{
   onReject: () => void;
   onFlag: () => void;
   isSubmitting?: boolean;
-}> = ({ submission, notes, setNotes, onApprove, onReject, onFlag, isSubmitting }) => {
+  isApproved?: boolean;
+  isRejected?: boolean;
+}> = ({ submission, notes, setNotes, onApprove, onReject, onFlag, isSubmitting, isApproved, isRejected }) => {
   const { t } = useLanguage();
   const presets = [
     'Verified national ID and selfie match successfully.',
@@ -663,7 +665,7 @@ const ReviewDecisionContent: React.FC<{
     { step: 2, name: 'National ID Documents', status: (submission.idFrontImageUrl || submission.isVerifiedId) ? 'complete' : 'pending', desc: submission.idDocumentType || 'Jerusalem / Palestinian ID' },
     { step: 3, name: 'Live Selfie & Liveness', status: (submission.selfieImageUrl || submission.isVerifiedSelfie) ? 'complete' : 'pending', desc: `Match: ${submission.faceScore}% · Liveness passed` },
     { step: 4, name: 'Trade Skills & Certifications', status: (submission.skills?.length || submission.isVerifiedCert) ? 'complete' : 'pending', desc: `${submission.role} · ${submission.yearsExperience ?? 5} yrs exp` },
-    { step: 5, name: 'Admin Moderation', status: submission.isVerifiedId ? 'complete' : 'in_review', desc: `Status: ${submission.verificationStatus || (submission.isVerifiedId ? 'APPROVED' : 'UNDER_REVIEW')}` },
+    { step: 5, name: 'Admin Moderation', status: (isApproved || submission.isVerifiedId) ? 'complete' : 'in_review', desc: `Status: ${isApproved ? 'APPROVED' : (submission.verificationStatus || 'UNDER_REVIEW')}` },
   ];
 
   return (
@@ -768,72 +770,174 @@ const ReviewDecisionContent: React.FC<{
           }}
         />
 
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <button
-            onClick={onFlag}
-            disabled={isSubmitting}
-            style={{
-              padding: '10px 18px',
-              borderRadius: 8,
-              border: '1px solid #f59e0b',
-              background: 'rgba(245, 158, 11, 0.1)',
-              color: '#d97706',
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting ? 0.6 : 1,
+        {isApproved ? (
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 6
-            }}
-          >
-            <Flag size={14} />
-            Flag for Review
-          </button>
-          <button
-            onClick={onReject}
-            disabled={isSubmitting}
-            style={{
-              padding: '10px 18px',
+              gap: 8,
+              padding: '10px 16px',
               borderRadius: 8,
-              border: '1px solid #ef4444',
+              background: 'rgba(22, 163, 74, 0.1)',
+              border: '1px solid rgba(22, 163, 74, 0.3)',
+              color: '#16a34a',
+              fontSize: 13,
+              fontWeight: 700
+            }}>
+              <CheckCircle size={16} />
+              <span>Application Approved & Active in Marketplace</span>
+            </div>
+            <button
+              onClick={onFlag}
+              disabled={isSubmitting}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 8,
+                border: '1px solid #f59e0b',
+                background: 'rgba(245, 158, 11, 0.1)',
+                color: '#d97706',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              <Flag size={14} />
+              Flag for Audit
+            </button>
+            <button
+              onClick={onReject}
+              disabled={isSubmitting}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 8,
+                border: '1px solid #ef4444',
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#dc2626',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              <X size={14} />
+              Revoke Verification
+            </button>
+          </div>
+        ) : isRejected ? (
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 16px',
+              borderRadius: 8,
               background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
               color: '#dc2626',
-              fontWeight: 600,
               fontSize: 13,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting ? 0.6 : 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6
-            }}
-          >
-            <X size={14} />
-            Reject Application
-          </button>
-          <button
-            onClick={onApprove}
-            disabled={isSubmitting}
-            style={{
-              padding: '10px 22px',
-              borderRadius: 8,
-              border: 'none',
-              background: '#16a34a',
-              color: '#fff',
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting ? 0.6 : 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)'
-            }}
-          >
-            <CheckCircle size={15} />
-            {isSubmitting ? 'Processing...' : 'Approve & Grant Verified Badge'}
-          </button>
-        </div>
+              fontWeight: 700
+            }}>
+              <AlertCircle size={16} />
+              <span>Application Rejected</span>
+            </div>
+            <button
+              onClick={onApprove}
+              disabled={isSubmitting}
+              style={{
+                padding: '10px 22px',
+                borderRadius: 8,
+                border: 'none',
+                background: '#16a34a',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)'
+              }}
+            >
+              <CheckCircle size={15} />
+              {isSubmitting ? 'Processing...' : 'Re-Approve Craftsman'}
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+            <button
+              onClick={onFlag}
+              disabled={isSubmitting}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 8,
+                border: '1px solid #f59e0b',
+                background: 'rgba(245, 158, 11, 0.1)',
+                color: '#d97706',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              <Flag size={14} />
+              Flag for Review
+            </button>
+            <button
+              onClick={onReject}
+              disabled={isSubmitting}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 8,
+                border: '1px solid #ef4444',
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#dc2626',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              <X size={14} />
+              Reject Application
+            </button>
+            <button
+              onClick={onApprove}
+              disabled={isSubmitting}
+              style={{
+                padding: '10px 22px',
+                borderRadius: 8,
+                border: 'none',
+                background: '#16a34a',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)'
+              }}
+            >
+              <CheckCircle size={15} />
+              {isSubmitting ? 'Processing...' : 'Approve & Grant Verified Badge'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -877,7 +981,8 @@ export const VerificationPage: React.FC = () => {
     notes: string;
   } | null>(null);
   const [mobileView, setMobileView] = useState<'queue' | 'detail'>('queue');
-  const [queueFilter, setQueueFilter] = useState<'pending' | 'flagged' | 'today'>('pending');
+  type QueueFilter = 'pending' | 'flagged' | 'approved' | 'all';
+  const [queueFilter, setQueueFilter] = useState<QueueFilter>('pending');
   const [autoVerifyEnabled, setAutoVerifyEnabled] = useState<boolean>(true);
   const [togglingAutoVerify, setTogglingAutoVerify] = useState<boolean>(false);
 
@@ -906,6 +1011,49 @@ export const VerificationPage: React.FC = () => {
     }
   };
 
+  const isSubmissionApproved = useCallback((sub: Submission) => {
+    return approvedIds.has(sub.id) || sub.verificationStatus === 'APPROVED' || sub.status === 'today' || (Boolean(sub.isVerifiedId) && !rejectedIds.has(sub.id));
+  }, [approvedIds, rejectedIds]);
+
+  const isSubmissionRejected = useCallback((sub: Submission) => {
+    return rejectedIds.has(sub.id) || sub.verificationStatus === 'REJECTED';
+  }, [rejectedIds]);
+
+  const isSubmissionFlagged = useCallback((sub: Submission) => {
+    return !isSubmissionApproved(sub) && !isSubmissionRejected(sub) && (sub.verificationStatus === 'FLAGGED' || sub.status === 'flagged');
+  }, [isSubmissionApproved, isSubmissionRejected]);
+
+  const isSubmissionPending = useCallback((sub: Submission) => {
+    return !isSubmissionApproved(sub) && !isSubmissionRejected(sub) && !isSubmissionFlagged(sub);
+  }, [isSubmissionApproved, isSubmissionRejected, isSubmissionFlagged]);
+
+  const filteredSubmissions = useMemo(() => {
+    return submissions.filter(sub => {
+      if (queueFilter === 'pending') return isSubmissionPending(sub);
+      if (queueFilter === 'flagged') return isSubmissionFlagged(sub);
+      if (queueFilter === 'approved') return isSubmissionApproved(sub);
+      return true; // 'all'
+    });
+  }, [submissions, queueFilter, isSubmissionPending, isSubmissionFlagged, isSubmissionApproved]);
+
+  const pendingCount = useMemo(() => submissions.filter(isSubmissionPending).length, [submissions, isSubmissionPending]);
+  const flaggedCount = useMemo(() => submissions.filter(isSubmissionFlagged).length, [submissions, isSubmissionFlagged]);
+  const approvedCount = useMemo(() => submissions.filter(isSubmissionApproved).length, [submissions, isSubmissionApproved]);
+  const totalCount = submissions.length;
+
+  const handleFilterChange = (filter: QueueFilter) => {
+    setQueueFilter(filter);
+    const matching = submissions.filter(sub => {
+      if (filter === 'pending') return isSubmissionPending(sub);
+      if (filter === 'flagged') return isSubmissionFlagged(sub);
+      if (filter === 'approved') return isSubmissionApproved(sub);
+      return true;
+    });
+    if (matching.length > 0 && !matching.some(s => s.id === selectedId)) {
+      setSelectedId(matching[0].id);
+    }
+  };
+
   const fetchQueue = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -914,6 +1062,13 @@ export const VerificationPage: React.FC = () => {
       if (result.success) {
         setSubmissions(result.data);
         if (result.data.length > 0) {
+          const hasPending = result.data.some(s => {
+            const isApp = s.verificationStatus === 'APPROVED' || s.status === 'today' || Boolean(s.isVerifiedId);
+            return !isApp && s.verificationStatus !== 'REJECTED' && s.verificationStatus !== 'FLAGGED' && s.status !== 'flagged';
+          });
+          if (!hasPending) {
+            setQueueFilter('all');
+          }
           setSelectedId(prev => {
             if (prev && result.data.some(s => s.id === prev)) return prev;
             return result.data[0].id;
@@ -935,7 +1090,10 @@ export const VerificationPage: React.FC = () => {
     fetchQueue();
   }, [fetchQueue]);
 
-  const selected = submissions.find(s => s.id === selectedId) ?? submissions[0];
+  const selected = submissions.find(s => s.id === selectedId) ?? filteredSubmissions[0] ?? submissions[0];
+  const isSelectedApproved = selected ? isSubmissionApproved(selected) : false;
+  const isSelectedRejected = selected ? isSubmissionRejected(selected) : false;
+  const isSelectedFlagged = selected ? isSubmissionFlagged(selected) : false;
 
   // Scroll details panel back to top when selected craftsman or active tab changes
   useEffect(() => {
@@ -969,9 +1127,18 @@ export const VerificationPage: React.FC = () => {
         const nextRejected = new Set(rejectedIds);
         if (decision === 'APPROVED') {
           nextApproved.add(selectedId);
+          nextRejected.delete(selectedId);
           setApprovedIds(nextApproved);
+          setRejectedIds(nextRejected);
         } else if (decision === 'REJECTED') {
           nextRejected.add(selectedId);
+          nextApproved.delete(selectedId);
+          setRejectedIds(nextRejected);
+          setApprovedIds(nextApproved);
+        } else {
+          nextApproved.delete(selectedId);
+          nextRejected.delete(selectedId);
+          setApprovedIds(nextApproved);
           setRejectedIds(nextRejected);
         }
         setNotes('');
@@ -984,6 +1151,7 @@ export const VerificationPage: React.FC = () => {
               status: decision === 'APPROVED' ? 'today' : decision === 'REJECTED' ? 'pending' : 'flagged',
               isVerifiedId: decision === 'APPROVED',
               verificationStatus: decision,
+              completedStepsCount: decision === 'APPROVED' ? 5 : s.completedStepsCount,
             };
           }
           return s;
@@ -991,7 +1159,7 @@ export const VerificationPage: React.FC = () => {
 
         // Move to next pending submission if available
         const remaining = submissions.filter(
-          s => !nextApproved.has(s.id) && !nextRejected.has(s.id) && s.id !== selectedId
+          s => s.id !== selectedId && !isSubmissionApproved(s) && !isSubmissionRejected(s)
         );
         if (remaining.length > 0) {
           setSelectedId(remaining[0].id);
@@ -1166,34 +1334,82 @@ export const VerificationPage: React.FC = () => {
               {/* LEFT: Review Queue (Desktop/Tablet) */}
               <div className="vr-queue-panel desktop-tablet-only">
                 <div className="vr-queue-header">
-                  <span className="vr-queue-header-label">{t('vr_review_queue') || 'Review Queue'}</span>
-                  <span className="vr-queue-header-sub">{t('vr_awaiting_mod') || 'Awaiting moderation'}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="vr-queue-header-label">{t('vr_review_queue') || 'Review Queue'}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      {filteredSubmissions.length} of {submissions.length}
+                    </span>
+                  </div>
+                  <span className="vr-queue-header-sub">
+                    {queueFilter === 'pending' ? (t('vr_awaiting_mod') || 'Awaiting moderation') : queueFilter === 'flagged' ? 'Flagged for Audit' : queueFilter === 'approved' ? 'Approved & Verified' : 'All Submissions'}
+                  </span>
+                  {/* Desktop Filter Pills */}
+                  <div className="vr-desktop-filter-pills">
+                    <button
+                      type="button"
+                      className={`vr-desktop-filter-pill ${queueFilter === 'pending' ? 'active' : ''}`}
+                      onClick={() => handleFilterChange('pending')}
+                    >
+                      <span>Pending</span>
+                      <span className={`vr-desktop-pill-badge ${queueFilter === 'pending' ? 'active' : ''}`}>{pendingCount}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`vr-desktop-filter-pill ${queueFilter === 'flagged' ? 'active' : ''}`}
+                      onClick={() => handleFilterChange('flagged')}
+                    >
+                      <span>Flagged</span>
+                      <span className={`vr-desktop-pill-badge ${queueFilter === 'flagged' ? 'active' : ''}`}>{flaggedCount}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`vr-desktop-filter-pill ${queueFilter === 'approved' ? 'active' : ''}`}
+                      onClick={() => handleFilterChange('approved')}
+                    >
+                      <span>Approved</span>
+                      <span className={`vr-desktop-pill-badge ${queueFilter === 'approved' ? 'active' : ''}`}>{approvedCount}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`vr-desktop-filter-pill ${queueFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => handleFilterChange('all')}
+                    >
+                      <span>All</span>
+                      <span className={`vr-desktop-pill-badge ${queueFilter === 'all' ? 'active' : ''}`}>{totalCount}</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="vr-queue-list">
-                  {submissions.map(sub => {
-                    const isApproved = approvedIds.has(sub.id);
-                    const isRejected = rejectedIds.has(sub.id);
-                    const isSelected = sub.id === selectedId;
-                    const roleText = formatRole(sub.role);
-                    return (
-                      <button
-                        key={sub.id}
-                        className={`vr-queue-item ${isSelected ? 'selected' : ''} ${isApproved ? 'approved' : ''} ${isRejected ? 'rejected' : ''}`}
-                        onClick={() => { setSelectedId(sub.id); setActiveTab('profile_info'); }}
-                      >
-                        <AvatarCircle name={sub.name} src={sub.avatar} size={40} />
-                        <div className="vr-queue-item-info">
-                          <span className="vr-queue-item-name">{sub.name}</span>
-                          <span className="vr-queue-item-meta">{roleText} · Step {sub.completedStepsCount ?? (sub.isVerifiedId ? 5 : 4)}/5 · {sub.submittedAgo}</span>
-                        </div>
-                        {isApproved && <CheckCircle size={14} style={{ color: '#16A34A', flexShrink: 0 }} />}
-                        {isRejected && <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />}
-                        {!isApproved && !isRejected && isSelected && (
-                          <ChevronRight className="rtl-flip" size={16} style={{ color: '#171717', strokeWidth: 2.5, flexShrink: 0 }} />
-                        )}
-                      </button>
-                    );
-                  })}
+                  {filteredSubmissions.length === 0 ? (
+                    <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
+                      No {queueFilter} submissions found.
+                    </div>
+                  ) : (
+                    filteredSubmissions.map((sub: Submission) => {
+                      const isApproved = isSubmissionApproved(sub);
+                      const isRejected = isSubmissionRejected(sub);
+                      const isSelected = sub.id === selected?.id;
+                      const roleText = formatRole(sub.role);
+                      return (
+                        <button
+                          key={sub.id}
+                          className={`vr-queue-item ${isSelected ? 'selected' : ''} ${isApproved ? 'approved' : ''} ${isRejected ? 'rejected' : ''}`}
+                          onClick={() => { setSelectedId(sub.id); setActiveTab('profile_info'); }}
+                        >
+                          <AvatarCircle name={sub.name} src={sub.avatar} size={40} />
+                          <div className="vr-queue-item-info">
+                            <span className="vr-queue-item-name">{sub.name}</span>
+                            <span className="vr-queue-item-meta">{roleText} · Step {sub.completedStepsCount ?? (isApproved ? 5 : 4)}/5 · {sub.submittedAgo}</span>
+                          </div>
+                          {isApproved && <CheckCircle size={14} style={{ color: '#16A34A', flexShrink: 0 }} />}
+                          {isRejected && <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />}
+                          {!isApproved && !isRejected && isSelected && (
+                            <ChevronRight className="rtl-flip" size={16} style={{ color: '#171717', strokeWidth: 2.5, flexShrink: 0 }} />
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
@@ -1203,101 +1419,128 @@ export const VerificationPage: React.FC = () => {
                 <div className="mobile-filter-pills">
                   <button 
                     className={`mobile-filter-pill ${queueFilter === 'pending' ? 'active' : ''}`}
-                    onClick={() => setQueueFilter('pending')}
+                    onClick={() => handleFilterChange('pending')}
                   >
                     <span>{t('vr_pending') || 'Pending'}</span>
-                    <span className={`mobile-pill-badge ${queueFilter === 'pending' ? 'active' : ''}`}>{submissions.filter(s => s.status === 'pending').length}</span>
+                    <span className={`mobile-pill-badge ${queueFilter === 'pending' ? 'active' : ''}`}>{pendingCount}</span>
                   </button>
                   <button 
                     className={`mobile-filter-pill ${queueFilter === 'flagged' ? 'active' : ''}`}
-                    onClick={() => setQueueFilter('flagged')}
+                    onClick={() => handleFilterChange('flagged')}
                   >
                     <span>{t('vr_flagged') || 'Flagged'}</span>
-                    <span className={`mobile-pill-badge ${queueFilter === 'flagged' ? 'active' : ''}`}>{submissions.filter(s => s.status === 'flagged').length}</span>
+                    <span className={`mobile-pill-badge ${queueFilter === 'flagged' ? 'active' : ''}`}>{flaggedCount}</span>
                   </button>
                   <button 
-                    className={`mobile-filter-pill ${queueFilter === 'today' ? 'active' : ''}`}
-                    onClick={() => setQueueFilter('today')}
+                    className={`mobile-filter-pill ${queueFilter === 'approved' ? 'active' : ''}`}
+                    onClick={() => handleFilterChange('approved')}
                   >
-                    <span>{t('vr_today') || 'Today'}</span>
-                    <span className={`mobile-pill-badge ${queueFilter === 'today' ? 'active' : ''}`}>{submissions.filter(s => s.status === 'today').length}</span>
+                    <span>Approved</span>
+                    <span className={`mobile-pill-badge ${queueFilter === 'approved' ? 'active' : ''}`}>{approvedCount}</span>
+                  </button>
+                  <button 
+                    className={`mobile-filter-pill ${queueFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => handleFilterChange('all')}
+                  >
+                    <span>All</span>
+                    <span className={`mobile-pill-badge ${queueFilter === 'all' ? 'active' : ''}`}>{totalCount}</span>
                   </button>
                 </div>
 
                 {/* Submission Cards */}
                 <div className="mobile-submissions-cards">
-                  {submissions.filter(sub => sub.status === queueFilter).map(sub => {
-                    const isApproved = approvedIds.has(sub.id);
-                    const isRejected = rejectedIds.has(sub.id);
-                    
-                    return (
-                      <div 
-                        key={sub.id} 
-                        className={`mobile-craftsman-card ${isApproved ? 'approved' : ''} ${isRejected ? 'rejected' : ''}`}
-                      >
-                        {/* Top profile part */}
-                        <div className="mobile-card-top">
-                          <div className="mobile-card-profile">
-                            <AvatarCircle name={sub.name} src={sub.avatar} size={44} borderRadius={12} />
-                            <div className="mobile-card-name-info">
-                              <span className="mobile-card-name">{sub.name}</span>
-                              <span className="mobile-card-role">{formatRole(sub.role)} · {sub.submittedAgo}</span>
+                  {filteredSubmissions.length === 0 ? (
+                    <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                      No {queueFilter} submissions found.
+                    </div>
+                  ) : (
+                    filteredSubmissions.map((sub: Submission) => {
+                      const isApproved = isSubmissionApproved(sub);
+                      const isRejected = isSubmissionRejected(sub);
+                      
+                      return (
+                        <div 
+                          key={sub.id} 
+                          className={`mobile-craftsman-card ${isApproved ? 'approved' : ''} ${isRejected ? 'rejected' : ''}`}
+                        >
+                          {/* Top profile part */}
+                          <div className="mobile-card-top">
+                            <div className="mobile-card-profile">
+                              <AvatarCircle name={sub.name} src={sub.avatar} size={44} borderRadius={12} />
+                              <div className="mobile-card-name-info">
+                                <span className="mobile-card-name">{sub.name}</span>
+                                <span className="mobile-card-role">{formatRole(sub.role)} · {sub.submittedAgo}</span>
+                              </div>
+                            </div>
+                            <button 
+                              className="mobile-card-options" 
+                              title="Review"
+                              onClick={() => {
+                                setSelectedId(sub.id);
+                                setMobileView('detail');
+                              }}
+                            >
+                              <ChevronRight size={16} className="rtl-flip" style={{ color: '#A3A3A3' }} />
+                            </button>
+                          </div>
+
+                          {/* Middle Stats Row */}
+                          <div className="mobile-card-stats-row">
+                            <div className="mobile-stat-box">
+                              <span className="mobile-stat-label">{t('vr_face') || 'Face'}</span>
+                              <span className="mobile-stat-value">{sub.faceScore}%</span>
+                            </div>
+                            <div className="mobile-stat-box">
+                              <span className="mobile-stat-label">{t('vr_docs') || 'Docs'}</span>
+                              <span className="mobile-stat-value">{sub.docsCount}</span>
+                            </div>
+                            <div className="mobile-stat-box">
+                              <span className="mobile-stat-label">{t('vr_risk') || 'Risk'}</span>
+                              <span className={`mobile-stat-value risk-${sub.risk.toLowerCase()}`}>{sub.risk}</span>
                             </div>
                           </div>
-                          <button 
-                            className="mobile-card-options" 
-                            title="Review"
-                            onClick={() => {
-                              setSelectedId(sub.id);
-                              setMobileView('detail');
-                            }}
-                          >
-                            <ChevronRight size={16} className="rtl-flip" style={{ color: '#A3A3A3' }} />
-                          </button>
-                        </div>
 
-                        {/* Middle Stats Row */}
-                        <div className="mobile-card-stats-row">
-                          <div className="mobile-stat-box">
-                            <span className="mobile-stat-label">{t('vr_face') || 'Face'}</span>
-                            <span className="mobile-stat-value">{sub.faceScore}%</span>
-                          </div>
-                          <div className="mobile-stat-box">
-                            <span className="mobile-stat-label">{t('vr_docs') || 'Docs'}</span>
-                            <span className="mobile-stat-value">{sub.docsCount}</span>
-                          </div>
-                          <div className="mobile-stat-box">
-                            <span className="mobile-stat-label">{t('vr_risk') || 'Risk'}</span>
-                            <span className={`mobile-stat-value risk-${sub.risk.toLowerCase()}`}>{sub.risk}</span>
+                          {/* Bottom Actions Row */}
+                          <div className="mobile-card-actions-row">
+                            {isApproved ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#16a34a', fontSize: '12px', fontWeight: 700, padding: '6px 8px' }}>
+                                <CheckCircle size={14} />
+                                <span>Verified & Approved</span>
+                              </div>
+                            ) : isRejected ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontSize: '12px', fontWeight: 700, padding: '6px 8px' }}>
+                                <AlertCircle size={14} />
+                                <span>Application Rejected</span>
+                              </div>
+                            ) : (
+                              <>
+                                <button 
+                                  className="mobile-card-action-btn btn-reject"
+                                  onClick={() => {
+                                    setSelectedId(sub.id);
+                                    handleReject();
+                                  }}
+                                >
+                                  <XCircle size={11} style={{ marginInlineEnd: 4 }} />
+                                  <span>{t('vr_reject') || 'Reject'}</span>
+                                </button>
+                                <button 
+                                  className="mobile-card-action-btn btn-approve"
+                                  onClick={() => {
+                                    setSelectedId(sub.id);
+                                    handleApprove();
+                                  }}
+                                >
+                                  <CheckCircle size={11} style={{ marginInlineEnd: 4 }} />
+                                  <span>{t('vr_approve_all') || 'Approve'}</span>
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
-
-                        {/* Bottom Actions Row */}
-                        <div className="mobile-card-actions-row">
-                          <button 
-                            className="mobile-card-action-btn btn-reject"
-                            onClick={() => {
-                              setSelectedId(sub.id);
-                              handleReject();
-                            }}
-                          >
-                            <XCircle size={11} style={{ marginInlineEnd: 4 }} />
-                            <span>{t('vr_reject') || 'Reject'}</span>
-                          </button>
-                          <button 
-                            className="mobile-card-action-btn btn-approve"
-                            onClick={() => {
-                              setSelectedId(sub.id);
-                              handleApprove();
-                            }}
-                          >
-                            <CheckCircle size={11} style={{ marginInlineEnd: 4 }} />
-                            <span>{t('vr_approve_all') || 'Approve'}</span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
@@ -1343,33 +1586,103 @@ export const VerificationPage: React.FC = () => {
                           </div>
                         </div>
                         <div className="vr-profile-actions">
-                          <button
-                            className="vr-action-btn vr-btn-flag"
-                            onClick={handleFlag}
-                            disabled={isSubmitting}
-                            style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-                          >
-                            <Flag size={12} />
-                            <span>{t('vr_flag') || 'Flag'}</span>
-                          </button>
-                          <button
-                            className="vr-action-btn vr-btn-reject"
-                            onClick={handleReject}
-                            disabled={isSubmitting}
-                            style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-                          >
-                            <X size={12} />
-                            <span>{t('vr_reject') || 'Reject'}</span>
-                          </button>
-                          <button
-                            className="vr-action-btn vr-btn-approve"
-                            onClick={handleApprove}
-                            disabled={isSubmitting}
-                            style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-                          >
-                            {isSubmitting ? <RefreshCw className="animate-spin" size={12} /> : <CheckCircle size={12} />}
-                            <span>{isSubmitting ? 'Processing...' : (t('vr_approve_all') || 'Approve all')}</span>
-                          </button>
+                          {isSelectedApproved ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 14px',
+                                borderRadius: '8px',
+                                background: 'rgba(22, 163, 74, 0.1)',
+                                border: '1px solid rgba(22, 163, 74, 0.3)',
+                                color: '#16a34a',
+                                fontSize: '12px',
+                                fontWeight: 700
+                              }}>
+                                <CheckCircle size={14} />
+                                <span>Verified & Approved</span>
+                              </div>
+                              <button
+                                className="vr-action-btn vr-btn-flag"
+                                onClick={handleFlag}
+                                disabled={isSubmitting}
+                                title="Flag for audit"
+                                style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                              >
+                                <Flag size={12} />
+                                <span>{t('vr_flag') || 'Flag'}</span>
+                              </button>
+                              <button
+                                className="vr-action-btn vr-btn-reject"
+                                onClick={handleReject}
+                                disabled={isSubmitting}
+                                title="Revoke verification"
+                                style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                              >
+                                <X size={12} />
+                                <span>Revoke</span>
+                              </button>
+                            </div>
+                          ) : isSelectedRejected ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 14px',
+                                borderRadius: '8px',
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                color: '#dc2626',
+                                fontSize: '12px',
+                                fontWeight: 700
+                              }}>
+                                <XCircle size={14} />
+                                <span>Application Rejected</span>
+                              </div>
+                              <button
+                                className="vr-action-btn vr-btn-approve"
+                                onClick={handleApprove}
+                                disabled={isSubmitting}
+                                title="Re-approve craftsman"
+                                style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                              >
+                                {isSubmitting ? <RefreshCw className="animate-spin" size={12} /> : <CheckCircle size={12} />}
+                                <span>Re-Approve</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                className="vr-action-btn vr-btn-flag"
+                                onClick={handleFlag}
+                                disabled={isSubmitting}
+                                style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                              >
+                                <Flag size={12} />
+                                <span>{t('vr_flag') || 'Flag'}</span>
+                              </button>
+                              <button
+                                className="vr-action-btn vr-btn-reject"
+                                onClick={handleReject}
+                                disabled={isSubmitting}
+                                style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                              >
+                                <X size={12} />
+                                <span>{t('vr_reject') || 'Reject'}</span>
+                              </button>
+                              <button
+                                className="vr-action-btn vr-btn-approve"
+                                onClick={handleApprove}
+                                disabled={isSubmitting}
+                                style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                              >
+                                {isSubmitting ? <RefreshCw className="animate-spin" size={12} /> : <CheckCircle size={12} />}
+                                <span>{isSubmitting ? 'Processing...' : (t('vr_approve_all') || 'Approve all')}</span>
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -1515,6 +1828,8 @@ export const VerificationPage: React.FC = () => {
                             onReject={handleReject}
                             onFlag={handleFlag}
                             isSubmitting={isSubmitting}
+                            isApproved={isSelectedApproved}
+                            isRejected={isSelectedRejected}
                           />
                         )}
                       </div>
@@ -2097,7 +2412,7 @@ export const VerificationPage: React.FC = () => {
 
         /* ── Queue Panel ── */
         .vr-queue-panel {
-          width: 280px;
+          width: 320px;
           flex-shrink: 0;
           background: var(--bg-surface);
           border: 1px solid var(--border-color);
@@ -2111,8 +2426,9 @@ export const VerificationPage: React.FC = () => {
         .vr-queue-header {
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          padding: 24px 20px 12px 20px;
+          gap: 6px;
+          padding: 20px 16px 12px 16px;
+          border-bottom: 1px solid var(--border-color);
         }
         .vr-queue-header-label {
           font-size: 11px;
@@ -2121,12 +2437,62 @@ export const VerificationPage: React.FC = () => {
           white-space: nowrap;
         }
         .vr-queue-header-sub {
-          font-size: 16px;
+          font-size: 15px;
           font-weight: 700;
           color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+        .vr-desktop-filter-pills {
+          display: flex;
+          background: var(--bg-surface-hover);
+          border-radius: 9999px;
+          padding: 3px;
+          margin-top: 6px;
+          gap: 2px;
+          border: 1px solid var(--border-color);
+        }
+        .vr-desktop-filter-pill {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          height: 26px;
+          border-radius: 9999px;
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--text-muted);
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          padding: 0 4px;
+          font-family: inherit;
+        }
+        .vr-desktop-filter-pill.active {
+          background: var(--bg-surface);
+          color: var(--text-primary);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          font-weight: 700;
+        }
+        .vr-desktop-pill-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          height: 15px;
+          padding: 0 5px;
+          border-radius: 4px;
+          background: var(--border-color);
+          color: var(--text-muted);
+          font-size: 10px;
+          font-weight: 700;
+          min-width: 14px;
+        }
+        .vr-desktop-pill-badge.active {
+          background: #171717;
+          color: #FFFFFF;
         }
         .vr-queue-list {
           display: flex;

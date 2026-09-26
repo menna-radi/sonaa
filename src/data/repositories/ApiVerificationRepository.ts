@@ -59,8 +59,9 @@ export class ApiVerificationRepository implements VerificationRepository {
           const completedSteps = sub.completedStepsCount ?? (sub.status === 'APPROVED' ? 5 : 4);
           const trustScore = Number(profile.trustScore || 0.95);
 
+          const isVerified = Boolean(profile.isVerifiedId || sub.status === 'APPROVED');
           let statusKey: 'pending' | 'flagged' | 'today' = 'pending';
-          if (sub.status === 'APPROVED') statusKey = 'today';
+          if (isVerified) statusKey = 'today';
           else if (sub.status === 'FLAGGED' || trustScore < 0.85) statusKey = 'flagged';
 
           return {
@@ -71,10 +72,10 @@ export class ApiVerificationRepository implements VerificationRepository {
             avatar: resolveImageUrl(profile.avatarUrl) || resolveImageUrl(sub.selfieImageUrl),
             verificationId: `#VR-${sub.id.substring(0, 4).toUpperCase()}`,
             faceScore: sub.faceMatchScore ? Math.round(sub.faceMatchScore * 100) : Math.round(trustScore * 100),
-            docsCount: `${completedSteps}/5`,
+            docsCount: `${isVerified ? 5 : completedSteps}/5`,
             risk: trustScore < 0.85 ? 'High' : 'Low',
             status: statusKey,
-            isVerifiedId: Boolean(profile.isVerifiedId || sub.status === 'APPROVED'),
+            isVerifiedId: isVerified,
             isVerifiedCert: Boolean(profile.isVerifiedCert || sub.certImageUrl),
             isInsured: Boolean(profile.isInsured),
             isVerifiedSelfie: Boolean(profile.isVerifiedSelfie || sub.selfieImageUrl),
@@ -89,9 +90,9 @@ export class ApiVerificationRepository implements VerificationRepository {
             skills: profile.skills?.map((s: any) => s.name || s.category) || [],
 
             // 5-Step Flow Fields
-            completedStepsCount: completedSteps,
+            completedStepsCount: isVerified ? 5 : completedSteps,
             totalSteps: 5,
-            verificationStatus: sub.status,
+            verificationStatus: isVerified ? 'APPROVED' : sub.status,
 
             // Step 1: Personal Info
             firstName: rawFirstName,
