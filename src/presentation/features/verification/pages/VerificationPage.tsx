@@ -647,7 +647,8 @@ const ReviewDecisionContent: React.FC<{
   onApprove: () => void;
   onReject: () => void;
   onFlag: () => void;
-}> = ({ submission, notes, setNotes, onApprove, onReject, onFlag }) => {
+  isSubmitting?: boolean;
+}> = ({ submission, notes, setNotes, onApprove, onReject, onFlag, isSubmitting }) => {
   const { t } = useLanguage();
   const presets = [
     'Verified national ID and selfie match successfully.',
@@ -730,6 +731,7 @@ const ReviewDecisionContent: React.FC<{
             <button
               key={idx}
               type="button"
+              disabled={isSubmitting}
               onClick={() => setNotes(p)}
               style={{
                 fontSize: 11,
@@ -738,7 +740,7 @@ const ReviewDecisionContent: React.FC<{
                 border: '1px solid var(--border-color)',
                 background: 'var(--bg-surface-hover)',
                 color: 'var(--text-secondary)',
-                cursor: 'pointer'
+                cursor: isSubmitting ? 'not-allowed' : 'pointer'
               }}
             >
               + {p}
@@ -751,6 +753,7 @@ const ReviewDecisionContent: React.FC<{
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
+          disabled={isSubmitting}
           style={{
             width: '100%',
             padding: 12,
@@ -768,6 +771,7 @@ const ReviewDecisionContent: React.FC<{
         <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           <button
             onClick={onFlag}
+            disabled={isSubmitting}
             style={{
               padding: '10px 18px',
               borderRadius: 8,
@@ -776,7 +780,8 @@ const ReviewDecisionContent: React.FC<{
               color: '#d97706',
               fontWeight: 600,
               fontSize: 13,
-              cursor: 'pointer',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              opacity: isSubmitting ? 0.6 : 1,
               display: 'flex',
               alignItems: 'center',
               gap: 6
@@ -787,6 +792,7 @@ const ReviewDecisionContent: React.FC<{
           </button>
           <button
             onClick={onReject}
+            disabled={isSubmitting}
             style={{
               padding: '10px 18px',
               borderRadius: 8,
@@ -795,7 +801,8 @@ const ReviewDecisionContent: React.FC<{
               color: '#dc2626',
               fontWeight: 600,
               fontSize: 13,
-              cursor: 'pointer',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              opacity: isSubmitting ? 0.6 : 1,
               display: 'flex',
               alignItems: 'center',
               gap: 6
@@ -806,6 +813,7 @@ const ReviewDecisionContent: React.FC<{
           </button>
           <button
             onClick={onApprove}
+            disabled={isSubmitting}
             style={{
               padding: '10px 22px',
               borderRadius: 8,
@@ -814,7 +822,8 @@ const ReviewDecisionContent: React.FC<{
               color: '#fff',
               fontWeight: 600,
               fontSize: 13,
-              cursor: 'pointer',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              opacity: isSubmitting ? 0.6 : 1,
               display: 'flex',
               alignItems: 'center',
               gap: 6,
@@ -822,7 +831,7 @@ const ReviewDecisionContent: React.FC<{
             }}
           >
             <CheckCircle size={15} />
-            Approve & Grant Verified Badge
+            {isSubmitting ? 'Processing...' : 'Approve & Grant Verified Badge'}
           </button>
         </div>
       </div>
@@ -853,6 +862,7 @@ export const VerificationPage: React.FC = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<VerificationTab>('profile_info');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -886,7 +896,11 @@ export const VerificationPage: React.FC = () => {
       const res = await verificationRepository.toggleAutoVerification(nextState);
       if (res.success) {
         setAutoVerifyEnabled(res.data.enabled);
+      } else {
+        setError(res.error?.message || 'Failed to toggle auto-verification.');
       }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to toggle auto-verification.');
     } finally {
       setTogglingAutoVerify(false);
     }
@@ -900,7 +914,12 @@ export const VerificationPage: React.FC = () => {
       if (result.success) {
         setSubmissions(result.data);
         if (result.data.length > 0) {
-          setSelectedId(result.data[0].id);
+          setSelectedId(prev => {
+            if (prev && result.data.some(s => s.id === prev)) return prev;
+            return result.data[0].id;
+          });
+        } else {
+          setSelectedId('');
         }
       } else {
         setError(result.error.message || 'Failed to fetch verification queue.');
@@ -932,7 +951,9 @@ export const VerificationPage: React.FC = () => {
   }, [mobileView]);
 
   const handleModerate = async (decision: 'APPROVED' | 'REJECTED' | 'FLAGGED') => {
+    if (!selectedId || isSubmitting) return;
     setError(null);
+    setIsSubmitting(true);
     try {
       setLastAction({
         id: selectedId,
@@ -944,15 +965,44 @@ export const VerificationPage: React.FC = () => {
 
       const result = await verificationRepository.moderateVerification(selectedId, decision, notes);
       if (result.success) {
+        const nextApproved = new Set(approvedIds);
+        const nextRejected = new Set(rejectedIds);
         if (decision === 'APPROVED') {
-          setApprovedIds(prev => new Set([...prev, selectedId]));
+          nextApproved.add(selectedId);
+          setApprovedIds(nextApproved);
         } else if (decision === 'REJECTED') {
-          setRejectedIds(prev => new Set([...prev, selectedId]));
+          nextRejected.add(selectedId);
+          setRejectedIds(nextRejected);
         }
         setNotes('');
-        // Move to next pending
-        const pending = submissions.filter(s => !approvedIds.has(s.id) && !rejectedIds.has(s.id) && s.id !== selectedId);
-        if (pending.length > 0) setSelectedId(pending[0].id);
+
+        // Optimistically update status in local state
+        setSubmissions(prev => prev.map(s => {
+          if (s.id === selectedId) {
+            return {
+              ...s,
+              status: decision === 'APPROVED' ? 'today' : decision === 'REJECTED' ? 'pending' : 'flagged',
+              isVerifiedId: decision === 'APPROVED',
+              verificationStatus: decision,
+            };
+          }
+          return s;
+        }));
+
+        // Move to next pending submission if available
+        const remaining = submissions.filter(
+          s => !nextApproved.has(s.id) && !nextRejected.has(s.id) && s.id !== selectedId
+        );
+        if (remaining.length > 0) {
+          setSelectedId(remaining[0].id);
+        }
+
+        // Re-fetch queue in the background to ensure server sync
+        verificationRepository.getVerificationQueue().then(res => {
+          if (res.success) {
+            setSubmissions(res.data);
+          }
+        }).catch(console.error);
       } else {
         setError(result.error.message || 'Failed to moderate verification.');
         setLastAction(null);
@@ -960,6 +1010,8 @@ export const VerificationPage: React.FC = () => {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to moderate verification.');
       setLastAction(null);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1083,10 +1135,18 @@ export const VerificationPage: React.FC = () => {
             <div className="glass-card status-danger animate-fade-in" style={{ padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', color: 'var(--color-danger)' }}>
                 <AlertTriangle size={20} />
-                <div style={{ textAlign: 'start' }}>
+                <div style={{ textAlign: 'start', flex: 1 }}>
                   <strong style={{ display: 'block' }}>Action Alert</strong>
                   <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>{error}</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setError(null)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 4 }}
+                  title="Dismiss alert"
+                >
+                  <X size={18} />
+                </button>
               </div>
             </div>
           )}
@@ -1283,17 +1343,32 @@ export const VerificationPage: React.FC = () => {
                           </div>
                         </div>
                         <div className="vr-profile-actions">
-                          <button className="vr-action-btn vr-btn-flag" onClick={handleFlag}>
+                          <button
+                            className="vr-action-btn vr-btn-flag"
+                            onClick={handleFlag}
+                            disabled={isSubmitting}
+                            style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                          >
                             <Flag size={12} />
                             <span>{t('vr_flag') || 'Flag'}</span>
                           </button>
-                          <button className="vr-action-btn vr-btn-reject" onClick={handleReject}>
+                          <button
+                            className="vr-action-btn vr-btn-reject"
+                            onClick={handleReject}
+                            disabled={isSubmitting}
+                            style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                          >
                             <X size={12} />
                             <span>{t('vr_reject') || 'Reject'}</span>
                           </button>
-                          <button className="vr-action-btn vr-btn-approve" onClick={handleApprove}>
-                            <CheckCircle size={12} />
-                            <span>{t('vr_approve_all') || 'Approve all'}</span>
+                          <button
+                            className="vr-action-btn vr-btn-approve"
+                            onClick={handleApprove}
+                            disabled={isSubmitting}
+                            style={isSubmitting ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                          >
+                            {isSubmitting ? <RefreshCw className="animate-spin" size={12} /> : <CheckCircle size={12} />}
+                            <span>{isSubmitting ? 'Processing...' : (t('vr_approve_all') || 'Approve all')}</span>
                           </button>
                         </div>
                       </div>
@@ -1439,6 +1514,7 @@ export const VerificationPage: React.FC = () => {
                             onApprove={handleApprove}
                             onReject={handleReject}
                             onFlag={handleFlag}
+                            isSubmitting={isSubmitting}
                           />
                         )}
                       </div>

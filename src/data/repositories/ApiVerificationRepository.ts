@@ -3,6 +3,7 @@ import { Result, ok, fail } from '../../core/result/Result';
 import { apiClient } from '../../core/network/apiClient';
 import { API_ENDPOINTS, API_BASE_URL } from '../../core/config/apiEndpoints';
 import { AppError } from '../../core/errors/AppError';
+import { storageService } from '../../core/storage/StorageService';
 
 interface ApiVerificationRequestDTO {
   id: string;
@@ -22,11 +23,17 @@ interface PaginatedVerificationResponse {
 
 const resolveImageUrl = (url?: string | null): string | undefined => {
   if (!url) return undefined;
-  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-    return url;
+  let fullUrl = url;
+  if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
+    const hostBase = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+    fullUrl = `${hostBase}${url.startsWith('/') ? '' : '/'}${url}`;
   }
-  const hostBase = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
-  return `${hostBase}${url.startsWith('/') ? '' : '/'}${url}`;
+  const token = storageService.getToken();
+  if (token && fullUrl.includes('/api/v1/uploads/') && !fullUrl.includes('token=')) {
+    const separator = fullUrl.includes('?') ? '&' : '?';
+    return `${fullUrl}${separator}token=${encodeURIComponent(token)}`;
+  }
+  return fullUrl;
 };
 
 export class ApiVerificationRepository implements VerificationRepository {
@@ -219,28 +226,13 @@ export class ApiVerificationRepository implements VerificationRepository {
     moderatorNotes: string
   ): Promise<Result<boolean>> {
     try {
-      try {
-        const notes = moderatorNotes?.trim() || (decision === 'APPROVED' ? 'Approved by admin' : 'Reviewed by admin');
-        await apiClient.post<void>(API_ENDPOINTS.admin.verificationModerate, {
-          requestId,
-          decision,
-          moderatorNotes: notes,
-        });
-        return ok(true);
-      } catch (modErr) {
-        const notes = moderatorNotes?.trim() || (decision === 'APPROVED' ? 'Approved by admin' : 'Reviewed by admin');
-        const itemMap: Record<string, string> = {
-          APPROVED: 'nationalId',
-          REJECTED: 'nationalId',
-          FLAGGED: 'backgroundCheck',
-        };
-        await apiClient.post<void>(API_ENDPOINTS.craftsmen.toggleVerificationItem(requestId), {
-          itemKey: itemMap[decision] || 'nationalId',
-          approved: decision === 'APPROVED',
-          notes,
-        });
-        return ok(true);
-      }
+      const notes = moderatorNotes?.trim() || (decision === 'APPROVED' ? 'Approved by admin' : 'Reviewed by admin');
+      await apiClient.post<void>(API_ENDPOINTS.admin.verificationModerate, {
+        requestId,
+        decision,
+        moderatorNotes: notes,
+      });
+      return ok(true);
     } catch (error) {
       return fail(error as AppError);
     }
