@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Sidebar } from '../../../../presentation/layouts/Sidebar';
-import { Header } from '../../../../presentation/layouts/Header';
-import { MobileBottomTabs } from '../../../../presentation/layouts/MobileBottomTabs';
 import { useBroadcast } from '../hooks/useBroadcast';
 import {
   Send,
@@ -64,7 +61,6 @@ export const BroadcastPage: React.FC = () => {
     deleteCampaign,
   } = useBroadcast();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSection, setMobileSection] = useState<'overview' | 'compose' | 'history'>('compose');
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
@@ -124,50 +120,7 @@ export const BroadcastPage: React.FC = () => {
   };
 
   return (
-    <div className="app-container">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <main className="main-content">
-        {/* Mobile Header */}
-        <div className="mobile-header mobile-only">
-          <div className="mobile-header-left">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="mobile-logo-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                textAlign: 'start',
-                fontFamily: 'inherit',
-              }}
-            >
-              <div className="mobile-logo">A</div>
-              <div className="mobile-logo-text">
-                <strong>Arox</strong>
-                <span>Admin</span>
-              </div>
-            </button>
-          </div>
-          <div className="mobile-header-right" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button className="mobile-action-btn"><Search size={16} /></button>
-            <button className="mobile-action-btn" style={{ position: 'relative' }}>
-              <Bell size={16} />
-              <span className="mobile-badge" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Subheader */}
-        <div className="mobile-subheader mobile-only">
-          <h2>{t('nav_broadcast') || 'Broadcast'}</h2>
-          <span>{t('broadcast_subtitle') || 'Compose and schedule notifications'}</span>
-        </div>
+    <div className="broadcast-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
 
         {/* Success Toast */}
         {successToast && (
@@ -1682,9 +1635,6 @@ export const BroadcastPage: React.FC = () => {
             }
           }
         `}</style>
-      </main>
-
-      <MobileBottomTabs />
     </div>
   );
 };

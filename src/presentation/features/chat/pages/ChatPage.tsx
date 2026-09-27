@@ -1,9 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
-import { Sidebar } from '../../../../presentation/layouts/Sidebar';
-import { Header } from '../../../../presentation/layouts/Header';
-import { MobileBottomTabs } from '../../../../presentation/layouts/MobileBottomTabs';
 import { useChat, ChatFilterTab } from '../hooks/useChat';
 import {
   MessageSquare,
@@ -39,7 +36,6 @@ import {
 export const ChatPage: React.FC = () => {
   const { t, isRtl } = useLanguage();
   const { navigate } = useNavigation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const {
     rooms,
@@ -151,11 +147,7 @@ export const ChatPage: React.FC = () => {
   ];
 
   return (
-    <div className="app-container">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <main className="main-content chat-page-main">
+    <div className="chat-page-main">
         {/* Top Header Bar */}
         <div className="chat-top-bar">
           <div className="chat-title-group">
@@ -766,9 +758,6 @@ export const ChatPage: React.FC = () => {
             </div>
           </div>
         )}
-
-        <MobileBottomTabs />
-      </main>
 
       <style>{`
         .chat-page-main {

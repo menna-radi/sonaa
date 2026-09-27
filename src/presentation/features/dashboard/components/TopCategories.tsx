@@ -1,6 +1,9 @@
 import React from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { GlassCard } from '../../../components/GlassCard';
+import { Card } from '../../../components/ui/Card';
+import { ProgressBar } from '../../../components/ui/ProgressBar';
+import { Dropdown } from '../../../components/ui/Dropdown';
+import { formatNumber } from '../../../../core/utils/format';
 import type { CategoryVolume } from '../../../../domain/repositories/MetricRepository';
 import { MoreHorizontal } from 'lucide-react';
 
@@ -9,8 +12,8 @@ interface TopCategoriesProps {
 }
 
 export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
-  const { t } = useLanguage();
-  const maxTasks = 2843;
+  const { t, language } = useLanguage();
+  const maxTasks = Math.max(...categories.map((c) => c.tasksCount), 1);
 
   const formatCategoryName = (key: string) => {
     const translated = t(key);
@@ -21,133 +24,65 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
   };
 
   return (
-    <GlassCard 
-      className="top-categories-card" 
-      status="normal"
+    <Card
+      eyebrow={t('sec_top_categories') || 'Top Categories'}
+      title={t('sec_by_volume') || 'By volume'}
+      actions={
+        <Dropdown
+          trigger={
+            <button
+              type="button"
+              aria-label="Category options"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                display: 'flex',
+                padding: 4,
+                cursor: 'pointer',
+              }}
+            >
+              <MoreHorizontal size={16} />
+            </button>
+          }
+          items={[
+            {
+              key: 'view_all',
+              label: 'View all categories',
+              onClick: () => {},
+            },
+          ]}
+        />
+      }
+      style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
     >
-      <div className="flex-between" style={{ marginBottom: '20px', alignItems: 'flex-start', width: '100%' }}>
-        <div>
-          <span style={{ 
-            fontSize: '12px', 
-            color: 'var(--text-muted)', 
-            fontWeight: 700, 
-            textTransform: 'uppercase',
-            letterSpacing: '0.6px'
-          }}>
-            {t('sec_top_categories')}
-          </span>
-          <h3 style={{ 
-            fontSize: '14px', 
-            fontWeight: 700, 
-            marginTop: '2px', 
-            color: 'var(--text-primary)',
-            margin: '2px 0 0 0'
-          }}>
-            {t('sec_by_volume')}
-          </h3>
-        </div>
-        <button style={{ background: 'none', border: 'none', color: 'var(--text-primary)', display: 'flex', padding: '4px', cursor: 'pointer' }}>
-          <MoreHorizontal size={16} />
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flexGrow: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', flexGrow: 1 }}>
         {categories.map((cat, idx) => {
-          const barWidth = `${(cat.tasksCount / maxTasks) * 84}%`;
+          const percentage = (cat.tasksCount / maxTasks) * 100;
           return (
-            <div key={idx} className="category-progress-row" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div className="flex-between" style={{ fontSize: '12px' }}>
-                {/* Category Name */}
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+            <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--text-strong)' }}>
                   {formatCategoryName(cat.nameKey)}
                 </span>
-                
-                {/* Count and Trend pill (Desktop/Tablet only) */}
-                <div className="category-details-desktop" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '10px' }}>
-                    {cat.tasksCount.toLocaleString()} tasks
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {formatNumber(cat.tasksCount, language)} tasks
                   </span>
-                  <span style={{ 
-                    fontSize: '10px', 
-                    fontWeight: 700, 
-                    color: '#16A34A'
-                  }}>
-                    +{cat.trendPercentage}%
-                  </span>
-                </div>
-
-                {/* Percentage (Mobile only) */}
-                <div className="category-details-mobile" style={{ display: 'none' }}>
-                  <span style={{ 
-                    fontSize: '12px', 
-                    fontWeight: 700, 
-                    color: 'var(--text-primary)'
-                  }}>
-                    {cat.percentage}%
-                  </span>
+                  {cat.trendPercentage != null && (
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--success)' }}>
+                      +{cat.trendPercentage}%
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Horizontal progress bar */}
-              <div style={{ 
-                width: '100%', 
-                height: '6px', 
-                background: 'var(--bg-surface-hover)', 
-                borderRadius: '9999px',
-                overflow: 'hidden'
-              }}>
-                <div style={{ 
-                  width: barWidth,
-                  maxWidth: '100%',
-                  height: '100%', 
-                  background: 'var(--color-primary)', 
-                  borderRadius: '9999px'
-                }} />
-              </div>
+              <ProgressBar value={percentage} dense />
             </div>
           );
         })}
       </div>
-
-      <style>{`
-        .top-categories-card {
-          display: flex;
-          flex-direction: column;
-          text-align: start;
-          background: var(--bg-surface) !important;
-          border: 1px solid var(--border-color) !important;
-          border-radius: 16px !important;
-          padding: 24px !important;
-          box-shadow: 0px 1px 1.5px rgba(0, 0, 0, 0.04) !important;
-          box-sizing: border-box;
-          width: 100%;
-        }
-
-        .category-details-desktop {
-          display: flex !important;
-        }
-
-        .category-details-mobile {
-          display: none !important;
-        }
-
-        @media (max-width: 768px) {
-          .top-categories-card {
-            padding: 16px !important;
-          }
-          .category-details-desktop {
-            display: none !important;
-          }
-          .category-details-mobile {
-            display: block !important;
-          }
-          /* Hide Painting (4th item, index 3) on mobile to match Figma mobile */
-          .category-progress-row:nth-child(4) {
-            display: none !important;
-          }
-        }
-      `}</style>
-    </GlassCard>
+    </Card>
   );
 };
 export default TopCategories;

@@ -1,9 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
-import { Sidebar } from '../../../layouts/Sidebar';
-import { Header } from '../../../layouts/Header';
-import { MobileBottomTabs } from '../../../layouts/MobileBottomTabs';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
 import { apiClient } from '../../../../core/network/apiClient';
 import { resolveMediaUrl } from '../../../../core/utils/mediaUrl';
@@ -54,7 +51,6 @@ interface ActiveCampaignsPageProps {
 export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaultTab = 'Active' }) => {
   const { isRtl } = useLanguage();
   const { navigate } = useNavigation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'Active' | 'Scheduled' | 'Expired'>(defaultTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlacement, setSelectedPlacement] = useState('All');
@@ -301,52 +297,7 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
   }, [activeTab]);
 
   return (
-    <div className="app-container" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <main className="main-content">
-        {/* Mobile Header */}
-        <div className="mobile-header mobile-only">
-          <div className="mobile-header-left">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="mobile-logo-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                textAlign: 'start',
-                fontFamily: 'inherit'
-              }}
-            >
-              <div className="mobile-logo">A</div>
-              <div className="mobile-logo-text">
-                <strong>Arox</strong>
-                <span>Admin</span>
-              </div>
-            </button>
-          </div>
-          <div className="mobile-header-right" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button className="mobile-action-btn"><Search size={16} /></button>
-            <button className="mobile-action-btn" style={{ position: 'relative' }}>
-              <Bell size={16} />
-              <span className="mobile-badge" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Subheader */}
-        <div className="mobile-subheader mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-color)' }}>
-          <div style={{ textAlign: 'start' }}>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>{pageMeta.title}</h2>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>{pageMeta.subtitle}</span>
-          </div>
-        </div>
+    <div className="active-campaigns-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', direction: isRtl ? 'rtl' : 'ltr' }}>
 
         {/* Desktop & Tablet Page Header */}
         <div className="desktop-tablet-page-header desktop-tablet-only">
@@ -1026,9 +977,6 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
             </div>
           </div>
         )}
-
-        <MobileBottomTabs />
-      </main>
 
       {/* Styles for Desktop, Tablet, and Mobile */}
       <style>{`

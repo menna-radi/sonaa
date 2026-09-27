@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
-import { Sidebar } from '../../../../presentation/layouts/Sidebar';
-import { Header } from '../../../../presentation/layouts/Header';
-import { MobileBottomTabs } from '../../../../presentation/layouts/MobileBottomTabs';
 import { usePayments } from '../hooks/usePayments';
 import { BitSubscriptionManager } from '../components/BitSubscriptionManager';
 import {
@@ -37,7 +34,6 @@ export const PaymentsPage: React.FC = () => {
     onReject,
   } = usePayments();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [timeFilter, setTimeFilter] = useState<'7d' | '30d' | '90d' | 'ytd'>('30d');
   const [mobileSection, setMobileSection] = useState<'overview' | 'payouts'>('overview');
   const [showAllFailedModal, setShowAllFailedModal] = useState(false);
@@ -112,52 +108,8 @@ export const PaymentsPage: React.FC = () => {
   };
 
   return (
-    <div className="app-container">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <main className="main-content">
-        {/* Mobile Header */}
-        <div className="mobile-header mobile-only">
-          <div className="mobile-header-left">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="mobile-logo-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                textAlign: 'start',
-                fontFamily: 'inherit'
-              }}
-            >
-              <div className="mobile-logo">A</div>
-              <div className="mobile-logo-text">
-                <strong>Arox</strong>
-                <span>Admin</span>
-              </div>
-            </button>
-          </div>
-          <div className="mobile-header-right" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button className="mobile-action-btn"><Search size={16} /></button>
-            <button className="mobile-action-btn" style={{ position: 'relative' }}>
-              <Bell size={16} />
-              <span className="mobile-badge" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Subheader */}
-        <div className="mobile-subheader mobile-only">
-          <h2>{t('nav_payments') || 'Payments'}</h2>
-          <span>{t('payments_subtitle') || 'Revenue · commission · payouts · subscriptions'}</span>
-        </div>
-
-        <div className="payments-page-body">
+    <div className="payments-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+      <div className="payments-page-body">
           {/* Desktop/Tablet Header */}
           <div className="desktop-tablet-page-header desktop-tablet-only">
             <div className="payments-header-left">
@@ -827,10 +779,6 @@ export const PaymentsPage: React.FC = () => {
               </div>
             </div>
           )}
-
-      </main>
-
-      <MobileBottomTabs />
 
       <style>{`
         /* ── Page Layout ── */

@@ -1,8 +1,11 @@
 import React from 'react';
 import { DependencyProvider } from './core/di/DependencyProvider';
 import { LanguageProvider } from './presentation/context/LanguageContext';
+import { ThemeProvider } from './presentation/context/ThemeContext';
 import { AuthProvider, useAuth } from './presentation/context/AuthContext';
 import { NavigationProvider } from './presentation/context/NavigationContext';
+import { ToastProvider } from './presentation/components/ui/Toast';
+import { ConfirmProvider } from './presentation/components/ui/ConfirmDialog';
 import { LoginPage } from './presentation/features/auth/pages/LoginPage';
 import { DashboardPage } from './presentation/features/dashboard/pages/DashboardPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -21,12 +24,12 @@ const AppContent: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg-base)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--surface-page)' }}>
         <div style={{ 
           width: '36px', 
           height: '36px', 
-          border: '3px solid rgba(0,0,0,0.06)', 
-          borderTopColor: 'var(--color-primary)', 
+          border: '3px solid var(--border)', 
+          borderTopColor: 'var(--text-strong)', 
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
         }} />
@@ -41,13 +44,19 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <DependencyProvider>
-        <AuthProvider>
-          <LanguageProvider>
-            <NavigationProvider>
-              <AppContent />
-            </NavigationProvider>
-          </LanguageProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <NavigationProvider>
+                <ToastProvider>
+                  <ConfirmProvider>
+                    <AppContent />
+                  </ConfirmProvider>
+                </ToastProvider>
+              </NavigationProvider>
+            </LanguageProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </DependencyProvider>
     </QueryClientProvider>
   );

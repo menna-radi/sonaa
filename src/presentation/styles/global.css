@@ -1,4 +1,5 @@
-@import './variables.css';
+@import './tokens.css';
+@import '../components/ui/ui.css';
 
 /* Global Reset & Base */
 *, *::before, *::after {
@@ -9,38 +10,13 @@
 
 body {
   font-family: var(--font-current);
-  background-color: var(--bg-base);
-  color: var(--text-primary);
+  background-color: var(--surface-page);
+  color: var(--text-strong);
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
-}
-
-/* Background Glow Effects */
-body::before {
-  content: "";
-  position: fixed;
-  top: -10%;
-  inset-inline-start: -10%;
-  width: 50%;
-  height: 50%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(0,0,0,0) 70%);
-  z-index: -1;
-  pointer-events: none;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  bottom: -10%;
-  inset-inline-end: -10%;
-  width: 50%;
-  height: 50%;
-  background: radial-gradient(circle, rgba(190, 90, 50, 0.08) 0%, rgba(0,0,0,0) 70%);
-  z-index: -1;
-  pointer-events: none;
 }
 
 /* Scrollbar styles */
@@ -258,21 +234,19 @@ button {
   text-align: end;
 }
 
-/* Glass Card styling */
+/* Card styling (Monochrome Ops) */
 .glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  box-shadow: var(--glass-shadow);
-  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--card-pad);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--space-3);
 }
 
 .glass-card.clickable {
@@ -280,20 +254,19 @@ button {
 }
 
 .glass-card.clickable:hover {
-  transform: translateY(-4px);
-  border-color: rgba(139, 92, 246, 0.25);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.15);
+  background-color: var(--surface-hover);
+  border-color: var(--border-strong);
 }
 
 /* Card states */
 .glass-card.status-warning {
-  border-color: rgba(245, 158, 11, 0.4);
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.05) 0%, rgba(18, 20, 32, 0.65) 100%);
+  border-color: var(--warning-border);
+  background: var(--warning-soft);
 }
 
 .glass-card.status-danger {
-  border-color: rgba(239, 68, 68, 0.4);
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, rgba(18, 20, 32, 0.65) 100%);
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
 }
 
 .card-header {
@@ -540,38 +513,29 @@ button {
 
   .live-desktop-map-card {
     flex: 2 !important;
-    min-width: 500px !important;
-    height: 582px !important;
-    border-radius: 16px !important;
+    min-height: 560px !important;
+    border-radius: var(--r-lg) !important;
   }
   
   .live-desktop-feed-card {
     flex: 1 !important;
-    min-width: 268px !important;
-    height: 582px !important; /* Make Feed same height as Map for grid alignment */
-    border-radius: 16px !important;
+    min-height: 560px !important;
+    border-radius: var(--r-lg) !important;
   }
   
   .live-desktop-jobs-card {
-    flex: 1.5 !important;
-    min-width: 300px !important;
-    height: 519px !important;
-    border-radius: 16px !important;
+    flex: 1.4 !important;
+    border-radius: var(--r-lg) !important;
   }
   
   .live-desktop-suspicious-card {
-    flex: 1.2 !important;
-    min-width: 268px !important;
-    height: 519px !important;
-    border-radius: 16px !important;
+    flex: 1 !important;
+    border-radius: var(--r-lg) !important;
   }
   
   .live-desktop-busy-zones-card {
-    flex: 1 !important;
-    min-width: 197px !important;
-    height: 519px !important;
-    padding: 21px !important;
-    border-radius: 16px !important;
+    flex: 0.8 !important;
+    border-radius: var(--r-lg) !important;
   }
 }
 

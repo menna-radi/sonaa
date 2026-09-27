@@ -1,9 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
-import { Sidebar } from '../../../layouts/Sidebar';
-import { Header } from '../../../layouts/Header';
-import { MobileBottomTabs } from '../../../layouts/MobileBottomTabs';
 import { useServiceManagement } from '../hooks/useServiceManagement';
 import { Category, Subcategory } from '../../../../domain/entities/Category';
 import {
@@ -29,7 +26,6 @@ import {
 
 export const ServiceManagementPage: React.FC = () => {
   const { isRtl } = useLanguage();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const {
     categories,
@@ -173,11 +169,7 @@ export const ServiceManagementPage: React.FC = () => {
   const currentSubcats = subcategories;
 
   return (
-    <div className="app-container" style={{ direction: isRtl ? 'rtl' : 'ltr', background: 'var(--bg-base)' }}>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <main className="main-content">
+    <div className="service-management-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', direction: isRtl ? 'rtl' : 'ltr' }}>
         {/* Desktop & Tablet Page Header */}
         <div className="desktop-tablet-page-header desktop-tablet-only" style={{ marginBottom: '24px' }}>
           <div style={{ textAlign: 'start' }}>
@@ -187,20 +179,6 @@ export const ServiceManagementPage: React.FC = () => {
             <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '14px' }}>
               {isRtl ? 'إدارة الفئات والفئات الفرعية وحقول الطلبات لكل خدمة' : 'Manage categories, subcategories, and request fields per service'}
             </p>
-          </div>
-        </div>
-
-        {/* Mobile Header */}
-        <div className="mobile-header mobile-only">
-          <div className="mobile-header-left">
-            <button onClick={() => setSidebarOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-              <div className="mobile-logo">A</div>
-              <div className="mobile-logo-text"><strong>Arox</strong><span>Admin</span></div>
-            </button>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button className="mobile-action-btn"><Search size={16} /></button>
-            <button className="mobile-action-btn" style={{ position: 'relative' }}><Bell size={16} /><span className="mobile-badge" /></button>
           </div>
         </div>
 
@@ -637,8 +615,6 @@ export const ServiceManagementPage: React.FC = () => {
           </div>
         </div>
 
-      </main>
-
       {/* ── Create New Category Modal ── */}
       {isModalOpen && (
         <div className="sm-modal-overlay">
@@ -920,8 +896,6 @@ export const ServiceManagementPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      <MobileBottomTabs />
 
       <style>{`
         /* ── KPIs Row ── */

@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
-import { Sidebar } from '../../../../presentation/layouts/Sidebar';
-import { Header } from '../../../../presentation/layouts/Header';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
 import { apiClient } from '../../../../core/network/apiClient';
 import {
@@ -45,7 +43,6 @@ export const CreateAdPage: React.FC = () => {
   const { dependencies } = useDependencies();
   const { adRepository } = dependencies;
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -357,11 +354,7 @@ export const CreateAdPage: React.FC = () => {
   const selectedCities = cities.filter(c => c.selected);
 
   return (
-    <div className="app-container" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <main className="main-content">
+    <div className="create-ad-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', direction: isRtl ? 'rtl' : 'ltr' }}>
         {/* Success Alert */}
         {showSuccess && (
           <div className="success-toast">
@@ -1676,7 +1669,6 @@ export const CreateAdPage: React.FC = () => {
             margin-bottom: 16px;
           }
         `}</style>
-      </main>
     </div>
   );
 };

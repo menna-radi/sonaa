@@ -12,9 +12,6 @@ import {
   Search
 } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Sidebar } from '../../../layouts/Sidebar';
-import { Header } from '../../../layouts/Header';
-import { MobileBottomTabs } from '../../../layouts/MobileBottomTabs';
 
 // Mock performance trends data for 4 weeks per metric
 const TRENDS_DATA = {
@@ -101,7 +98,6 @@ const getHeatmapColorClass = (val: number) => {
 
 export const AdAnalyticsPage: React.FC = () => {
   const { t, isRtl } = useLanguage();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // States: activeMetrics is an array supporting multiple selections. Default is Impressions and Clicks active.
   const [activeMetrics, setActiveMetrics] = useState<string[]>(['impressions', 'clicks']);
@@ -245,50 +241,7 @@ export const AdAnalyticsPage: React.FC = () => {
   };
 
   return (
-    <div className="app-container" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <main className="main-content">
-        {/* Mobile Header (standard Sonaa mobile template) */}
-        <div className="mobile-header mobile-only">
-          <div className="mobile-header-left">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="mobile-logo-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                textAlign: 'start',
-                fontFamily: 'inherit'
-              }}
-            >
-              <div className="mobile-logo">A</div>
-              <div className="mobile-logo-text">
-                <strong>Arox</strong>
-                <span>Admin</span>
-              </div>
-            </button>
-          </div>
-          <div className="mobile-header-right" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button className="mobile-action-btn"><Search size={16} /></button>
-            <button className="mobile-action-btn" style={{ position: 'relative' }}>
-              <Bell size={16} />
-              <span className="mobile-badge" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Subheader */}
-        <div className="mobile-subheader mobile-only">
-          <h2>{t('ad_analytics_page_title') || 'Advertisement Analytics'}</h2>
-          <span>{t('ad_analytics_page_subtitle') || 'Deep performance insights across all campaigns'}</span>
-        </div>
+    <div className="ad-analytics-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', direction: isRtl ? 'rtl' : 'ltr' }}>
 
         {/* Desktop & Tablet Top Action Header */}
         <div className="desktop-tablet-page-header desktop-tablet-only">
@@ -744,9 +697,6 @@ export const AdAnalyticsPage: React.FC = () => {
             )}
           </div>
         </div>
-
-        <MobileBottomTabs />
-      </main>
 
       {/* Premium Stylesheet matching Figma mockup exactly */}
       <style>{`

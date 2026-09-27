@@ -2,6 +2,8 @@ import React from 'react';
 import { Briefcase, MapPin, ExternalLink } from 'lucide-react';
 import type { ActiveJob } from '../../../../domain/entities/LiveActivity';
 import { useNavigation } from '../../../../presentation/context/NavigationContext';
+import { Card, ProgressBar, StatusPill, Button, pillVariantFor } from '../../../components/ui';
+import { formatMoney } from '../../../../core/utils/format';
 
 interface ActiveJobsListProps {
   jobs: ActiveJob[];
@@ -10,177 +12,163 @@ interface ActiveJobsListProps {
 
 export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount }) => {
   const { navigate, setSearchQuery } = useNavigation();
-  return (
-    <div
-      className="glass-card live-desktop-jobs-card"
-      style={{
-        borderRadius: 'var(--border-radius-lg)',
-        border: '1px solid var(--border-color)',
-        background: 'var(--bg-surface)',
-        padding: '16px',
-        height: '100%',
-      }}
-    >
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-        <div style={{ textAlign: 'start' }}>
-          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-            Active Jobs In Progress
-          </div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-            Jerusalem region · Top {jobs.length}
-          </div>
-        </div>
-        {totalCount !== undefined && (
-          <span style={{
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            color: 'var(--text-secondary)',
-            background: 'var(--bg-surface-hover)',
-            border: '1px solid var(--border-color)',
-            padding: '3px 8px',
-            borderRadius: '20px',
-          }}>
-            All {totalCount.toLocaleString()}
-          </span>
-        )}
-      </div>
 
-      {/* Job list */}
+  return (
+    <Card
+      eyebrow="Active Jobs In Progress"
+      title={`Top ${jobs.length}`}
+      headerAction={
+        totalCount !== undefined ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('tasks')}
+          >
+            All {totalCount.toLocaleString()}
+          </Button>
+        ) : undefined
+      }
+      className="active-jobs-card live-desktop-jobs-card"
+      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+    >
       {jobs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
-          <Briefcase size={28} style={{ opacity: 0.35, margin: '0 auto 8px', display: 'block' }} />
-          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>No active tasks in progress</div>
-          <div style={{ fontSize: '0.72rem', marginTop: '4px', color: 'var(--text-muted)' }}>New dispatches and client tasks will appear here in real time.</div>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: 'var(--sp-6) var(--sp-4)',
+            color: 'var(--text-muted)',
+          }}
+        >
+          <Briefcase size={28} style={{ opacity: 0.35, margin: '0 auto var(--sp-2)', display: 'block' }} />
+          <div style={{ fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--text-secondary)' }}>
+            No active tasks in progress
+          </div>
+          <div style={{ fontSize: 'var(--fs-caption)', marginTop: 4, color: 'var(--text-muted)' }}>
+            New dispatches and client tasks will appear here in real time.
+          </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', flex: 1 }}>
           {jobs.map((job) => (
             <div
               key={job.id}
               style={{
                 textAlign: 'start',
-                padding: '10px',
-                borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                background: 'var(--bg-surface-hover)',
-                transition: 'all 0.15s ease'
+                padding: 'var(--sp-3)',
+                borderRadius: 'var(--r-md)',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: 'var(--bg-surface-elevated)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--sp-2)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                {/* Icon */}
-                <div style={{
-                  width: '32px', height: '32px',
-                  borderRadius: '50%',
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-color)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  <Briefcase size={15} color="var(--text-muted)" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Briefcase size={14} style={{ color: 'var(--text-muted)' }} />
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: '0.83rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '55%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--sp-2)' }}>
+                    <span
+                      style={{
+                        fontSize: 'var(--fs-caption)',
+                        fontWeight: 600,
+                        color: 'var(--text-primary)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                      title={job.title}
+                    >
                       {job.title}
                     </span>
-                    <span style={{ fontSize: '0.83rem', fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0 }}>
-                      {job.amountSAR.toLocaleString()} ILS
+                    <span
+                      style={{
+                        fontSize: 'var(--fs-caption)',
+                        fontWeight: 700,
+                        color: 'var(--text-primary)',
+                        flexShrink: 0,
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      {formatMoney(job.amountSAR)}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '1px' }}>
-                    <span style={{ color: 'var(--text-disabled)' }}>{job.jobNumber}</span>
+
+                  <div
+                    style={{
+                      fontSize: 'var(--fs-micro)',
+                      color: 'var(--text-muted)',
+                      marginTop: 2,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-faint)' }}>{job.jobNumber}</span>
                     {' · '}{job.customer} ↔ {job.craftsman} · {job.zone}
                   </div>
                 </div>
               </div>
 
-              {/* Progress bar */}
-              <div style={{ height: '4px', background: 'var(--bg-surface)', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${job.progressPercent}%`,
-                  background: 'var(--color-primary)',
-                  borderRadius: '4px',
-                  transition: 'width 0.6s ease',
-                }} />
-              </div>
+              {job.progressPercent !== undefined && job.progressPercent > 0 && (
+                <ProgressBar value={job.progressPercent} max={100} size="sm" />
+              )}
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{
-                  fontSize: '0.68rem',
-                  fontWeight: 600,
-                  color: job.status === 'IN_PROGRESS' ? 'var(--color-success)' : 'var(--color-primary)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  ● {job.status?.replace('_', ' ') || 'ACTIVE'}
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 2 }}>
+                <StatusPill
+                  variant={pillVariantFor('task', job.status || 'IN_PROGRESS')}
+                  label={job.status?.replace('_', ' ') || 'ACTIVE'}
+                />
 
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
+                <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
-                      window.dispatchEvent(new CustomEvent('focus-map-job', {
-                        detail: {
-                          jobId: job.id,
-                          coords: [job.lat || 31.7683, job.lng || 35.2137],
-                          title: job.title
-                        }
-                      }));
+                      window.dispatchEvent(
+                        new CustomEvent('focus-map-job', {
+                          detail: {
+                            jobId: job.id,
+                            coords: [job.lat || 31.7683, job.lng || 35.2137],
+                            title: job.title,
+                          },
+                        })
+                      );
                     }}
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      background: 'var(--bg-surface)',
-                      color: 'var(--text-primary)',
-                      border: '1px solid var(--border-color)',
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      transition: 'all 0.15s ease'
-                    }}
-                    title="Fly Leaflet map directly to this task"
                   >
-                    <MapPin size={12} color="#10b981" />
-                    <span>Show on Map</span>
-                  </button>
-
-                  <button
+                    <MapPin size={12} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
-                      setSearchQuery(job.jobNumber || job.title);
+                      if (setSearchQuery) setSearchQuery(job.jobNumber);
                       navigate('tasks');
                     }}
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      background: 'var(--bg-surface)',
-                      color: 'var(--text-primary)',
-                      border: '1px solid var(--border-color)',
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      transition: 'all 0.15s ease'
-                    }}
-                    title="Open task dispatch management record"
                   >
-                    <ExternalLink size={12} color="var(--text-secondary)" />
-                    <span>Open Details</span>
-                  </button>
+                    <ExternalLink size={12} />
+                  </Button>
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

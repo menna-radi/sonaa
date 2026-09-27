@@ -19,9 +19,6 @@ import {
   Sliders
 } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Sidebar } from '../../../layouts/Sidebar';
-import { Header } from '../../../layouts/Header';
-import { MobileBottomTabs } from '../../../layouts/MobileBottomTabs';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
 import { User as DomainUser } from '../../../../domain/entities/User';
 
@@ -154,7 +151,6 @@ export const SettingsPage: React.FC = () => {
   const { dependencies } = useDependencies();
   const { authRepository } = dependencies;
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>(() => {
     const saved = localStorage.getItem('settings_active_tab') as TabKey;
     return (saved && ['roles', 'security', 'notifications', 'platform'].includes(saved)) ? saved : 'roles';
@@ -328,24 +324,7 @@ export const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="app-container" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <main className="main-content">
-        {/* Mobile Header */}
-        <div className="mobile-header mobile-only">
-          <div className="mobile-header-left">
-            <button onClick={() => setSidebarOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-              <div className="mobile-logo">A</div>
-              <div className="mobile-logo-text"><strong>Arox</strong><span>Admin</span></div>
-            </button>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button className="mobile-action-btn"><Search size={16} /></button>
-            <button className="mobile-action-btn" style={{ position: 'relative' }}><Bell size={16} /><span className="mobile-badge" /></button>
-          </div>
-        </div>
+    <div className="settings-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', direction: isRtl ? 'rtl' : 'ltr' }}>
 
         {/* Desktop page header */}
         <div className="desktop-tablet-page-header desktop-tablet-only">
@@ -853,9 +832,6 @@ export const SettingsPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <MobileBottomTabs />
-      </main>
 
       <style>{`
         /* ── Page Layout ── */
