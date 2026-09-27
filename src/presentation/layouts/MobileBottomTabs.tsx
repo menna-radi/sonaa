@@ -50,7 +50,6 @@ export const MobileBottomTabs: React.FC<MobileBottomTabsProps> = ({ onOpenSideba
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         backgroundColor: 'var(--surface-card)',
         borderTop: '1px solid var(--border)',
-        display: 'flex',
         justifyContent: 'space-around',
         alignItems: 'center',
         zIndex: 95,

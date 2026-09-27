@@ -126,13 +126,22 @@
   --control-h-lg: 40px;
   --touch-min:    44px;  /* tappable target on touch screens */
 
-  --sidebar-w:      240px;
-  --sidebar-rail-w: 72px;
-  --topbar-h:       64px;
-  --content-max:    1440px;
-  --page-pad:       32px;
-  --card-pad:       20px;
-  --gap-grid:       20px;
+  --sidebar-w:               240px;
+  --sidebar-rail-w:          72px;
+  --sidebar-width:           var(--sidebar-w);
+  --sidebar-collapsed-width: var(--sidebar-rail-w);
+  --topbar-h:                64px;
+  --header-height:           var(--topbar-h);
+  --content-max:             1440px;
+  --page-pad:                32px;
+  --card-pad:                20px;
+  --gap-grid:                20px;
+  --spacing-lg:              var(--page-pad);
+  --spacing-md:              var(--space-4);
+  --spacing-sm:              var(--space-2);
+  --spacing-xl:              var(--space-6);
+  --transition-normal:       var(--dur-normal) var(--ease);
+  --transition-fast:         var(--dur-fast) var(--ease);
 
   /* ==========================================================================
      10. Elevation

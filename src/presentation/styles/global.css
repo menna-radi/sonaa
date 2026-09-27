@@ -74,37 +74,30 @@ button {
 .main-content {
   flex-grow: 1;
   min-height: 100vh;
-  margin-inline-start: var(--sidebar-width);
-  width: calc(100% - var(--sidebar-width));
+  margin-inline-start: var(--sidebar-w);
+  width: calc(100% - var(--sidebar-w));
   min-width: 0;
-  padding-top: var(--header-height);
-  padding-inline-start: var(--spacing-lg);
-  padding-inline-end: var(--spacing-lg);
-  padding-bottom: var(--spacing-xl);
-  transition: margin-inline-start var(--transition-normal), width var(--transition-normal);
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
+  transition: margin-inline-start var(--dur-normal) var(--ease), width var(--dur-normal) var(--ease);
 }
-
-
 
 /* Header/Top Bar */
 .top-header {
-  position: fixed;
+  position: sticky;
   top: 0;
-  inset-inline-start: var(--sidebar-width);
-  inset-inline-end: 0;
-  height: var(--header-height);
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--glass-border);
+  height: var(--topbar-h);
+  width: 100%;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-inline-start: var(--spacing-lg);
-  padding-inline-end: var(--spacing-lg);
-  z-index: 90;
-  transition: inset-inline-start var(--transition-normal);
+  padding-inline-start: var(--page-pad);
+  padding-inline-end: var(--page-pad);
+  z-index: 50;
+  box-sizing: border-box;
 }
 
 /* Sidebar Styling */
@@ -113,14 +106,19 @@ button {
   top: 0;
   bottom: 0;
   inset-inline-start: 0;
-  width: var(--sidebar-width);
-  background: #000000; /* Solid pure black background */
-  border-inline-end: 1px solid #1f1f23; /* Subtle dark border */
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg, #000000);
+  border-inline-end: 1px solid var(--sidebar-border, #1f1f23);
   display: flex;
   flex-direction: column;
   z-index: 100;
-  transition: transform var(--transition-normal), width var(--transition-normal);
-  overflow-y: auto; /* Enable scroll on the sidebar as a whole */
+  transition: transform var(--dur-normal) var(--ease), width var(--dur-normal) var(--ease);
+  overflow-y: auto;
+}
+
+/* Mobile bottom tabs hidden on desktop by default */
+.mobile-bottom-tabs {
+  display: none !important;
 }
 
 /* Sidebar inner elements */
@@ -317,28 +315,42 @@ button {
   text-decoration: none;
 }
 
-/* 1. Tablet Screens (769px to 1024px) - Collapsed Sidebar */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* 1. Tablet Screens (768px to 1279.98px) - Collapsed Sidebar Rail */
+@media (min-width: 768px) and (max-width: 1279.98px) {
   :root {
-    --sidebar-width: var(--sidebar-collapsed-width);
-    --spacing-lg: 1.25rem;
+    --sidebar-w: var(--sidebar-rail-w);
+    --sidebar-width: var(--sidebar-rail-w);
+    --page-pad: 20px;
+    --card-pad: 20px;
+    --gap-grid: 16px;
   }
   
   .sidebar {
-    width: var(--sidebar-collapsed-width) !important;
+    width: var(--sidebar-rail-w) !important;
+    transform: none !important;
   }
   
   .main-content {
-    margin-inline-start: var(--sidebar-collapsed-width) !important;
+    margin-inline-start: var(--sidebar-rail-w) !important;
+    width: calc(100% - var(--sidebar-rail-w)) !important;
   }
   
   .top-header {
-    inset-inline-start: var(--sidebar-collapsed-width) !important;
+    width: 100% !important;
+    inset-inline-start: auto !important;
+  }
+
+  .mobile-bottom-tabs {
+    display: none !important;
+  }
+
+  .menu-toggle {
+    display: none !important;
   }
   
   /* Collapsed items styling */
   .sidebar-brand {
-    padding: var(--spacing-sm) 0 !important;
+    padding: var(--space-2) 0 !important;
     justify-content: center !important;
   }
   
@@ -352,7 +364,7 @@ button {
   }
   
   .sidebar-scrollable-body {
-    padding: var(--spacing-sm) !important;
+    padding: var(--space-2) !important;
   }
   
   .sidebar-nav-item {
@@ -410,12 +422,14 @@ button {
   }
 }
 
-/* 2. Mobile Screens (up to 768px) */
-@media (max-width: 768px) {
+/* 2. Mobile Screens (up to 767.98px) - Drawer & Bottom Tabs */
+@media (max-width: 767.98px) {
   :root {
-    --sidebar-width: 260px; /* Hidden offscreen, slid out */
-    --spacing-lg: 1rem;
-    --spacing-md: 0.75rem;
+    --sidebar-w: 280px;
+    --sidebar-width: 280px;
+    --page-pad: 16px;
+    --card-pad: 16px;
+    --gap-grid: 12px;
   }
 
   .menu-toggle {
@@ -429,6 +443,7 @@ button {
   }
 
   .sidebar {
+    width: 280px !important;
     transform: translateX(-100%); /* LTR hide */
     background: #09090b !important;
   }
@@ -444,16 +459,13 @@ button {
   .main-content {
     margin-inline-start: 0 !important;
     width: 100% !important;
-    padding-inline-start: var(--spacing-md);
-    padding-inline-end: var(--spacing-md);
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px) + var(--space-4)) !important;
   }
 
   .top-header {
-    display: none !important;
-  }
-
-  .main-content {
-    padding-top: 0 !important;
+    width: 100% !important;
+    inset-inline-start: auto !important;
+    display: flex !important;
   }
 
   .grid-cols-4, .grid-cols-3, .grid-cols-2 {
@@ -469,7 +481,7 @@ button {
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
     z-index: 99;
-    animation: fadeIn var(--transition-fast) forwards;
+    animation: fadeIn var(--dur-fast) forwards;
   }
 
   .mobile-bottom-tabs {
@@ -478,27 +490,44 @@ button {
 }
 
 /* ==========================================================================
-   Desktop-Specific Layout Sizes (figma-perfect)
+   Desktop-Specific Layout Sizes (figma-perfect) >= 1280px
    ========================================================================== */
-@media (min-width: 1025px) {
+@media (min-width: 1280px) {
+  :root {
+    --sidebar-w: 240px;
+    --sidebar-width: 240px;
+    --page-pad: 32px;
+    --card-pad: 20px;
+    --gap-grid: 20px;
+  }
+
+  .sidebar {
+    width: var(--sidebar-w) !important;
+    transform: none !important;
+  }
+
   .main-content {
-    padding-inline-start: var(--spacing-lg) !important;
-    padding-inline-end: var(--spacing-lg) !important;
-    padding-top: var(--header-height) !important;
-    width: auto !important;
-    max-width: none !important;
+    margin-inline-start: var(--sidebar-w) !important;
+    width: calc(100% - var(--sidebar-w)) !important;
     box-sizing: border-box !important;
   }
   
   .top-header {
-    inset-inline-start: var(--sidebar-width) !important;
-    inset-inline-end: 0 !important;
-    width: auto !important;
-    height: 64px !important;
-    border-bottom: 1px solid var(--border-color) !important;
+    width: 100% !important;
+    inset-inline-start: auto !important;
+    height: var(--topbar-h) !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
     box-sizing: border-box !important;
   }
-  
+
+  .mobile-bottom-tabs {
+    display: none !important;
+  }
+
+  .menu-toggle {
+    display: none !important;
+  }
+
   .live-activity-center-header {
     width: 100% !important;
     max-width: none !important;
@@ -514,28 +543,28 @@ button {
   .live-desktop-map-card {
     flex: 2 !important;
     min-height: 560px !important;
-    border-radius: var(--r-lg) !important;
+    border-radius: var(--radius-lg, 12px) !important;
   }
   
   .live-desktop-feed-card {
     flex: 1 !important;
     min-height: 560px !important;
-    border-radius: var(--r-lg) !important;
+    border-radius: var(--radius-lg, 12px) !important;
   }
   
   .live-desktop-jobs-card {
     flex: 1.4 !important;
-    border-radius: var(--r-lg) !important;
+    border-radius: var(--radius-lg, 12px) !important;
   }
   
   .live-desktop-suspicious-card {
     flex: 1 !important;
-    border-radius: var(--r-lg) !important;
+    border-radius: var(--radius-lg, 12px) !important;
   }
   
   .live-desktop-busy-zones-card {
     flex: 0.8 !important;
-    border-radius: var(--r-lg) !important;
+    border-radius: var(--radius-lg, 12px) !important;
   }
 }
 
@@ -561,7 +590,7 @@ button {
   display: none !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .mobile-only {
     display: flex !important;
   }
@@ -571,7 +600,7 @@ button {
 }
 
 /* Unified Desktop & Tablet Page Header Background */
-@media (min-width: 769px) {
+@media (min-width: 768px) {
   .desktop-tablet-page-header {
     background: var(--bg-surface) !important;
     border-bottom: 1px solid var(--border-color) !important;

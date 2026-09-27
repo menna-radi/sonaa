@@ -154,6 +154,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
         position: 'sticky',
         top: 0,
         zIndex: 50,
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
       {/* Mobile Drawer Hamburger Trigger */}

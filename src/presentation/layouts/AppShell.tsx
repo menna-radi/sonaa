@@ -43,6 +43,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             maxWidth: 'var(--content-max)',
             margin: '0 auto',
             width: '100%',
+            padding: 'var(--page-pad)',
             boxSizing: 'border-box',
           }}
         >
