@@ -1,380 +1,152 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Download, Plus, Play, Pause, Edit2, Trash2, Clock, Image as ImageIcon } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
-import {
-  Megaphone,
-  Search,
-  Bell,
-  Download,
-  TrendingUp,
-  Plus,
-  Trash2,
-  Play,
-  Pause,
-  ArrowUpRight,
-  BarChart3,
-  DollarSign,
-  Activity,
-  CheckCircle2,
-  X,
-  Sparkles,
-  AlertTriangle,
-  RefreshCw,
-  Edit2,
-  Upload,
-  Image as ImageIcon,
-  Clock
-} from 'lucide-react';
-import { apiClient } from '../../../../core/network/apiClient';
 import { resolveMediaUrl } from '../../../../core/utils/mediaUrl';
+import { formatMoney } from '../../../../core/utils/format';
+import { PageHeader } from '../../../components/ui/PageHeader';
+import { Button } from '../../../components/ui/Button';
+import { Card } from '../../../components/ui/Card';
+import { Segmented } from '../../../components/ui/Segmented';
+import { SearchInput } from '../../../components/ui/SearchInput';
+import { DataTable, Column } from '../../../components/ui/DataTable';
+import { StatusPill } from '../../../components/ui/StatusPill';
+import { EmptyState } from '../../../components/ui/EmptyState';
+import { useConfirm } from '../../../components/ui/ConfirmDialog';
+import { useToast } from '../../../components/ui/Toast';
+import { Campaign } from '../types';
+import { AdsKpis } from '../components/AdsKpis';
+import { AdsPerformanceChart } from '../components/AdsPerformanceChart';
+import { TopPerformingAds } from '../components/TopPerformingAds';
+import { EditCampaignModal } from '../components/EditCampaignModal';
+import { NewCampaignModal } from '../components/NewCampaignModal';
 
-interface Campaign {
-  id: string;
-  name: string;
-  placement: string;
-  status: 'Active' | 'Paused' | 'Ended';
-  impressions: number;
-  ctr: number;
-  conversions: number;
-  budget: number;
-  imageUrl?: string;
-  description?: string;
-  ctaText?: string;
-  startDate?: string | null;
-  endDate?: string | null;
-}
+const getAdStatusVariant = (status: string) => {
+  switch (status) {
+    case 'Active':
+      return 'success';
+    case 'Paused':
+      return 'warning';
+    case 'Scheduled':
+      return 'info';
+    case 'Expired':
+      return 'muted';
+    default:
+      return 'neutral';
+  }
+};
 
 export const AdsPage: React.FC = () => {
   const { t, isRtl } = useLanguage();
   const { navigate } = useNavigation();
   const { dependencies } = useDependencies();
   const { adRepository } = dependencies;
+  const confirm = useConfirm();
+  const { success, error: toastError } = useToast();
 
   const [timeFilter, setTimeFilter] = useState<'7d' | '30d' | '90d' | 'ytd'>('30d');
+  const [chartTimeFilter, setChartTimeFilter] = useState<'30d' | '90d' | 'ytd'>('30d');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Loading & error
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // New Campaign Form State
-  const [newCampName, setNewCampName] = useState('');
-  const [newCampPlacement, setNewCampPlacement] = useState('Home Banner');
-  const [newCampBudget, setNewCampBudget] = useState('');
-
-  // Edit Campaign Form State
+  const [loading, setLoading] = useState(true);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editBudget, setEditBudget] = useState('');
-  const [editPlacement, setEditPlacement] = useState('Home Banner');
-  const [editObjective, setEditObjective] = useState('');
-  const [editCtaText, setEditCtaText] = useState('Claim Offer');
-  const [editImageUrl, setEditImageUrl] = useState('');
-  const [editImageFile, setEditImageFile] = useState<File | null>(null);
-  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
-  const [editLoading, setEditLoading] = useState(false);
-  const [editStartDate, setEditStartDate] = useState('');
-  const [editEndDate, setEditEndDate] = useState('');
-  const [editDurationPreset, setEditDurationPreset] = useState<'24h' | '48h' | '3d' | '7d' | 'until_date' | 'indefinite'>('indefinite');
-
-  const formatForDateTimeLocal = (d: Date) => {
-    const pad = (n: number) => (n < 10 ? '0' + n : String(n));
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
-
-  const getScheduleBadge = (camp: Campaign, isRtlLang: boolean) => {
-    if (!camp.endDate) {
-      return (
-        <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <Clock size={11} />
-          {isRtlLang ? 'حملة مستمرة' : 'Continuous'}
-        </span>
-      );
-    }
-
-    const end = new Date(camp.endDate);
-    const now = new Date();
-
-    if (camp.startDate && new Date(camp.startDate) > now) {
-      const start = new Date(camp.startDate);
-      return (
-        <span style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <Clock size={11} />
-          {isRtlLang
-            ? `مجدول (${start.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })})`
-            : `Starts ${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
-        </span>
-      );
-    }
-
-    if (end < now) {
-      return (
-        <span style={{ fontSize: '11px', color: '#EF4444', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <Clock size={11} />
-          {isRtlLang
-            ? `منتهي (${end.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })})`
-            : `Ended (${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`}
-        </span>
-      );
-    }
-
-    const diffMs = end.getTime() - now.getTime();
-    const diffHours = Math.round(diffMs / (3600 * 1000));
-    if (diffHours <= 48) {
-      return (
-        <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <Clock size={11} />
-          {isRtlLang ? `متبقي ${diffHours}س` : `${diffHours}h left`}
-        </span>
-      );
-    }
-
-    return (
-      <span style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '3px' }}>
-        <Clock size={11} />
-        {isRtlLang
-          ? `حتى ${end.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}`
-          : `Until ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
-      </span>
-    );
-  };
+  const [isNewModalOpen, setIsNewModalOpen] = useState(false);
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const result = await adRepository.getAds();
       if (result.success) {
-        setCampaigns(result.data);
+        setCampaigns(result.data as Campaign[]);
       } else {
-        setError(result.error.message || 'Failed to fetch campaigns.');
+        toastError(result.error.message || 'Failed to fetch campaigns.');
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch campaigns.');
+      toastError(err instanceof Error ? err.message : 'Failed to fetch campaigns.');
     } finally {
       setLoading(false);
     }
-  }, [adRepository]);
+  }, [adRepository, toastError]);
 
   useEffect(() => {
     fetchCampaigns();
   }, [fetchCampaigns]);
 
-  // Top Performing Ads computed from campaigns
-  const topPerformingAds = useMemo(() => {
-    if (campaigns.length === 0) {
-      return [];
-    }
-    const maxImp = Math.max(...campaigns.map(c => c.impressions || 1), 1);
-    return [...campaigns]
-      .sort((a, b) => (b.impressions || 0) - (a.impressions || 0))
-      .slice(0, 5)
-      .map(c => ({
-        name: c.name,
-        imp: `${c.impressions >= 1000 ? (c.impressions / 1000).toFixed(1) + 'K' : c.impressions} imp`,
-        ctr: `${c.ctr}% CTR`,
-        ratio: Math.round(((c.impressions || 0) / maxImp) * 100) || 50
-      }));
-  }, [campaigns]);
-
-  // Dynamic metrics based on real database campaigns
-  const metrics = useMemo(() => {
-    const activeCount = campaigns.filter(c => c.status === 'Active').length;
-    const totalImpressions = campaigns.reduce((sum, c) => sum + (c.impressions || 0), 0);
-    const totalConversions = campaigns.reduce((sum, c) => sum + (c.conversions || 0), 0);
-    const totalBudget = campaigns.reduce((sum, c) => sum + (c.budget || 0), 0);
-    const avgCtr = totalImpressions > 0 
-      ? ((totalConversions / totalImpressions) * 100).toFixed(1)
-      : '0.0';
-    const totalClicks = totalConversions;
-
-    const formatNum = (n: number) => {
-      if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-      if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-      return n.toLocaleString();
-    };
-
-    return {
-      impressions: formatNum(totalImpressions),
-      clicks: formatNum(totalClicks),
-      ctr: `${avgCtr}%`,
-      conversions: totalConversions.toLocaleString(),
-      revenue: `${formatNum(totalBudget)} ₪`,
-      active: String(activeCount),
-      impTrend: 'Live DB',
-      clkTrend: 'Real-time',
-      ctrTrend: `${avgCtr}% Avg`,
-      convTrend: 'Tracked',
-      revTrend: 'Allocated',
-      actTrend: `+${activeCount}`
-    };
-  }, [campaigns]);
-
-  // Chart path coordinates according to filters
-  const chartPaths = useMemo(() => {
-    switch (timeFilter) {
-      case '30d':
-      default:
-        return {
-          fill: "M0 200V127.84C16.422 118.219 32.844 123.029 49.266 142.272C65.688 161.515 82.11 144.677 98.532 91.76C114.954 38.8427 131.376 46.0587 147.798 113.408C164.22 180.757 180.642 161.515 197.064 55.68C213.486 -50.1547 229.908 -45.344 246.33 70.112C262.752 185.568 279.174 168.731 295.596 19.6C312.018 -129.531 328.44 -122.315 344.862 41.248C361.284 204.811 377.706 185.568 394.128 -16.48C410.55 -218.528 426.972 -213.717 443.394 -2.048C459.816 209.621 476.238 192.784 492.66 -52.56V200H0Z"
-        };
-      case '90d':
-        return {
-          fill: "M0 200V140C20 130 40 145 60 110C80 75 100 80 120 120C140 160 160 130 180 80C200 30 220 40 240 90C260 140 280 110 300 50C320 -10 340 0 360 70C380 140 400 110 420 50C440 -10 460 0 492 -30V200H0Z"
-        };
-      case 'ytd':
-        return {
-          fill: "M0 200V150C30 130 60 110 90 100C120 90 150 70 180 80C210 90 240 60 270 40C300 20 330 30 360 50C390 70 420 60 450 30C470 10 480 20 492 -10V200H0Z"
-        };
-    }
-  }, [timeFilter]);
-
-  // Handle new campaign submit
-  const handleAddCampaign = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCampName || !newCampBudget) return;
-    setLoading(true);
-    setError(null);
+  const handleToggleStatus = async (camp: Campaign) => {
+    const nextStatus = camp.status === 'Active' ? 'Paused' : 'Active';
     try {
-      const result = await adRepository.createAd(newCampName, parseFloat(newCampBudget) || 0, newCampPlacement);
-      if (result.success) {
-        setCampaigns(prev => [result.data, ...prev]);
-        setNewCampName('');
-        setNewCampBudget('');
-        setIsModalOpen(false);
-      } else {
-        setError(result.error.message || 'Failed to create campaign.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create campaign.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Toggle campaign status
-  const toggleCampaignStatus = async (id: string) => {
-    const ad = campaigns.find(c => c.id === id);
-    if (!ad) return;
-    const newStatus = ad.status === 'Active' ? 'Paused' : 'Active';
-    setError(null);
-    try {
-      const result = await adRepository.updateAdStatus(id, newStatus);
-      if (result.success) {
-        setCampaigns(prev => prev.map(c => c.id === id ? result.data : c));
-      } else {
-        setError(result.error.message || 'Failed to update campaign status.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to update campaign status.');
-    }
-  };
-
-  const handleDeleteCampaign = async (id: string) => {
-    setError(null);
-    try {
-      const result = await adRepository.deleteAd(id);
-      if (result.success) {
-        setCampaigns(prev => prev.filter(c => c.id !== id));
-      } else {
-        setError(result.error.message || 'Failed to delete campaign.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to delete campaign.');
-    }
-  };
-
-  const handleOpenEdit = (camp: Campaign) => {
-    setEditingCampaign(camp);
-    setEditName(camp.name);
-    setEditBudget(String(camp.budget || 5000));
-    setEditPlacement(camp.placement || 'Home Banner');
-    setEditObjective(camp.description || '');
-    setEditCtaText(camp.ctaText || 'Claim Offer');
-    setEditImageUrl(camp.imageUrl || '');
-    setEditImageFile(null);
-    setEditImagePreview(camp.imageUrl || null);
-    if (camp.endDate) {
-      setEditEndDate(formatForDateTimeLocal(new Date(camp.endDate)));
-      setEditDurationPreset('until_date');
-    } else {
-      setEditEndDate('');
-      setEditDurationPreset('indefinite');
-    }
-    if (camp.startDate) {
-      setEditStartDate(formatForDateTimeLocal(new Date(camp.startDate)));
-    } else {
-      setEditStartDate(formatForDateTimeLocal(new Date()));
-    }
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingCampaign) return;
-    setEditLoading(true);
-    try {
-      let finalImageUrl = editImageUrl;
-      if (editImageFile) {
-        try {
-          const formData = new FormData();
-          formData.append('file', editImageFile);
-          const uploadRes = await apiClient.post<any>('/uploads', formData);
-          const uploaded = uploadRes?.fileUrl || uploadRes?.data?.fileUrl;
-          if (uploaded) finalImageUrl = uploaded;
-        } catch (uploadErr) {
-          console.error('Failed to upload edited image:', uploadErr);
-        }
-      }
-
-      let finalEndDate: string | null = null;
-      const baseStart = editStartDate ? new Date(editStartDate) : new Date();
-
-      if (editDurationPreset === '24h') {
-        finalEndDate = new Date(baseStart.getTime() + 24 * 3600 * 1000).toISOString();
-      } else if (editDurationPreset === '48h') {
-        finalEndDate = new Date(baseStart.getTime() + 48 * 3600 * 1000).toISOString();
-      } else if (editDurationPreset === '3d') {
-        finalEndDate = new Date(baseStart.getTime() + 3 * 24 * 3600 * 1000).toISOString();
-      } else if (editDurationPreset === '7d') {
-        finalEndDate = new Date(baseStart.getTime() + 7 * 24 * 3600 * 1000).toISOString();
-      } else if (editDurationPreset === 'until_date' && editEndDate) {
-        finalEndDate = new Date(editEndDate).toISOString();
-      } else if (editDurationPreset === 'indefinite') {
-        finalEndDate = null;
-      }
-
-      const numericBudget = parseFloat(editBudget) || editingCampaign.budget || 5000;
-      const res = await adRepository.updateAd(editingCampaign.id, {
-        name: editName,
-        budget: numericBudget,
-        placement: editPlacement,
-        description: editObjective,
-        ctaText: editCtaText,
-        imageUrl: finalImageUrl,
-        startDate: baseStart.toISOString(),
-        endDate: finalEndDate,
-      });
-
+      const res = await adRepository.updateAdStatus(camp.id, nextStatus as 'Active' | 'Paused');
       if (res.success) {
-        await fetchCampaigns();
-        setEditingCampaign(null);
+        setCampaigns((prev) =>
+          prev.map((c) => (c.id === camp.id ? { ...c, status: nextStatus } : c))
+        );
+        success(`Campaign ${nextStatus === 'Active' ? 'activated' : 'paused'} successfully`);
       } else {
-        setError(res.error.message || 'Failed to update campaign');
+        toastError(res.error.message || 'Failed to update campaign status');
       }
     } catch (err) {
-      console.error('Failed to update campaign:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update campaign');
-    } finally {
-      setEditLoading(false);
+      toastError(err instanceof Error ? err.message : 'Failed to update status');
+    }
+  };
+
+  const handleDelete = async (camp: Campaign) => {
+    const ok = await confirm({
+      title: 'Delete Campaign',
+      body: `Are you sure you want to delete campaign "${camp.name}"? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) return;
+
+    try {
+      const res = await adRepository.deleteAd(camp.id);
+      if (res.success) {
+        setCampaigns((prev) => prev.filter((c) => c.id !== camp.id));
+        success('Campaign deleted successfully');
+      } else {
+        toastError(res.error.message || 'Failed to delete campaign');
+      }
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Failed to delete campaign');
+    }
+  };
+
+  const handleCreateCampaign = async (name: string, budget: number, placement: string) => {
+    const res = await adRepository.createAd(name, budget, placement);
+    if (res.success) {
+      setCampaigns((prev) => [res.data as Campaign, ...prev]);
+      success('Campaign launched successfully');
+    } else {
+      throw new Error(res.error.message || 'Failed to create campaign');
+    }
+  };
+
+  const handleSaveEdit = async (
+    id: string,
+    data: {
+      name: string;
+      budget: number;
+      placement: string;
+      description?: string;
+      ctaText?: string;
+      imageUrl?: string;
+      startDate?: string;
+      endDate?: string | null;
+    }
+  ) => {
+    const res = await adRepository.updateAd(id, data);
+    if (res.success) {
+      await fetchCampaigns();
+      success('Campaign updated successfully');
+    } else {
+      throw new Error(res.error.message || 'Failed to update campaign');
     }
   };
 
   const handleExportCSV = () => {
     const headers = ['Campaign ID', 'Name', 'Placement', 'Status', 'Impressions', 'CTR', 'Conversions', 'Budget (ILS)'];
-    const rows = campaigns.map(c => [
+    const rows = campaigns.map((c) => [
       c.id,
       `"${c.name.replace(/"/g, '""')}"`,
       `"${c.placement.replace(/"/g, '""')}"`,
@@ -382,11 +154,11 @@ export const AdsPage: React.FC = () => {
       c.impressions,
       `${c.ctr}%`,
       c.conversions,
-      c.budget
+      c.budget,
     ]);
 
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -396,1429 +168,360 @@ export const AdsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // Delete campaign
-  const deleteCampaign = (id: string) => {
-    setCampaigns(campaigns.filter(c => c.id !== id));
-  };
-
-  // Filter campaigns
   const filteredCampaigns = useMemo(() => {
-    return campaigns.filter(c =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.placement.toLowerCase().includes(searchQuery.toLowerCase())
+    if (!searchQuery.trim()) return campaigns;
+    const q = searchQuery.toLowerCase();
+    return campaigns.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.placement.toLowerCase().includes(q)
     );
   }, [campaigns, searchQuery]);
 
-  return (
-    <div className="ads-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', direction: isRtl ? 'rtl' : 'ltr' }}>
+  const renderScheduleBadge = (camp: Campaign) => {
+    if (!camp.endDate) {
+      return (
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <Clock size={11} />
+          {isRtl ? 'حملة مستمرة' : 'Continuous'}
+        </span>
+      );
+    }
+    const end = new Date(camp.endDate);
+    const now = new Date();
+    if (camp.startDate && new Date(camp.startDate) > now) {
+      const start = new Date(camp.startDate);
+      return (
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--warning)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <Clock size={11} />
+          {isRtl
+            ? `مجدول (${start.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })})`
+            : `Starts ${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+        </span>
+      );
+    }
+    if (end < now) {
+      return (
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--danger)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <Clock size={11} />
+          {isRtl
+            ? `منتهي (${end.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })})`
+            : `Ended (${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+        </span>
+      );
+    }
+    return (
+      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--primary)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <Clock size={11} />
+        {isRtl
+          ? `حتى ${end.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}`
+          : `Until ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+      </span>
+    );
+  };
 
-        {/* Mobile Subheader */}
-        <div className="mobile-subheader mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-color)' }}>
-          <div style={{ textAlign: 'start' }}>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>{t('ads_title') || 'Ads & Promotions'}</h2>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>{t('ads_subtitle') || 'Manage campaigns, placements and performance'}</span>
+  const columns: Column<Campaign>[] = [
+    {
+      key: 'campaign',
+      header: 'Campaign',
+      render: (camp) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
+          <div
+            onClick={() => setEditingCampaign(camp)}
+            title="Edit campaign & creative"
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: 'var(--radius-sm)',
+              overflow: 'hidden',
+              background: 'var(--surface-sunken)',
+              border: '1px solid var(--border-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              cursor: 'pointer',
+            }}
+          >
+            {camp.imageUrl ? (
+              <img
+                src={resolveMediaUrl(camp.imageUrl)}
+                alt={camp.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+            ) : (
+              <ImageIcon size={18} style={{ color: 'var(--text-muted)' }} />
+            )}
           </div>
-          
-          <div className="time-filter-pills" style={{ display: 'flex', gap: '4px', background: '#F4F4F5', padding: '4px', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}>
-            {([
-              { key: '7d', label: t('ads_last_7_days') || 'Last 7 days' },
-              { key: '30d', label: '30D' },
-              { key: '90d', label: '90D' },
-              { key: 'ytd', label: 'YTD' }
-            ] as const).map(pill => (
-              <button
-                key={pill.key}
-                onClick={() => setTimeFilter(pill.key)}
+          <div style={{ minWidth: 0 }}>
+            <span
+              onClick={() => setEditingCampaign(camp)}
+              style={{
+                display: 'block',
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {camp.name}
+            </span>
+            {camp.description && (
+              <span
                 style={{
-                  flex: 1,
-                  border: 'none',
-                  background: timeFilter === pill.key ? 'var(--color-primary)' : 'transparent',
-                  color: timeFilter === pill.key ? '#FFFFFF' : 'var(--text-muted)',
-                  padding: '6px 4px',
-                  borderRadius: '6px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: timeFilter === pill.key ? '0 1px 4px rgba(37, 99, 235, 0.4)' : 'none',
-                  textAlign: 'center',
-                  whiteSpace: 'nowrap'
+                  display: 'block',
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--text-muted)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '220px',
                 }}
               >
-                {pill.label}
-              </button>
-            ))}
+                {camp.description}
+              </span>
+            )}
           </div>
         </div>
+      ),
+    },
+    {
+      key: 'placement',
+      header: 'Placement',
+      render: (camp) => (
+        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+          {camp.placement}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (camp) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-1)', alignItems: 'flex-start' }}>
+          <StatusPill variant={getAdStatusVariant(camp.status)} label={camp.status} />
+          {renderScheduleBadge(camp)}
+        </div>
+      ),
+    },
+    {
+      key: 'impressions',
+      header: 'Impressions',
+      align: 'end',
+      render: (camp) => (
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)' }}>
+          {camp.impressions.toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      key: 'ctr',
+      header: 'CTR',
+      align: 'end',
+      render: (camp) => (
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)' }}>
+          {camp.ctr > 0 ? `${camp.ctr}%` : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'conversions',
+      header: 'Conv.',
+      align: 'end',
+      render: (camp) => (
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)' }}>
+          {camp.conversions > 0 ? camp.conversions.toLocaleString() : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'budget',
+      header: 'Budget',
+      align: 'end',
+      render: (camp) => (
+        <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
+          {formatMoney(camp.budget, 'ILS')}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      align: 'center',
+      render: (camp) => (
+        <div style={{ display: 'flex', gap: 'var(--sp-1)', justifyContent: 'center' }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleToggleStatus(camp)}
+            title={camp.status === 'Active' ? 'Pause Campaign' : 'Resume Campaign'}
+          >
+            {camp.status === 'Active' ? <Pause size={14} /> : <Play size={14} />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setEditingCampaign(camp)}
+            title="Edit Campaign"
+          >
+            <Edit2 size={14} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDelete(camp)}
+            title="Delete Campaign"
+          >
+            <Trash2 size={14} style={{ color: 'var(--danger)' }} />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
-        {/* Desktop & Tablet Page Header */}
-        <div className="desktop-tablet-page-header desktop-tablet-only">
-          <div style={{ textAlign: 'start' }}>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600, letterSpacing: '-0.7px' }}>
-              {t('ads_title') || 'Ads & Promotions'}
-            </h1>
-            <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '14px' }}>
-              {t('ads_subtitle') || 'Manage campaigns, placements and performance'}
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            {/* Last 7 Days Filter Pill */}
-            <div className="time-filter-pills" style={{ display: 'flex', gap: '4px', background: 'var(--bg-surface-hover)', padding: '4px', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-color)' }}>
-              {([
-                { key: '7d', label: t('ads_last_7_days') || 'Last 7 days' },
-                { key: '30d', label: '30D' },
-                { key: '90d', label: '90D' },
-                { key: 'ytd', label: 'YTD' }
-              ] as const).map(pill => (
-                <button
-                  key={pill.key}
-                  onClick={() => setTimeFilter(pill.key)}
-                  style={{
-                    border: 'none',
-                    background: timeFilter === pill.key ? 'var(--bg-surface)' : 'transparent',
-                    color: timeFilter === pill.key ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    padding: '6px 12px',
-                    borderRadius: 'var(--border-radius-xs)',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    boxShadow: timeFilter === pill.key ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
-                    transition: 'var(--transition-fast)'
-                  }}
-                >
-                  {pill.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Export Button */}
-            <button className="ads-secondary-btn" onClick={handleExportCSV}>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', width: '100%' }}>
+      <PageHeader
+        title={t('ads_title') || 'Ads & Promotions'}
+        subtitle={t('ads_subtitle') || 'Manage campaigns, placements and performance'}
+        actions={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
+            <Segmented
+              value={timeFilter}
+              onChange={(val) => setTimeFilter(val as typeof timeFilter)}
+              items={[
+                { value: '7d', label: t('ads_last_7_days') || 'Last 7d' },
+                { value: '30d', label: '30D' },
+                { value: '90d', label: '90D' },
+                { value: 'ytd', label: 'YTD' },
+              ]}
+            />
+            <Button variant="outline" size="sm" onClick={handleExportCSV}>
               <Download size={14} />
               <span>{t('ads_export') || 'Export'}</span>
-            </button>
-
-            {/* New Campaign Button */}
-            <button className="ads-primary-btn" onClick={() => navigate('create_ad')}>
-              <Plus size={16} />
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => navigate('create_ad')}>
+              <Plus size={14} />
               <span>{t('ads_new_campaign') || 'New Campaign'}</span>
-            </button>
+            </Button>
+          </div>
+        }
+      />
+
+      <AdsKpis campaigns={campaigns} loading={loading} />
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: 'var(--sp-4)',
+          width: '100%',
+        }}
+      >
+        <AdsPerformanceChart
+          campaigns={campaigns}
+          timeFilter={chartTimeFilter}
+          onTimeFilterChange={setChartTimeFilter}
+        />
+        <TopPerformingAds campaigns={campaigns} />
+      </div>
+
+      <Card padding="md" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 'var(--sp-2)',
+          }}
+        >
+          <div>
+            <h3 style={{ margin: 0, fontSize: 'var(--font-size-base)', fontWeight: 600 }}>
+              Active Campaigns Quick View
+            </h3>
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
+              Currently running advertisements across all placements
+            </span>
+          </div>
+
+          <div style={{ width: '260px' }}>
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search campaigns..."
+            />
           </div>
         </div>
 
-        {/* Page Content Body */}
-        <div className="ads-page-body animate-fade-in">
-          {error && (
-            <div className="glass-card status-danger animate-fade-in" style={{ padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', color: 'var(--color-danger)' }}>
-                <AlertTriangle size={20} />
-                <div style={{ textAlign: 'start' }}>
-                  <strong style={{ display: 'block' }}>Action Alert</strong>
-                  <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>{error}</span>
-                </div>
+        <DataTable
+          columns={columns}
+          rows={filteredCampaigns}
+          rowKey={(c) => c.id}
+          loading={loading}
+          empty={
+            <EmptyState
+              title="No campaigns found"
+              description="Launch your first campaign to start driving engagement."
+              action={
+                <Button variant="primary" size="sm" onClick={() => navigate('create_ad')}>
+                  <Plus size={14} />
+                  <span>Create Campaign</span>
+                </Button>
+              }
+            />
+          }
+          mobile={(camp) => (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--sp-2)',
+                padding: 'var(--sp-3)',
+                background: 'var(--surface-base)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>{camp.name}</span>
+                <StatusPill variant={getAdStatusVariant(camp.status)} label={camp.status} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
+                <span>{camp.placement}</span>
+                <span>{formatMoney(camp.budget, 'ILS')}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'flex-end', marginTop: 'var(--sp-1)' }}>
+                <Button variant="outline" size="sm" onClick={() => handleToggleStatus(camp)}>
+                  {camp.status === 'Active' ? 'Pause' : 'Resume'}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setEditingCampaign(camp)}>
+                  Edit
+                </Button>
+                <Button variant="danger" size="sm" onClick={() => handleDelete(camp)}>
+                  Delete
+                </Button>
               </div>
             </div>
           )}
-
-          {loading ? (
-            <div className="flex-center" style={{ minHeight: '400px', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-              <RefreshCw className="animate-spin" size={36} style={{ color: 'var(--color-primary)' }} />
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading campaigns...</p>
-            </div>
-          ) : (
-            <>
-          
-          {/* Action Row for Mobile only (New Campaign, Export) */}
-          <div className="mobile-actions-row mobile-only" style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '16px' }}>
-            <button className="ads-primary-btn" style={{ flex: 1 }} onClick={() => navigate('create_ad')}>
-              <Plus size={16} />
-              <span>{t('ads_new_campaign') || 'New Campaign'}</span>
-            </button>
-            <button className="ads-secondary-btn" style={{ flex: 1 }} onClick={handleExportCSV}>
-              <Download size={14} />
-              <span>{t('ads_export') || 'Export'}</span>
-            </button>
-          </div>
-
-          {/* Metrics Dashboard Row */}
-          <div className="ads-metrics-grid">
-            {/* Impressions */}
-            <div className="ads-metric-card glass-card">
-              <div className="metric-header">
-                <div className="metric-icon-wrap"><BarChart3 size={16} /></div>
-                <div className="trend-badge positive">
-                  <ArrowUpRight size={12} />
-                  <span>{metrics.impTrend}</span>
-                </div>
-              </div>
-              <div className="metric-title">Total Impressions</div>
-              <div className="metric-value">{metrics.impressions}</div>
-            </div>
-
-            {/* Clicks */}
-            <div className="ads-metric-card glass-card">
-              <div className="metric-header">
-                <div className="metric-icon-wrap"><Activity size={16} /></div>
-                <div className="trend-badge positive">
-                  <ArrowUpRight size={12} />
-                  <span>{metrics.clkTrend}</span>
-                </div>
-              </div>
-              <div className="metric-title">Total Clicks</div>
-              <div className="metric-value">{metrics.clicks}</div>
-            </div>
-
-            {/* CTR */}
-            <div className="ads-metric-card glass-card">
-              <div className="metric-header">
-                <div className="metric-icon-wrap"><TrendingUp size={16} /></div>
-                <div className="trend-badge positive">
-                  <ArrowUpRight size={12} />
-                  <span>{metrics.ctrTrend}</span>
-                </div>
-              </div>
-              <div className="metric-title">CTR</div>
-              <div className="metric-value">{metrics.ctr}</div>
-            </div>
-
-            {/* Conversions */}
-            <div className="ads-metric-card glass-card">
-              <div className="metric-header">
-                <div className="metric-icon-wrap"><CheckCircle2 size={16} /></div>
-                <div className="trend-badge positive">
-                  <ArrowUpRight size={12} />
-                  <span>{metrics.convTrend}</span>
-                </div>
-              </div>
-              <div className="metric-title">Conversions</div>
-              <div className="metric-value">{metrics.conversions}</div>
-            </div>
-
-            {/* Revenue */}
-            <div className="ads-metric-card glass-card">
-              <div className="metric-header">
-                <div className="metric-icon-wrap"><DollarSign size={16} /></div>
-                <div className="trend-badge positive">
-                  <ArrowUpRight size={12} />
-                  <span>{metrics.revTrend}</span>
-                </div>
-              </div>
-              <div className="metric-title">Revenue Generated</div>
-              <div className="metric-value">{metrics.revenue}</div>
-            </div>
-
-            {/* Active Campaigns */}
-            <div className="ads-metric-card glass-card">
-              <div className="metric-header">
-                <div className="metric-icon-wrap"><Megaphone size={16} /></div>
-                <div className="trend-badge positive">
-                  <ArrowUpRight size={12} />
-                  <span>{metrics.actTrend}</span>
-                </div>
-              </div>
-              <div className="metric-title">Active Campaigns</div>
-              <div className="metric-value">{metrics.active}</div>
-            </div>
-          </div>
-
-          {/* Charts & Top lists middle section */}
-          <div className="ads-content-layout">
-            {/* Campaign Performance Chart */}
-            <div className="ads-chart-card glass-card">
-              <div className="chart-header">
-                <div style={{ textAlign: 'start' }}>
-                  <h3 className="card-title">Campaign Performance</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>{metrics.impressions}</span>
-                    <span className="trend-indicator-text positive" style={{ display: 'flex', alignItems: 'center', fontSize: '12px', fontWeight: 600, color: 'var(--color-success)' }}>
-                      <ArrowUpRight size={12} />
-                      <span>{metrics.impTrend}</span>
-                    </span>
-                  </div>
-                  <span className="card-subtitle">Impressions · Last 30 days</span>
-                </div>
-
-                {/* Local switcher */}
-                <div className="chart-toggles-row">
-                  {(['30d', '90d', 'ytd'] as const).map(d => (
-                    <button
-                      key={d}
-                      className={`chart-toggle-btn ${timeFilter === d || (timeFilter === '7d' && d === '30d') ? 'active' : ''}`}
-                      onClick={() => setTimeFilter(d)}
-                    >
-                      {d.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Chart SVG wrapper */}
-              <div className="chart-visual-wrapper" style={{ position: 'relative', width: '100%', height: '200px' }}>
-                <svg viewBox="0 0 492.66 200" width="100%" height="100%" preserveAspectRatio="none" style={{ overflow: 'visible', display: 'block' }}>
-                  <defs>
-                    <clipPath id="clip0_87_921">
-                      <rect width="492.66" height="200" fill="white"/>
-                    </clipPath>
-                  </defs>
-
-                  <g clipPath="url(#clip0_87_921)">
-                    {/* Shaded Area / Blue glowing wave */}
-                    <path
-                      d={chartPaths.fill}
-                      fill="var(--color-primary)"
-                      opacity="0.2"
-                    />
-                  </g>
-
-                  {/* Grid Lines (drawn on top of the wave as in Figma) */}
-                  <line x1="0" y1="0" x2="492.66" y2="0" stroke="rgba(229,231,235,0.5)" strokeWidth="1" />
-                  <line x1="0" y1="66.33" x2="492.66" y2="66.33" stroke="rgba(229,231,235,0.5)" strokeWidth="1" />
-                  <line x1="0" y1="132.67" x2="492.66" y2="132.67" stroke="rgba(229,231,235,0.5)" strokeWidth="1" />
-                  <line x1="0" y1="199" x2="492.66" y2="199" stroke="rgba(229,231,235,0.5)" strokeWidth="1" />
-                </svg>
-              </div>
-
-              {/* Summary Bottom Grid */}
-              <div className="chart-metrics-row">
-                <div className="chart-sub-metric">
-                  <span className="label">Impressions</span>
-                  <span className="val">{metrics.impressions}</span>
-                </div>
-                <div className="chart-sub-metric">
-                  <span className="label">Clicks</span>
-                  <span className="val">{metrics.clicks}</span>
-                </div>
-                <div className="chart-sub-metric">
-                  <span className="label">Conversions</span>
-                  <span className="val">{metrics.conversions}</span>
-                </div>
-                <div className="chart-sub-metric">
-                  <span className="label">Avg. CTR</span>
-                  <span className="val">{metrics.ctr}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Top Performing Ads list */}
-            <div className="ads-top-list-card glass-card">
-              <h3 className="card-title" style={{ textAlign: 'start' }}>Top Performing Ads</h3>
-              <div className="top-list-body" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {topPerformingAds.map((ad, index) => (
-                  <div key={index} className="top-list-item" style={{ display: 'flex', alignItems: 'center', justifyItems: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flex: 1, textAlign: 'start' }}>
-                      <div className="ad-avatar-wrap">
-                        <Sparkles size={14} style={{ color: 'var(--text-muted)' }} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{ad.name}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{ad.imp} · {ad.ctr}</div>
-                      </div>
-                    </div>
-
-                    {/* Sparkline mini-graph bar */}
-                    <div className="sparkline-bar-container" style={{ width: '60px', height: '24px', display: 'flex', gap: '3px', alignItems: 'flex-end' }}>
-                      <div className="spark-bar" style={{ flex: 1, height: `${ad.ratio * 0.4}%`, background: 'var(--text-primary)', borderRadius: '1px' }} />
-                      <div className="spark-bar" style={{ flex: 1, height: `${ad.ratio * 0.7}%`, background: 'var(--text-primary)', borderRadius: '1px' }} />
-                      <div className="spark-bar" style={{ flex: 1, height: `${ad.ratio * 0.5}%`, background: 'var(--text-primary)', borderRadius: '1px' }} />
-                      <div className="spark-bar" style={{ flex: 1, height: `${ad.ratio * 0.8}%`, background: 'var(--text-primary)', borderRadius: '1px' }} />
-                      <div className="spark-bar" style={{ flex: 1, height: `${ad.ratio}%`, background: 'var(--text-primary)', borderRadius: '1px' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Active Campaigns Management Table */}
-          <div className="campaigns-table-card glass-card">
-            <div className="table-header-row">
-              <div style={{ textAlign: 'start' }}>
-                <h3 className="card-title">Active Campaigns Quick View</h3>
-                <span className="card-subtitle">Currently running advertisements across all placements</span>
-              </div>
-
-              {/* Table search filter */}
-              <div className="table-search-wrapper">
-                <Search size={14} className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Search campaigns..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="table-search-input"
-                />
-              </div>
-            </div>
-
-            <div className="table-scroll-container">
-              <table className="campaigns-table">
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'start' }}>Campaign</th>
-                    <th style={{ textAlign: 'start' }}>Placement</th>
-                    <th style={{ textAlign: 'start' }}>Status</th>
-                    <th style={{ textAlign: 'end' }}>Impressions</th>
-                    <th style={{ textAlign: 'end' }}>CTR</th>
-                    <th style={{ textAlign: 'end' }}>Conv.</th>
-                    <th style={{ textAlign: 'end' }}>Budget</th>
-                    <th style={{ textAlign: 'center' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCampaigns.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="empty-table-cell">No campaigns found matching your query.</td>
-                    </tr>
-                  ) : (
-                    filteredCampaigns.map((camp) => (
-                      <tr key={camp.id}>
-                        <td style={{ textAlign: 'start' }}>
-                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div
-                              onClick={() => handleOpenEdit(camp)}
-                              title={isRtl ? 'انقر لتعديل تفاصيل وصورة الإعلان' : 'Click to view / edit ad and image'}
-                              style={{
-                                width: '44px',
-                                height: '44px',
-                                borderRadius: '8px',
-                                overflow: 'hidden',
-                                background: 'var(--bg-surface-hover)',
-                                border: '1.5px solid var(--border-color)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                                cursor: 'pointer'
-                              }}
-                            >
-                              {camp.imageUrl ? (
-                                <img
-                                  src={resolveMediaUrl(camp.imageUrl)}
-                                  alt={camp.name}
-                                  crossOrigin="anonymous"
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                  onError={(e) => {
-                                    const target = e.target as HTMLElement;
-                                    target.style.display = 'none';
-                                    const parent = target.parentElement;
-                                    if (parent && !parent.querySelector('.thumbnail-fallback')) {
-                                      const fallback = document.createElement('div');
-                                      fallback.className = 'thumbnail-fallback';
-                                      fallback.style.display = 'flex';
-                                      fallback.style.alignItems = 'center';
-                                      fallback.style.justifyContent = 'center';
-                                      fallback.style.width = '100%';
-                                      fallback.style.height = '100%';
-                                      fallback.style.color = 'var(--text-muted)';
-                                      fallback.innerHTML = '🖼️';
-                                      parent.appendChild(fallback);
-                                    }
-                                  }}
-                                />
-                              ) : (
-                                <ImageIcon size={18} style={{ color: 'var(--text-muted)' }} />
-                              )}
-                            </div>
-                            <div>
-                              <div
-                                style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}
-                                onClick={() => handleOpenEdit(camp)}
-                                title={isRtl ? 'تعديل الإعلان' : 'Edit Ad'}
-                              >
-                                {camp.name}
-                              </div>
-                              {camp.description && (
-                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {camp.description}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ textAlign: 'start', color: 'var(--text-secondary)' }}>{camp.placement}</td>
-                        <td style={{ textAlign: 'start' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
-                            <span className={`status-pill ${camp.status.toLowerCase()}`}>
-                              {camp.status}
-                            </span>
-                            {getScheduleBadge(camp, isRtl)}
-                          </div>
-                        </td>
-                        <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)' }}>{camp.impressions.toLocaleString()}</td>
-                        <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)' }}>{camp.ctr > 0 ? `${camp.ctr}%` : '—'}</td>
-                        <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)' }}>{camp.conversions > 0 ? camp.conversions.toLocaleString() : '—'}</td>
-                        <td style={{ textAlign: 'end', fontWeight: 600 }}>{camp.budget.toLocaleString()} ILS</td>
-                        <td style={{ textAlign: 'center' }}>
-                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                            {(camp.status === 'Active' || camp.status === 'Paused') && (
-                              <button
-                                onClick={() => toggleCampaignStatus(camp.id)}
-                                className={`action-icon-btn ${camp.status === 'Active' ? 'pause' : 'play'}`}
-                                title={camp.status === 'Active' ? 'Pause Campaign' : 'Resume Campaign'}
-                              >
-                                {camp.status === 'Active' ? <Pause size={12} /> : <Play size={12} />}
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleOpenEdit(camp)}
-                              className="action-icon-btn edit"
-                              title={isRtl ? 'تعديل الإعلان' : 'Edit Ad'}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '6px',
-                                border: '1px solid var(--border-color)',
-                                background: 'var(--bg-surface-hover)',
-                                color: 'var(--text-primary)',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <Edit2 size={12} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteCampaign(camp.id)}
-                              className="action-icon-btn delete"
-                              title="Delete Campaign"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          </>
-          )}
-        </div>
-
-        {/* Modal for adding a new campaign */}
-        {isModalOpen && (
-          <div className="modal-backdrop animate-fade-in" onClick={() => setIsModalOpen(false)}>
-            <div className="modal-content glass-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-              <div className="modal-header">
-                <h3 className="card-title">Launch New Campaign</h3>
-                <button className="modal-close-btn" onClick={() => setIsModalOpen(false)}><X size={16} /></button>
-              </div>
-
-              <form onSubmit={handleAddCampaign} className="modal-form">
-                <div className="form-group">
-                  <label className="form-label">Campaign Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Jerusalem Plumber Discount Deal"
-                    value={newCampName}
-                    onChange={(e) => setNewCampName(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Placement</label>
-                  <select
-                    value={newCampPlacement}
-                    onChange={(e) => setNewCampPlacement(e.target.value)}
-                    className="form-select"
-                  >
-                    <option value="Home Banner">Home Banner</option>
-                    <option value="Search Results">Search Results</option>
-                    <option value="Popups">Popups</option>
-                    <option value="Category Page">Category Page</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Budget (ILS)</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="e.g. 5000"
-                    value={newCampBudget}
-                    onChange={(e) => setNewCampBudget(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="modal-actions-row">
-                  <button type="button" className="ads-secondary-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                  <button type="submit" className="ads-primary-btn">Create Campaign</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Modal for editing an existing campaign / ad */}
-        {editingCampaign && (
-          <div className="modal-backdrop animate-fade-in" onClick={() => setEditingCampaign(null)}>
-            <div className="modal-content glass-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ direction: isRtl ? 'rtl' : 'ltr', maxWidth: '520px' }}>
-              <div className="modal-header">
-                <h3 className="card-title">
-                  {isRtl ? 'تعديل الإعلان والتصميم' : 'Edit Ad & Creative'}
-                </h3>
-                <button className="modal-close-btn" onClick={() => setEditingCampaign(null)}>
-                  <X size={16} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveEdit} className="modal-form">
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'عنوان الإعلان / الحملة' : 'Ad Title / Campaign Name'}</label>
-                  <input
-                    type="text"
-                    required
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'الوصف / النص الترويجي' : 'Description / Subtitle'}</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Special offer available now on Sonaa"
-                    value={editObjective}
-                    onChange={(e) => setEditObjective(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'نص زر الإجراء (CTA)' : 'Button Text (CTA)'}</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Claim Offer / Book Now"
-                    value={editCtaText}
-                    onChange={(e) => setEditCtaText(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'مكان الظهور' : 'Placement'}</label>
-                  <select
-                    value={editPlacement}
-                    onChange={(e) => setEditPlacement(e.target.value)}
-                    className="form-select"
-                  >
-                    <option value="Home Banner">Home Banner (شريط الصفحة الرئيسية)</option>
-                    <option value="Featured Slots">Featured Slots (المميز)</option>
-                    <option value="Search Results">Search Results</option>
-                    <option value="Popups">Popups</option>
-                    <option value="Category Page">Category Page</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'الميزانية (شيكل)' : 'Budget (ILS)'}</label>
-                  <input
-                    type="number"
-                    required
-                    value={editBudget}
-                    onChange={(e) => setEditBudget(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                {/* Campaign Duration / Expiration in Edit Modal */}
-                <div className="form-group" style={{ padding: '12px', background: 'var(--bg-surface-hover)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                    <Clock size={14} color="var(--color-primary)" />
-                    {isRtl ? 'مدة الحملة وموعد الانتهاء' : 'Campaign Duration & Expiry'}
-                  </label>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '10px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setEditDurationPreset('24h')}
-                      style={{
-                        padding: '6px 4px',
-                        fontSize: '11px',
-                        borderRadius: '6px',
-                        border: editDurationPreset === '24h' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
-                        background: editDurationPreset === '24h' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
-                        color: editDurationPreset === '24h' ? 'var(--color-primary)' : 'var(--text-secondary)',
-                        fontWeight: editDurationPreset === '24h' ? 600 : 400,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {isRtl ? '24 ساعة' : '24 Hours'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setEditDurationPreset('3d')}
-                      style={{
-                        padding: '6px 4px',
-                        fontSize: '11px',
-                        borderRadius: '6px',
-                        border: editDurationPreset === '3d' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
-                        background: editDurationPreset === '3d' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
-                        color: editDurationPreset === '3d' ? 'var(--color-primary)' : 'var(--text-secondary)',
-                        fontWeight: editDurationPreset === '3d' ? 600 : 400,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {isRtl ? '3 أيام' : '3 Days'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setEditDurationPreset('7d')}
-                      style={{
-                        padding: '6px 4px',
-                        fontSize: '11px',
-                        borderRadius: '6px',
-                        border: editDurationPreset === '7d' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
-                        background: editDurationPreset === '7d' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
-                        color: editDurationPreset === '7d' ? 'var(--color-primary)' : 'var(--text-secondary)',
-                        fontWeight: editDurationPreset === '7d' ? 600 : 400,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {isRtl ? '7 أيام' : '7 Days'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setEditDurationPreset('until_date')}
-                      style={{
-                        padding: '6px 4px',
-                        fontSize: '11px',
-                        borderRadius: '6px',
-                        border: editDurationPreset === 'until_date' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
-                        background: editDurationPreset === 'until_date' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
-                        color: editDurationPreset === 'until_date' ? 'var(--color-primary)' : 'var(--text-secondary)',
-                        fontWeight: editDurationPreset === 'until_date' ? 600 : 400,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {isRtl ? 'حتى تاريخ محدد' : 'Until Date'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const target = new Date();
-                        target.setMonth(8); // September
-                        target.setDate(24);
-                        target.setHours(23, 59, 0, 0);
-                        setEditEndDate(formatForDateTimeLocal(target));
-                        setEditDurationPreset('until_date');
-                      }}
-                      style={{
-                        padding: '6px 4px',
-                        fontSize: '11px',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(59, 130, 246, 0.4)',
-                        background: 'rgba(59, 130, 246, 0.08)',
-                        color: 'var(--color-primary)',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {isRtl ? 'حتى 24 سبت' : 'til 24 Sep'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setEditDurationPreset('indefinite')}
-                      style={{
-                        padding: '6px 4px',
-                        fontSize: '11px',
-                        borderRadius: '6px',
-                        border: editDurationPreset === 'indefinite' ? '1.5px solid var(--color-primary)' : '1px solid var(--border-color)',
-                        background: editDurationPreset === 'indefinite' ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-surface)',
-                        color: editDurationPreset === 'indefinite' ? 'var(--color-primary)' : 'var(--text-secondary)',
-                        fontWeight: editDurationPreset === 'indefinite' ? 600 : 400,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {isRtl ? 'مستمر' : 'Continuous'}
-                    </button>
-                  </div>
-
-                  {editDurationPreset === 'until_date' && (
-                    <div style={{ marginTop: '6px' }}>
-                      <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                        {isRtl ? 'تاريخ ووقت الانتهاء:' : 'Target End Date & Time:'}
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={editEndDate}
-                        onChange={(e) => setEditEndDate(e.target.value)}
-                        className="form-input"
-                        style={{ fontSize: '12px' }}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Creative / Banner Image */}
-                <div className="form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label className="form-label" style={{ margin: 0 }}>
-                      {isRtl ? 'صورة الإعلان / البانر الإبداعي' : 'Creative Banner Image'}
-                    </label>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                      {isRtl ? 'الموصى به: 1200×628 (نسبة 1.91:1) لأندرويد' : '1200×628 recommended (1.91:1 ratio) for Android'}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {editImagePreview ? (
-                      <div
-                        style={{
-                          position: 'relative',
-                          width: '100%',
-                          height: '140px',
-                          borderRadius: '10px',
-                          overflow: 'hidden',
-                          border: '1.5px solid var(--border-color)',
-                          background: '#0f172a',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                        }}
-                      >
-                        <img
-                          src={resolveMediaUrl(editImagePreview)}
-                          alt="Banner Preview"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '8px',
-                            [isRtl ? 'left' : 'right']: '8px',
-                            background: 'rgba(0, 0, 0, 0.75)',
-                            backdropFilter: 'blur(6px)',
-                            color: '#fff',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                        >
-                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: editImageFile ? '#3b82f6' : '#10b981' }} />
-                          {editImageFile
-                            ? (isRtl ? 'صورة جديدة جاهزة للحفظ' : 'New Image Selected')
-                            : (isRtl ? 'الصورة الحالية النشطة' : 'Active Banner Image')}
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          height: '100px',
-                          borderRadius: '10px',
-                          border: '1.5px dashed var(--border-color)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: 'var(--bg-surface-hover)',
-                          color: 'var(--text-muted)',
-                          gap: '6px'
-                        }}
-                      >
-                        <ImageIcon size={28} />
-                        <span style={{ fontSize: '12px' }}>{isRtl ? 'لا توجد صورة حالياً' : 'No active banner image'}</span>
-                      </div>
-                    )}
-
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        padding: '12px 16px',
-                        borderRadius: '8px',
-                        border: '1.5px dashed var(--border-color)',
-                        background: 'var(--bg-surface-hover)',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        color: 'var(--text-primary)',
-                        transition: 'border-color 0.2s, background 0.2s'
-                      }}
-                    >
-                      <Upload size={16} style={{ color: 'var(--brand-primary, #6366f1)' }} />
-                      <span>
-                        {editImageFile
-                          ? editImageFile.name
-                          : (isRtl ? 'استبدال صورة الإعلان (اختر صورة من جهازك)' : 'Replace Banner Image (Choose file)')}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            const file = e.target.files[0];
-                            setEditImageFile(file);
-                            setEditImagePreview(URL.createObjectURL(file));
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="modal-actions-row" style={{ marginTop: '16px' }}>
-                  <button type="button" className="ads-secondary-btn" onClick={() => setEditingCampaign(null)} disabled={editLoading}>
-                    {isRtl ? 'إلغاء' : 'Cancel'}
-                  </button>
-                  <button type="submit" className="ads-primary-btn" disabled={editLoading}>
-                    {editLoading ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ التعديلات' : 'Save Changes')}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-      {/* Styled Scoped CSS rules targeting Desktop, Tablet (<1150px), and Mobile (<768px) viewports */}
-      <style>{`
-        /* Global Page Body and Padding fixes */
-        .ads-page-body {
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-          margin-top: 24px;
-        }
-
-        /* Desktop Header and styling */
-        .ads-primary-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          background: var(--text-primary);
-          color: var(--bg-surface);
-          border-radius: var(--border-radius-sm);
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: opacity var(--transition-fast);
-        }
-        .ads-primary-btn:hover {
-          opacity: 0.9;
-        }
-
-        .ads-secondary-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          background: var(--bg-surface);
-          color: var(--text-primary);
-          border: 1px solid var(--border-color);
-          border-radius: var(--border-radius-sm);
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-        }
-        .ads-secondary-btn:hover {
-          background: var(--bg-surface-hover);
-        }
-
-        /* Metrics grid */
-        .ads-metrics-grid {
-          display: grid;
-          grid-template-columns: repeat(6, 1fr);
-          gap: 16px;
-          width: 100%;
-        }
-
-        .ads-metric-card {
-          padding: 20px;
-          text-align: start;
-          border-radius: var(--border-radius-lg);
-          display: flex;
-          flex-direction: column;
-        }
-
-        .metric-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-
-        .metric-icon-wrap {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-          background: var(--bg-surface-hover);
-          border-radius: var(--border-radius-sm);
-          color: var(--text-secondary);
-        }
-
-        .trend-badge {
-          display: flex;
-          align-items: center;
-          gap: 2px;
-          padding: 2px 6px;
-          border-radius: var(--border-radius-full);
-          font-size: 10px;
-          font-weight: 700;
-        }
-
-        .trend-badge.positive {
-          background: rgba(34, 197, 94, 0.1);
-          color: var(--color-success);
-        }
-
-        .metric-title {
-          font-size: 11px;
-          color: var(--text-muted);
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .metric-value {
-          font-size: 24px;
-          font-weight: 700;
-          color: var(--text-primary);
-          margin-top: 4px;
-          font-family: var(--font-title);
-        }
-
-        /* 2 Column Layout */
-        .ads-content-layout {
-          display: flex;
-          gap: 24px;
-          width: 100%;
-        }
-
-        .ads-chart-card {
-          flex: 5.5; /* Prop match 552:268 */
-          padding: 24px;
-          border-radius: var(--border-radius-lg);
-          display: flex;
-          flex-direction: column;
-        }
-
-        .ads-top-list-card {
-          flex: 2.7; /* Prop match 552:268 */
-          padding: 24px;
-          border-radius: var(--border-radius-lg);
-        }
-
-        .chart-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 24px;
-        }
-
-        .card-title {
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--text-primary);
-          margin: 0;
-        }
-
-        .card-subtitle {
-          font-size: 12px;
-          color: var(--text-muted);
-        }
-
-        .chart-toggles-row {
-          display: flex;
-          background: #F4F4F5;
-          padding: 4px;
-          border-radius: 8px;
-          gap: 2px;
-          border: none;
-        }
-
-        .chart-toggle-btn {
-          border: none;
-          background: transparent;
-          color: #6B7280;
-          padding: 4px 12px;
-          font-size: 12px;
-          font-weight: 500;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .chart-toggle-btn.active {
-          background: var(--color-primary);
-          color: #FFFFFF;
-          box-shadow: 0 1px 4px rgba(37, 99, 235, 0.4);
-        }
-
-        .chart-visual-wrapper {
-          height: 180px;
-          display: flex;
-          align-items: center;
-          margin-bottom: 16px;
-        }
-
-        .chart-metrics-row {
-          display: flex;
-          justify-content: space-between;
-          border-top: 1px solid var(--border-color);
-          padding-top: 16px;
-          margin-top: auto;
-        }
-
-        .chart-sub-metric {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          text-align: start;
-        }
-
-        .chart-sub-metric .label {
-          font-size: 11px;
-          color: var(--text-muted);
-          text-transform: none;
-          letter-spacing: 0.5px;
-        }
-
-        .chart-sub-metric .val {
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--text-primary);
-          margin-top: 2px;
-        }
-
-        /* Ad List Item */
-        .ad-avatar-wrap {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-          background: var(--bg-surface-hover);
-          border-radius: var(--border-radius-sm);
-          border: 1px solid var(--border-color);
-        }
-
-        /* Campaign Table component */
-        .campaigns-table-card {
-          padding: 24px;
-          border-radius: var(--border-radius-lg);
-          display: flex;
-          flex-direction: column;
-        }
-
-        .table-header-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-
-        .table-search-wrapper {
-          display: flex;
-          align-items: center;
-          background: var(--bg-surface-hover);
-          border: 1px solid var(--border-color);
-          border-radius: var(--border-radius-sm);
-          padding: 6px 12px;
-          width: 240px;
-          gap: 8px;
-        }
-
-        .table-search-wrapper .search-icon {
-          color: var(--text-muted);
-        }
-
-        .table-search-input {
-          background: transparent;
-          border: none;
-          outline: none;
-          font-size: 13px;
-          color: var(--text-primary);
-          width: 100%;
-        }
-
-        .table-scroll-container {
-          overflow-x: auto;
-          width: 100%;
-        }
-
-        .campaigns-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .campaigns-table th {
-          font-size: 11px;
-          font-weight: 600;
-          color: var(--text-muted);
-          text-transform: uppercase;
-          letter-spacing: 0.55px;
-          padding: 12px 16px;
-          border-bottom: 1px solid var(--border-color);
-          background: var(--bg-surface-hover);
-        }
-
-        .campaigns-table td {
-          padding: 16px;
-          font-size: 13px;
-          border-bottom: 1px solid var(--border-color);
-          color: var(--text-primary);
-          vertical-align: middle;
-        }
-
-        .campaigns-table tr:hover td {
-          background: rgba(0,0,0,0.01);
-        }
-
-        .empty-table-cell {
-          text-align: center;
-          padding: 32px !important;
-          color: var(--text-muted);
-        }
-
-        .status-pill {
-          display: inline-block;
-          font-size: 11px;
-          font-weight: 600;
-          padding: 2px 8px;
-          border-radius: var(--border-radius-full);
-          text-transform: capitalize;
-        }
-
-        .status-pill.active {
-          background: rgba(34, 197, 94, 0.1);
-          color: var(--color-success);
-        }
-
-        .status-pill.paused {
-          background: rgba(0,0,0,0.05);
-          color: var(--text-secondary);
-        }
-
-        .action-icon-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 24px;
-          height: 24px;
-          border-radius: var(--border-radius-xs);
-          border: 1px solid var(--border-color);
-          background: var(--bg-surface);
-          color: var(--text-secondary);
-          cursor: pointer;
-          transition: background var(--transition-fast);
-        }
-
-        .action-icon-btn:hover {
-          background: var(--bg-surface-hover);
-        }
-
-        .action-icon-btn.pause:hover {
-          color: var(--color-warning);
-        }
-
-        .action-icon-btn.play:hover {
-          color: var(--color-success);
-        }
-
-        .action-icon-btn.delete:hover {
-          color: var(--color-danger);
-          border-color: rgba(220,38,38,0.2);
-          background: rgba(220,38,38,0.05);
-        }
-
-        /* Modal backdrop and contents */
-        .modal-backdrop {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0,0,0,0.4);
-          backdrop-filter: blur(4px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: 16px;
-        }
-
-        .modal-content {
-          background: var(--bg-surface);
-          border: 1px solid var(--border-color);
-          border-radius: var(--border-radius-lg);
-          padding: 24px;
-          width: 100%;
-          max-width: 440px;
-          box-shadow: var(--glass-shadow);
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-
-        .modal-close-btn {
-          border: none;
-          background: transparent;
-          color: var(--text-muted);
-          cursor: pointer;
-        }
-
-        .modal-form {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          align-items: flex-start;
-          text-align: start;
-        }
-
-        .form-label {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-secondary);
-        }
-
-        .form-input, .form-select {
-          width: 100%;
-          padding: 10px 12px;
-          border: 1px solid var(--border-color);
-          background: var(--bg-base);
-          color: var(--text-primary);
-          font-size: 13px;
-          border-radius: var(--border-radius-sm);
-          outline: none;
-        }
-
-        .form-input:focus, .form-select:focus {
-          border-color: var(--text-primary);
-        }
-
-        .modal-actions-row {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 8px;
-        }
-
-        /* SVG Line drawing animation */
-        @keyframes draw {
-          to {
-            stroke-dashoffset: 0;
-          }
-        }
-
-        .chart-stroke-animation {
-          stroke-dasharray: 1000;
-          stroke-dashoffset: 1000;
-          animation: draw 1.5s ease-out forwards;
-        }
-
-        /* Responsive Breakpoint: Tablets (<1150px) and stack vertical */
-        @media (max-width: 1150px) {
-          .ads-metrics-grid {
-            grid-template-columns: repeat(3, 1fr) !important;
-          }
-          
-          .ads-content-layout {
-            flex-direction: column !important;
-          }
-
-          .ads-chart-card, .ads-top-list-card {
-            width: 100% !important;
-            flex: none !important;
-          }
-        }
-
-        /* Responsive Breakpoint: Mobile (<768px) layout rules */
-        @media (max-width: 768px) {
-          .main-content {
-            margin-inline-start: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 84px !important;
-            padding-inline-start: 0 !important;
-            padding-inline-end: 0 !important;
-          }
-
-          .mobile-subheader {
-            height: auto !important;
-            padding: 12px 20px !important;
-          }
-
-          .ads-page-body {
-            padding: 20px !important;
-            margin-top: 0 !important;
-            gap: 16px !important;
-          }
-
-          .ads-metrics-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 12px !important;
-          }
-
-          .ads-metric-card {
-            padding: 16px !important;
-            border-radius: var(--border-radius-md) !important;
-          }
-
-          .metric-value {
-            font-size: 20px !important;
-          }
-
-          .table-header-row {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 12px !important;
-          }
-
-          .table-search-wrapper {
-            width: 100% !important;
-          }
-
-          .chart-header {
-            flex-direction: column !important;
-            gap: 16px !important;
-          }
-
-          .chart-toggles-row {
-            width: 100% !important;
-            justify-content: space-between !important;
-          }
-
-          .chart-toggle-btn {
-            flex: 1 !important;
-            text-align: center !important;
-          }
-
-          .chart-metrics-row {
-            grid-template-columns: repeat(2, 1fr) !important;
-            display: grid !important;
-            gap: 12px !important;
-          }
-        }
-      `}</style>
+        />
+      </Card>
+
+      <NewCampaignModal
+        isOpen={isNewModalOpen}
+        onClose={() => setIsNewModalOpen(false)}
+        onSubmit={handleCreateCampaign}
+      />
+
+      <EditCampaignModal
+        campaign={editingCampaign}
+        onClose={() => setEditingCampaign(null)}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 };

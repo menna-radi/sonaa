@@ -40,7 +40,7 @@ function analyzeFile(filePath) {
   const rgbaMatches = (content.match(/rgba?\s*\(/g) || []).length;
   const importantMatches = (content.match(/!important/g) || []).length;
   const styleTagMatches = (content.match(/<style\b/g) || []).length;
-  const alertConfirmMatches = (content.match(/\b(?:window\.)?(?:alert|confirm)\s*\(/g) || []).length;
+  const alertConfirmMatches = (content.match(/\b(?:window\.(?:alert|confirm)|alert)\s*\(/g) || []).length;
 
   return {
     file: path.relative(process.cwd(), filePath),

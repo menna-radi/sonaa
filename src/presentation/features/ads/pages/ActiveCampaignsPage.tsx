@@ -1,276 +1,218 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useLanguage } from '../../../context/LanguageContext';
-import { useNavigation } from '../../../context/NavigationContext';
-import { useDependencies } from '../../../../core/di/DependencyProvider';
-import { apiClient } from '../../../../core/network/apiClient';
-import { resolveMediaUrl } from '../../../../core/utils/mediaUrl';
 import {
-  Search,
   Plus,
   Play,
   Pause,
   Trash2,
   Megaphone,
-  X,
-  ChevronDown,
-  Bell,
   Calendar,
   Clock,
-  Filter,
-  ArrowUpDown,
   Edit2,
-  Upload,
-  Image as ImageIcon
+  MoreVertical,
+  Image as ImageIcon,
 } from 'lucide-react';
-
-interface Campaign {
-  id: string;
-  name: string;
-  objective: string;
-  placement: string;
-  audience: string;
-  startDate: string;
-  endDate: string;
-  daysLeft?: number;
-  startsInDays?: number;
-  endedText?: string;
-  impressions: string;
-  ctr: string;
-  conversions: number;
-  spend: string;
-  budget?: number;
-  status: 'Active' | 'Paused' | 'Scheduled' | 'Expired';
-  imageUrl?: string;
-  ctaText?: string;
-}
+import { useLanguage } from '../../../context/LanguageContext';
+import { useNavigation } from '../../../context/NavigationContext';
+import { useDependencies } from '../../../../core/di/DependencyProvider';
+import { resolveMediaUrl } from '../../../../core/utils/mediaUrl';
+import { formatMoney } from '../../../../core/utils/format';
+import { PageHeader } from '../../../components/ui/PageHeader';
+import { Button } from '../../../components/ui/Button';
+import { Card } from '../../../components/ui/Card';
+import { Segmented } from '../../../components/ui/Segmented';
+import { SearchInput } from '../../../components/ui/SearchInput';
+import { Select } from '../../../components/ui/FormFields';
+import { DataTable, Column } from '../../../components/ui/DataTable';
+import { StatusPill } from '../../../components/ui/StatusPill';
+import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
+import { EmptyState } from '../../../components/ui/EmptyState';
+import { useConfirm } from '../../../components/ui/ConfirmDialog';
+import { useToast } from '../../../components/ui/Toast';
+import { Campaign } from '../types';
+import { EditCampaignModal } from '../components/EditCampaignModal';
 
 interface ActiveCampaignsPageProps {
   defaultTab?: 'Active' | 'Scheduled' | 'Expired';
 }
 
-export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaultTab = 'Active' }) => {
+const getAdStatusVariant = (status: string) => {
+  switch (status) {
+    case 'Active':
+      return 'success';
+    case 'Paused':
+      return 'warning';
+    case 'Scheduled':
+      return 'info';
+    case 'Expired':
+      return 'muted';
+    default:
+      return 'neutral';
+  }
+};
+
+export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({
+  defaultTab = 'Active',
+}) => {
   const { isRtl } = useLanguage();
   const { navigate } = useNavigation();
+  const { dependencies } = useDependencies();
+  const { adRepository } = dependencies;
+  const confirm = useConfirm();
+  const { success, error: toastError } = useToast();
+
   const [activeTab, setActiveTab] = useState<'Active' | 'Scheduled' | 'Expired'>(defaultTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlacement, setSelectedPlacement] = useState('All');
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState<'default' | 'name' | 'spend' | 'impressions'>('default');
-
-  // Modal form states
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newCampName, setNewCampName] = useState('');
-  const [newCampObjective, setNewCampObjective] = useState('Lead gen');
-  const [newCampPlacement, setNewCampPlacement] = useState('Home Banner');
-  const [newCampAudience, setNewCampAudience] = useState('Customers · All');
-  const [newCampBudget, setNewCampBudget] = useState('');
-  const { dependencies } = useDependencies();
-  const { adRepository } = dependencies;
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [_loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
     try {
       const result = await adRepository.getAds();
       if (result.success) {
-        setCampaigns(result.data.map(c => ({
-          id: c.id,
-          name: c.name,
-          objective: c.description || 'App Home Banner',
-          placement: c.placement || 'Home Banner',
-          audience: 'Customers · All',
-          startDate: 'Active',
-          endDate: 'Ongoing',
-          impressions: c.impressions >= 1000 ? `${(c.impressions / 1000).toFixed(1)}K` : String(c.impressions || 0),
-          ctr: `${c.ctr || 0}%`,
-          conversions: c.conversions || 0,
-          spend: `${(c.budget || 0).toLocaleString()} ILS`,
-          budget: c.budget,
-          status: c.status,
-          imageUrl: c.imageUrl,
-          ctaText: c.ctaText,
-        })));
+        setCampaigns(result.data as Campaign[]);
+      } else {
+        toastError(result.error.message || 'Failed to load campaigns');
       }
-    } catch (err) {
-      console.error('Failed to load campaigns:', err);
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : 'Failed to load campaigns');
     } finally {
       setLoading(false);
     }
-  }, [adRepository]);
-
-  // Edit Modal states
-  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editBudget, setEditBudget] = useState('');
-  const [editPlacement, setEditPlacement] = useState('Home Banner');
-  const [editObjective, setEditObjective] = useState('');
-  const [editCtaText, setEditCtaText] = useState('Claim Offer');
-  const [editImageUrl, setEditImageUrl] = useState('');
-  const [editImageFile, setEditImageFile] = useState<File | null>(null);
-  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
-  const [editLoading, setEditLoading] = useState(false);
-
-  const handleOpenEdit = (camp: Campaign) => {
-    setEditingCampaign(camp);
-    setEditName(camp.name);
-    setEditBudget(camp.budget ? String(camp.budget) : '5000');
-    setEditPlacement(camp.placement || 'Home Banner');
-    setEditObjective(camp.objective || '');
-    setEditCtaText(camp.ctaText || 'Claim Offer');
-    setEditImageUrl(camp.imageUrl || '');
-    setEditImageFile(null);
-    setEditImagePreview(camp.imageUrl || null);
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingCampaign) return;
-    setEditLoading(true);
-    try {
-      let finalImageUrl = editImageUrl;
-      if (editImageFile) {
-        try {
-          const formData = new FormData();
-          formData.append('file', editImageFile);
-          const uploadRes = await apiClient.post<any>('/uploads', formData);
-          const uploaded = uploadRes?.fileUrl || uploadRes?.data?.fileUrl;
-          if (uploaded) finalImageUrl = uploaded;
-        } catch (uploadErr) {
-          console.error('Failed to upload edited image:', uploadErr);
-        }
-      }
-
-      const numericBudget = parseFloat(editBudget) || editingCampaign.budget || 5000;
-      const res = await adRepository.updateAd(editingCampaign.id, {
-        name: editName,
-        budget: numericBudget,
-        placement: editPlacement,
-        description: editObjective,
-        ctaText: editCtaText,
-        imageUrl: finalImageUrl,
-      });
-
-      if (res.success) {
-        await fetchCampaigns();
-        setEditingCampaign(null);
-      }
-    } catch (err) {
-      console.error('Failed to update campaign:', err);
-    } finally {
-      setEditLoading(false);
-    }
-  };
+  }, [adRepository, toastError]);
 
   useEffect(() => {
     fetchCampaigns();
   }, [fetchCampaigns]);
 
-  // Tab count selectors
+  const handleToggleStatus = async (camp: Campaign) => {
+    const nextStatus = camp.status === 'Active' ? 'Paused' : 'Active';
+    try {
+      const res = await adRepository.updateAdStatus(camp.id, nextStatus as 'Active' | 'Paused');
+      if (res.success) {
+        setCampaigns((prev) =>
+          prev.map((c) => (c.id === camp.id ? { ...c, status: nextStatus } : c))
+        );
+        success(`Campaign ${nextStatus === 'Active' ? 'resumed' : 'paused'} successfully`);
+      } else {
+        toastError(res.error.message || 'Failed to update campaign status');
+      }
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Failed to update status');
+    }
+  };
+
+  const handleDeleteCampaign = async (camp: Campaign) => {
+    const ok = await confirm({
+      title: 'Delete Campaign',
+      body: `Are you sure you want to delete campaign "${camp.name}"? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) return;
+
+    try {
+      const res = await adRepository.deleteAd(camp.id);
+      if (res.success) {
+        setCampaigns((prev) => prev.filter((c) => c.id !== camp.id));
+        success('Campaign deleted successfully');
+      } else {
+        toastError(res.error.message || 'Failed to delete campaign');
+      }
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Failed to delete campaign');
+    }
+  };
+
+  const handleSaveEdit = async (
+    id: string,
+    data: {
+      name: string;
+      budget: number;
+      placement: string;
+      description?: string;
+      ctaText?: string;
+      imageUrl?: string;
+      startDate?: string;
+      endDate?: string | null;
+    }
+  ) => {
+    const res = await adRepository.updateAd(id, data);
+    if (res.success) {
+      await fetchCampaigns();
+      success('Campaign updated successfully');
+    } else {
+      throw new Error(res.error.message || 'Failed to update campaign');
+    }
+  };
+
   const tabCounts = useMemo(() => {
-    const activeAndPaused = campaigns.filter(c => c.status === 'Active' || c.status === 'Paused').length;
-    const scheduled = campaigns.filter(c => c.status === 'Scheduled').length;
-    const expired = campaigns.filter(c => c.status === 'Expired').length;
-    return { Active: activeAndPaused, Scheduled: scheduled, Expired: expired };
+    const now = new Date();
+    const active = campaigns.filter((c) => {
+      if (c.status === 'Paused') return true;
+      if (c.status !== 'Active') return false;
+      if (c.endDate && new Date(c.endDate) < now) return false;
+      if (c.startDate && new Date(c.startDate) > now) return false;
+      return true;
+    }).length;
+
+    const scheduled = campaigns.filter((c) => {
+      if (c.status === 'Scheduled') return true;
+      return c.startDate && new Date(c.startDate) > now;
+    }).length;
+
+    const expired = campaigns.filter((c) => {
+      if (c.status === 'Expired') return true;
+      return c.endDate && new Date(c.endDate) < now;
+    }).length;
+
+    return { Active: active, Scheduled: scheduled, Expired: expired };
   }, [campaigns]);
 
-  // Handle adding new campaign
-  const handleCreateCampaign = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCampName || !newCampBudget) return;
-
-    try {
-      const numericBudget = parseFloat(newCampBudget) || 0;
-      const res = await adRepository.createAd(newCampName, numericBudget, newCampPlacement, {
-        description: newCampObjective,
-        ctaText: 'Claim Offer',
-      });
-      if (res.success) {
-        await fetchCampaigns();
-        setNewCampName('');
-        setNewCampBudget('');
-        setIsModalOpen(false);
-      }
-    } catch (err) {
-      console.error('Failed to create campaign:', err);
-    }
-  };
-
-  // Toggle status
-  const toggleCampaignStatus = async (id: string) => {
-    const camp = campaigns.find(c => c.id === id);
-    if (!camp) return;
-    const newStatus = camp.status === 'Active' ? 'Paused' : 'Active';
-    try {
-      const res = await adRepository.updateAdStatus(id, newStatus);
-      if (res.success) {
-        setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
-      }
-    } catch (err) {
-      console.error('Failed to update status:', err);
-    }
-  };
-
-  // Delete campaign
-  const deleteCampaign = async (id: string) => {
-    try {
-      const res = await adRepository.deleteAd(id);
-      if (res.success) {
-        setCampaigns(prev => prev.filter(c => c.id !== id));
-      }
-    } catch (err) {
-      console.error('Failed to delete campaign:', err);
-    }
-  };
-
-  // Filter and sort campaigns list
   const filteredCampaigns = useMemo(() => {
+    const now = new Date();
     return campaigns
-      .filter(c => {
-        // Tab mapping
+      .filter((c) => {
         if (activeTab === 'Active') {
-          return c.status === 'Active' || c.status === 'Paused';
+          if (c.status === 'Paused') return true;
+          if (c.status === 'Active') {
+            if (c.endDate && new Date(c.endDate) < now) return false;
+            if (c.startDate && new Date(c.startDate) > now) return false;
+            return true;
+          }
+          return false;
         }
-        return c.status === activeTab;
+        if (activeTab === 'Scheduled') {
+          return c.status === 'Scheduled' || (c.startDate ? new Date(c.startDate) > now : false);
+        }
+        if (activeTab === 'Expired') {
+          return c.status === 'Expired' || (c.endDate ? new Date(c.endDate) < now : false);
+        }
+        return true;
       })
-      .filter(c => {
-        // Search query
-        const query = searchQuery.toLowerCase();
+      .filter((c) => {
+        if (!searchQuery.trim()) return true;
+        const q = searchQuery.toLowerCase();
         return (
-          c.name.toLowerCase().includes(query) ||
-          c.objective.toLowerCase().includes(query) ||
-          c.placement.toLowerCase().includes(query) ||
-          c.audience.toLowerCase().includes(query)
+          c.name.toLowerCase().includes(q) ||
+          (c.description && c.description.toLowerCase().includes(q)) ||
+          c.placement.toLowerCase().includes(q)
         );
       })
-      .filter(c => {
-        // Placement filter
+      .filter((c) => {
         if (selectedPlacement === 'All') return true;
         return c.placement === selectedPlacement;
       })
-      .filter(c => {
-        // Category filter
-        if (selectedCategory === 'All') return true;
-        return c.audience.toLowerCase().includes(selectedCategory.toLowerCase());
-      })
       .sort((a, b) => {
-        // Sorting logic
-        if (sortBy === 'default') {
-          return 0; // Keep original insertion order (figma layout)
-        }
-        if (sortBy === 'name') {
-          return a.name.localeCompare(b.name);
-        } else if (sortBy === 'spend') {
-          const spendA = parseFloat(a.spend.replace(/[^\d.]/g, '')) || 0;
-          const spendB = parseFloat(b.spend.replace(/[^\d.]/g, '')) || 0;
-          return spendB - spendA;
-        } else {
-          const impA = parseFloat(a.impressions.replace(/[^\d.]/g, '')) * (a.impressions.includes('K') ? 1000 : 1) || 0;
-          const impB = parseFloat(b.impressions.replace(/[^\d.]/g, '')) * (b.impressions.includes('K') ? 1000 : 1) || 0;
-          return impB - impA;
-        }
+        if (sortBy === 'name') return a.name.localeCompare(b.name);
+        if (sortBy === 'spend') return (b.budget || 0) - (a.budget || 0);
+        if (sortBy === 'impressions') return (b.impressions || 0) - (a.impressions || 0);
+        return 0;
       });
-  }, [campaigns, activeTab, searchQuery, selectedPlacement, selectedCategory, sortBy]);
+  }, [campaigns, activeTab, searchQuery, selectedPlacement, sortBy]);
 
   const pageMeta = useMemo(() => {
     switch (activeTab) {
@@ -278,1180 +220,390 @@ export const ActiveCampaignsPage: React.FC<ActiveCampaignsPageProps> = ({ defaul
         return {
           title: 'Scheduled Campaigns',
           subtitle: 'Campaigns queued to launch in the future',
-          icon: <Calendar size={20} style={{ color: 'var(--text-primary)' }} />
+          icon: <Calendar size={18} />,
         };
       case 'Expired':
         return {
           title: 'Expired Campaigns',
           subtitle: 'Past advertisement campaigns that have ended',
-          icon: <Clock size={20} style={{ color: 'var(--text-primary)' }} />
+          icon: <Clock size={18} />,
         };
       case 'Active':
       default:
         return {
           title: isRtl ? 'الإعلانات النشطة' : 'Active Ads',
-          subtitle: isRtl ? 'الإعلانات التي تعمل حالياً عبر المنصة' : 'Currently running advertisements across the marketplace',
-          icon: <Megaphone size={20} style={{ color: 'var(--text-primary)' }} />
+          subtitle: isRtl
+            ? 'الإعلانات التي تعمل حالياً عبر المنصة'
+            : 'Currently running advertisements across the marketplace',
+          icon: <Megaphone size={18} />,
         };
     }
-  }, [activeTab]);
+  }, [activeTab, isRtl]);
+
+  const renderScheduleBadge = (camp: Campaign) => {
+    if (!camp.endDate) {
+      return (
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <Clock size={11} />
+          {isRtl ? 'حملة مستمرة' : 'Continuous'}
+        </span>
+      );
+    }
+    const end = new Date(camp.endDate);
+    const now = new Date();
+    if (camp.startDate && new Date(camp.startDate) > now) {
+      const start = new Date(camp.startDate);
+      return (
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--warning)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <Clock size={11} />
+          {isRtl
+            ? `مجدول (${start.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })})`
+            : `Starts ${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+        </span>
+      );
+    }
+    if (end < now) {
+      return (
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--danger)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <Clock size={11} />
+          {isRtl
+            ? `منتهي (${end.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })})`
+            : `Ended (${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`}
+        </span>
+      );
+    }
+    return (
+      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--primary)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <Clock size={11} />
+        {isRtl
+          ? `حتى ${end.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}`
+          : `Until ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+      </span>
+    );
+  };
+
+  const getRowActions = (camp: Campaign): DropdownItem[] => {
+    const items: DropdownItem[] = [];
+
+    if (camp.status === 'Active' || camp.status === 'Paused') {
+      items.push({
+        key: 'toggle',
+        label: camp.status === 'Active' ? 'Pause Campaign' : 'Resume Campaign',
+        icon: camp.status === 'Active' ? <Pause size={14} /> : <Play size={14} />,
+        onClick: () => handleToggleStatus(camp),
+      });
+    }
+
+    items.push({
+      key: 'edit',
+      label: 'Edit Campaign',
+      icon: <Edit2 size={14} />,
+      onClick: () => setEditingCampaign(camp),
+    });
+
+    items.push({
+      key: 'delete',
+      label: 'Delete Campaign',
+      icon: <Trash2 size={14} />,
+      tone: 'danger',
+      onClick: () => handleDeleteCampaign(camp),
+    });
+
+    return items;
+  };
+
+  const columns: Column<Campaign>[] = [
+    {
+      key: 'campaign',
+      header: 'Campaign',
+      render: (camp) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
+          <div
+            onClick={() => setEditingCampaign(camp)}
+            title="Edit campaign"
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: 'var(--radius-sm)',
+              overflow: 'hidden',
+              background: 'var(--surface-sunken)',
+              border: '1px solid var(--border-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              cursor: 'pointer',
+            }}
+          >
+            {camp.imageUrl ? (
+              <img
+                src={resolveMediaUrl(camp.imageUrl)}
+                alt={camp.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+            ) : (
+              <ImageIcon size={18} style={{ color: 'var(--text-muted)' }} />
+            )}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <span
+              onClick={() => setEditingCampaign(camp)}
+              style={{
+                display: 'block',
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {camp.name}
+            </span>
+            {camp.description && (
+              <span
+                style={{
+                  display: 'block',
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--text-muted)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '220px',
+                }}
+              >
+                {camp.description}
+              </span>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'placement',
+      header: 'Placement',
+      render: (camp) => (
+        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+          {camp.placement}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (camp) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-1)', alignItems: 'flex-start' }}>
+          <StatusPill variant={getAdStatusVariant(camp.status)} label={camp.status} />
+          {renderScheduleBadge(camp)}
+        </div>
+      ),
+    },
+    {
+      key: 'impressions',
+      header: 'Impressions',
+      align: 'end',
+      render: (camp) => (
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)' }}>
+          {camp.impressions.toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      key: 'ctr',
+      header: 'CTR',
+      align: 'end',
+      render: (camp) => (
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)' }}>
+          {camp.ctr > 0 ? `${camp.ctr}%` : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'conversions',
+      header: 'Conv.',
+      align: 'end',
+      render: (camp) => (
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)' }}>
+          {camp.conversions > 0 ? camp.conversions.toLocaleString() : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'budget',
+      header: 'Budget',
+      align: 'end',
+      render: (camp) => (
+        <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
+          {formatMoney(camp.budget, 'ILS')}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'center',
+      width: 50,
+      render: (camp) => (
+        <Dropdown
+          align="end"
+          trigger={
+            <Button variant="ghost" size="sm" aria-label="Campaign options">
+              <MoreVertical size={16} />
+            </Button>
+          }
+          items={getRowActions(camp)}
+        />
+      ),
+    },
+  ];
 
   return (
-    <div className="active-campaigns-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', direction: isRtl ? 'rtl' : 'ltr' }}>
-
-        {/* Desktop & Tablet Page Header */}
-        <div className="desktop-tablet-page-header desktop-tablet-only">
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            {/* Title Icon matching figma */}
-            <div className="page-title-icon-wrap" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)' }}>
-              {pageMeta.icon}
-            </div>
-            <div style={{ textAlign: 'start' }}>
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 600, letterSpacing: '-0.7px', color: 'var(--text-primary)' }}>
-                {pageMeta.title}
-              </h1>
-              <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '14px' }}>
-                {pageMeta.subtitle}
-              </p>
-            </div>
-          </div>
-
-          <button className="ads-primary-btn" onClick={() => navigate('create_ad')}>
-            <Plus size={16} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', width: '100%' }}>
+      <PageHeader
+        title={pageMeta.title}
+        subtitle={pageMeta.subtitle}
+        actions={
+          <Button variant="primary" size="sm" onClick={() => navigate('create_ad')}>
+            <Plus size={14} />
             <span>New Campaign</span>
-          </button>
+          </Button>
+        }
+      />
+
+      <Card padding="md" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+        {/* Segmented Tab Row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
+          <Segmented
+            value={activeTab}
+            onChange={(val) => setActiveTab(val as typeof activeTab)}
+            items={[
+              { value: 'Active', label: 'Active', count: tabCounts.Active },
+              { value: 'Scheduled', label: 'Scheduled', count: tabCounts.Scheduled },
+              { value: 'Expired', label: 'Expired', count: tabCounts.Expired },
+            ]}
+          />
         </div>
 
-        {/* Page Content Body */}
-        <div className="campaigns-page-body animate-fade-in">
-          {/* Mobile Actions Row */}
-          <div className="mobile-actions-row mobile-only" style={{ display: 'flex', gap: '8px', padding: '0 20px', boxSizing: 'border-box' }}>
-            <button className="ads-primary-btn" style={{ flex: 1 }} onClick={() => navigate('create_ad')}>
-              <Plus size={16} />
-              <span>New Campaign</span>
-            </button>
+        {/* Toolbar: Search, Filters, Sort */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 'var(--sp-2)',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: '240px', maxWidth: '360px' }}>
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search campaigns..."
+            />
           </div>
 
-          {/* Segmented Tabbing Selection Row */}
-          <div className="segmented-tabs-wrapper" style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '24px', position: 'relative' }}>
-            {(['Active', 'Scheduled', 'Expired'] as const).map(tab => {
-              const count = tabCounts[tab];
-              const isActive = activeTab === tab;
-              return (
-                <button
-                  key={tab}
-                  className={`tab-item-btn ${isActive ? 'active' : ''}`}
-                  onClick={() => setActiveTab(tab)}
-                  style={{
-                    border: 'none',
-                    background: 'transparent',
-                    padding: '12px 4px',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
-                    borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    transition: 'all var(--transition-fast)'
-                  }}
-                >
-                  <span>{tab}</span>
-                  <span
-                    className="tab-count-badge"
-                    style={{
-                      background: isActive ? 'var(--color-primary)' : 'var(--bg-surface-hover)',
-                      color: isActive ? '#FFFFFF' : 'var(--text-muted)',
-                      fontSize: '11px',
-                      fontWeight: 500,
-                      padding: '2px 8px',
-                      borderRadius: '9999px',
-                      display: 'inline-block'
-                    }}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Search, Filter, Sort Row */}
-          <div className="table-controls-row">
-            {/* Search Input wrapper */}
-            <div className="search-input-wrapper" style={{ position: 'relative' }}>
-              <input
-                type="text"
-                placeholder="Search campaigns..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px 10px 38px',
-                  boxSizing: 'border-box',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  color: 'var(--text-primary)',
-                  outline: 'none',
-                  background: 'var(--bg-surface-hover)'
-                }}
-              />
-              <Search
-                size={16}
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '12px',
-                  transform: 'translateY(-50%)',
-                  color: 'var(--text-muted)'
-                }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
+            <div style={{ width: '160px' }}>
+              <Select
+                value={selectedPlacement}
+                onChange={(e) => setSelectedPlacement(e.target.value)}
+                options={[
+                  { value: 'All', label: 'All Placements' },
+                  { value: 'Home Banner', label: 'Home Banner' },
+                  { value: 'Search Results', label: 'Search Results' },
+                  { value: 'Popups', label: 'Popups' },
+                  { value: 'Category Page', label: 'Category Page' },
+                  { value: 'Craftsmen Listing', label: 'Craftsmen Listing' },
+                  { value: 'Notifications', label: 'Notifications' },
+                ]}
               />
             </div>
 
-            {/* Filter Dropdowns & Sort */}
-            <div className="filters-group">
-              {/* Placement Filter */}
-              <div className="filter-select-wrapper">
-                <div className="filter-button-overlay">
-                  <div className="filter-button-overlay-left">
-                    <Filter size={15} style={{ color: 'var(--text-secondary)' }} />
-                    <span>{selectedPlacement === 'All' ? 'Placement' : selectedPlacement}</span>
-                  </div>
-                  <ChevronDown size={14} style={{ color: 'var(--text-secondary)' }} />
-                </div>
-                <select
-                  value={selectedPlacement}
-                  onChange={(e) => setSelectedPlacement(e.target.value)}
-                  className="real-select"
-                >
-                  <option value="All">All Placements</option>
-                  <option value="Home Banner">Home Banner</option>
-                  <option value="Search Results">Search Results</option>
-                  <option value="Popups">Popups</option>
-                  <option value="Category Page">Category Page</option>
-                  <option value="Craftsmen Listing">Craftsmen Listing</option>
-                  <option value="Notifications">Notifications</option>
-                </select>
-              </div>
-
-              {/* Category Filter */}
-              <div className="filter-select-wrapper">
-                <div className="filter-button-overlay">
-                  <div className="filter-button-overlay-left">
-                    <Filter size={15} style={{ color: 'var(--text-secondary)' }} />
-                    <span>{selectedCategory === 'All' ? 'Category' : selectedCategory}</span>
-                  </div>
-                  <ChevronDown size={14} style={{ color: 'var(--text-secondary)' }} />
-                </div>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="real-select"
-                >
-                  <option value="All">All Categories</option>
-                  <option value="Plumbing">Plumbing</option>
-                  <option value="Electricity">Electricity</option>
-                  <option value="Carpentry">Carpentry</option>
-                  <option value="Painting">Painting</option>
-                  <option value="AC & Heating">AC & Heating</option>
-                  <option value="Cleaning">Cleaning</option>
-                </select>
-              </div>
-
-              {/* Sort By Dropdown */}
-              <div className="filter-select-wrapper">
-                <div className="filter-button-overlay">
-                  <div className="filter-button-overlay-left">
-                    <ArrowUpDown size={15} style={{ color: 'var(--text-secondary)' }} />
-                    <span>{sortBy === 'default' ? 'Sort' : sortBy === 'name' ? 'Name' : sortBy === 'spend' ? 'Spend' : 'Impressions'}</span>
-                  </div>
-                  <ChevronDown size={14} style={{ color: 'var(--text-secondary)' }} />
-                </div>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="real-select"
-                >
-                  <option value="default">Default Sort</option>
-                  <option value="name">Name</option>
-                  <option value="spend">Spend</option>
-                  <option value="impressions">Impressions</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Campaigns Listing Card */}
-          <div className="campaigns-table-card glass-card">
-            <div className="table-scroll-container">
-              <table className="campaigns-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '48px', textAlign: 'center' }}>
-                      <input type="checkbox" className="custom-table-checkbox" />
-                    </th>
-                    <th style={{ textAlign: 'start' }}>Campaign</th>
-                    <th style={{ textAlign: 'start' }}>Placement</th>
-                    <th style={{ textAlign: 'start' }}>Audience</th>
-                    <th style={{ textAlign: 'start' }}>Schedule</th>
-                    <th style={{ textAlign: 'end' }}>Impressions</th>
-                    <th style={{ textAlign: 'end' }}>CTR</th>
-                    <th style={{ textAlign: 'end' }}>Conv.</th>
-                    <th style={{ textAlign: 'end' }}>Spend</th>
-                    <th style={{ textAlign: 'start' }}>Status</th>
-                    <th style={{ textAlign: 'center', width: '90px' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCampaigns.length === 0 ? (
-                    <tr>
-                      <td colSpan={11} className="empty-table-cell">No campaigns found matching the filters.</td>
-                    </tr>
-                  ) : (
-                    filteredCampaigns.map(camp => (
-                      <tr key={camp.id}>
-                        <td style={{ textAlign: 'center' }}>
-                          <input type="checkbox" className="custom-table-checkbox" />
-                        </td>
-                        <td style={{ textAlign: 'start' }}>
-                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div
-                              className="campaign-avatar-wrap"
-                              onClick={() => handleOpenEdit(camp)}
-                              title={isRtl ? 'انقر لتعديل تفاصيل وصورة الإعلان' : 'Click to view / edit ad and image'}
-                              style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '8px',
-                                overflow: 'hidden',
-                                background: 'var(--bg-surface-hover)',
-                                border: '1.5px solid var(--border-color)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                                cursor: 'pointer',
-                                position: 'relative'
-                              }}
-                            >
-                              {camp.imageUrl ? (
-                                <img
-                                  src={resolveMediaUrl(camp.imageUrl)}
-                                  alt={camp.name}
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                  onError={(e) => {
-                                    (e.target as HTMLElement).style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <ImageIcon size={20} style={{ color: 'var(--text-muted)' }} />
-                              )}
-                            </div>
-                            <div style={{ textAlign: 'start' }}>
-                              <div
-                                style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}
-                                onClick={() => handleOpenEdit(camp)}
-                                title={isRtl ? 'تعديل الإعلان' : 'Edit Ad'}
-                              >
-                                {camp.name}
-                              </div>
-                              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{camp.objective}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ textAlign: 'start', color: 'var(--text-secondary)', fontSize: '13px' }}>{camp.placement}</td>
-                        <td style={{ textAlign: 'start', color: 'var(--text-secondary)', fontSize: '13px' }}>{camp.audience}</td>
-                        <td style={{ textAlign: 'start' }}>
-                          <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{camp.startDate} &rarr; {camp.endDate}</div>
-                          {camp.status === 'Scheduled' && camp.startsInDays !== undefined ? (
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>starts in {camp.startsInDays}d</div>
-                          ) : camp.status === 'Expired' && camp.endedText !== undefined ? (
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{camp.endedText}</div>
-                          ) : camp.daysLeft !== undefined ? (
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{camp.daysLeft} days left</div>
-                          ) : null}
-                        </td>
-                        <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
-                          {camp.status === 'Scheduled' ? '—' : camp.impressions}
-                        </td>
-                        <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
-                          {camp.status === 'Scheduled' ? '—' : camp.ctr}
-                        </td>
-                        <td style={{ textAlign: 'end', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
-                          {camp.status === 'Scheduled' ? '—' : camp.conversions.toLocaleString()}
-                        </td>
-                        <td style={{ textAlign: 'end', fontWeight: 600, fontSize: '13px' }}>
-                          {camp.status === 'Scheduled' && camp.budget !== undefined
-                            ? `0 / ${camp.budget.toLocaleString()} ILS`
-                            : camp.spend}
-                        </td>
-                        <td style={{ textAlign: 'start' }}>
-                          <span className={`status-pill ${camp.status.toLowerCase()}`}>
-                            {camp.status}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                            {(camp.status === 'Active' || camp.status === 'Paused') && (
-                              <button
-                                onClick={() => toggleCampaignStatus(camp.id)}
-                                className={`action-icon-btn ${camp.status === 'Active' ? 'pause' : 'play'}`}
-                                title={camp.status === 'Active' ? 'Pause Campaign' : 'Resume Campaign'}
-                              >
-                                {camp.status === 'Active' ? <Pause size={12} /> : <Play size={12} />}
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleOpenEdit(camp)}
-                              className="action-icon-btn edit"
-                              title="Edit Ad"
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '6px',
-                                border: '1px solid var(--border-color)',
-                                background: 'var(--bg-surface-hover)',
-                                color: 'var(--text-primary)',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <Edit2 size={12} />
-                            </button>
-                            <button
-                              onClick={() => deleteCampaign(camp.id)}
-                              className="action-icon-btn delete"
-                              title="Delete Campaign"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Bottom Pagination Control matching Figma */}
-            <div className="table-pagination-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid #E5E7EB', boxSizing: 'border-box' }}>
-              <span style={{ fontSize: '13px', color: '#6B7280' }}>
-                Showing 1–{filteredCampaigns.length} of {filteredCampaigns.length}
-              </span>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  disabled
-                  style={{
-                    border: '1px solid #E5E7EB',
-                    background: '#FFFFFF',
-                    color: '#9CA3AF',
-                    borderRadius: '6px',
-                    padding: '7px 12px',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    cursor: 'not-allowed',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  Previous
-                </button>
-                <button
-                  style={{
-                    border: '1px solid var(--border-color)',
-                    background: 'var(--bg-surface-hover)',
-                    color: 'var(--text-primary)',
-                    borderRadius: '6px',
-                    padding: '7px 12px',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    boxSizing: 'border-box',
-                    minWidth: '29px',
-                    textAlign: 'center'
-                  }}
-                >
-                  1
-                </button>
-                <button
-                  disabled
-                  style={{
-                    border: '1px solid #E5E7EB',
-                    background: '#FFFFFF',
-                    color: '#9CA3AF',
-                    borderRadius: '6px',
-                    padding: '7px 12px',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    cursor: 'not-allowed',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  Next
-                </button>
-              </div>
+            <div style={{ width: '140px' }}>
+              <Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                options={[
+                  { value: 'default', label: 'Default Order' },
+                  { value: 'name', label: 'Name (A-Z)' },
+                  { value: 'spend', label: 'Highest Budget' },
+                  { value: 'impressions', label: 'Most Views' },
+                ]}
+              />
             </div>
           </div>
         </div>
 
-        {/* Modal for Launching a New Campaign */}
-        {isModalOpen && (
-          <div className="modal-backdrop animate-fade-in" onClick={() => setIsModalOpen(false)}>
-            <div className="modal-content glass-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-              <div className="modal-header">
-                <h3 className="card-title">Launch New Campaign</h3>
-                <button className="modal-close-btn" onClick={() => setIsModalOpen(false)}><X size={16} /></button>
+        {/* DataTable */}
+        <DataTable
+          columns={columns}
+          rows={filteredCampaigns}
+          rowKey={(c) => c.id}
+          loading={loading}
+          empty={
+            <EmptyState
+              title={`No ${activeTab.toLowerCase()} campaigns`}
+              description={`There are currently no campaigns matching the "${activeTab}" filter.`}
+              action={
+                activeTab === 'Active' ? (
+                  <Button variant="primary" size="sm" onClick={() => navigate('create_ad')}>
+                    <Plus size={14} />
+                    <span>Create Campaign</span>
+                  </Button>
+                ) : undefined
+              }
+            />
+          }
+          mobile={(camp) => (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--sp-2)',
+                padding: 'var(--sp-3)',
+                background: 'var(--surface-base)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>{camp.name}</span>
+                <StatusPill variant={getAdStatusVariant(camp.status)} label={camp.status} />
               </div>
-
-              <form onSubmit={handleCreateCampaign} className="modal-form">
-                <div className="form-group">
-                  <label className="form-label">Campaign Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Jerusalem AC Repair Promo"
-                    value={newCampName}
-                    onChange={(e) => setNewCampName(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Campaign Objective</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Lead gen"
-                    value={newCampObjective}
-                    onChange={(e) => setNewCampObjective(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Placement</label>
-                  <select
-                    value={newCampPlacement}
-                    onChange={(e) => setNewCampPlacement(e.target.value)}
-                    className="form-select"
-                  >
-                    <option value="Home Banner">Home Banner</option>
-                    <option value="Search Results">Search Results</option>
-                    <option value="Popups">Popups</option>
-                    <option value="Category Page">Category Page</option>
-                    <option value="Craftsmen Listing">Craftsmen Listing</option>
-                    <option value="Notifications">Notifications</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Target Audience / Category</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Customers · AC Repair"
-                    value={newCampAudience}
-                    onChange={(e) => setNewCampAudience(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Budget (ILS)</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="e.g. 5000"
-                    value={newCampBudget}
-                    onChange={(e) => setNewCampBudget(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="modal-actions-row">
-                  <button type="button" className="ads-secondary-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                  <button type="submit" className="ads-primary-btn">Create Campaign</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Modal for Editing a Campaign */}
-        {editingCampaign && (
-          <div className="modal-backdrop animate-fade-in" onClick={() => setEditingCampaign(null)}>
-            <div className="modal-content glass-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ direction: isRtl ? 'rtl' : 'ltr', maxWidth: '520px' }}>
-              <div className="modal-header">
-                <h3 className="card-title">{isRtl ? 'تعديل الإعلان' : 'Edit Advertisement'}</h3>
-                <button className="modal-close-btn" onClick={() => setEditingCampaign(null)}><X size={16} /></button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
+                <span>{camp.placement}</span>
+                <span>{formatMoney(camp.budget, 'ILS')}</span>
               </div>
-
-              <form onSubmit={handleSaveEdit} className="modal-form">
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'اسم الحملة / الإعلان' : 'Campaign Name'}</label>
-                  <input
-                    type="text"
-                    required
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'الوصف / النص الترويجي' : 'Description / Subtitle'}</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Special offer available now on Sonaa"
-                    value={editObjective}
-                    onChange={(e) => setEditObjective(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'نص زر الإجراء (CTA)' : 'Button Text (CTA)'}</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Claim Offer / Book Now"
-                    value={editCtaText}
-                    onChange={(e) => setEditCtaText(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'مكان الظهور' : 'Placement'}</label>
-                  <select
-                    value={editPlacement}
-                    onChange={(e) => setEditPlacement(e.target.value)}
-                    className="form-select"
-                  >
-                    <option value="Home Banner">Home Banner (شريط الصفحة الرئيسية)</option>
-                    <option value="Featured Slots">Featured Slots (المميز)</option>
-                    <option value="Search Results">Search Results</option>
-                    <option value="Popups">Popups</option>
-                    <option value="Category Page">Category Page</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">{isRtl ? 'الميزانية (شيكل)' : 'Budget (ILS)'}</label>
-                  <input
-                    type="number"
-                    required
-                    value={editBudget}
-                    onChange={(e) => setEditBudget(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                {/* Creative / Banner Image */}
-                <div className="form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label className="form-label" style={{ margin: 0 }}>
-                      {isRtl ? 'صورة الإعلان / البانر الإبداعي' : 'Creative Banner Image'}
-                    </label>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                      {isRtl ? 'الموصى به: 1200×400 (نسبة 3:1)' : '1200×400 recommended · 3:1 ratio'}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {editImagePreview ? (
-                      <div
-                        style={{
-                          position: 'relative',
-                          width: '100%',
-                          height: '140px',
-                          borderRadius: '10px',
-                          overflow: 'hidden',
-                          border: '1.5px solid var(--border-color)',
-                          background: '#0f172a',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                        }}
-                      >
-                        <img
-                          src={resolveMediaUrl(editImagePreview)}
-                          alt="Banner Preview"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '8px',
-                            [isRtl ? 'left' : 'right']: '8px',
-                            background: 'rgba(0, 0, 0, 0.75)',
-                            backdropFilter: 'blur(6px)',
-                            color: '#fff',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                        >
-                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: editImageFile ? '#3b82f6' : '#10b981' }} />
-                          {editImageFile
-                            ? (isRtl ? 'صورة جديدة جاهزة للحفظ' : 'New Image Selected')
-                            : (isRtl ? 'الصورة الحالية النشطة' : 'Active Banner Image')}
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          height: '100px',
-                          borderRadius: '10px',
-                          border: '1.5px dashed var(--border-color)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: 'var(--bg-surface-hover)',
-                          color: 'var(--text-muted)',
-                          gap: '6px'
-                        }}
-                      >
-                        <ImageIcon size={28} />
-                        <span style={{ fontSize: '12px' }}>{isRtl ? 'لا توجد صورة حالياً' : 'No active banner image'}</span>
-                      </div>
-                    )}
-
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        padding: '12px 16px',
-                        borderRadius: '8px',
-                        border: '1.5px dashed var(--border-color)',
-                        background: 'var(--bg-surface-hover)',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        color: 'var(--text-primary)',
-                        transition: 'border-color 0.2s, background 0.2s'
-                      }}
-                    >
-                      <Upload size={16} style={{ color: 'var(--brand-primary, #6366f1)' }} />
-                      <span>
-                        {editImageFile
-                          ? editImageFile.name
-                          : (isRtl ? 'استبدال صورة الإعلان (اختر صورة من جهازك)' : 'Replace Banner Image (Choose file)')}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            const file = e.target.files[0];
-                            setEditImageFile(file);
-                            setEditImagePreview(URL.createObjectURL(file));
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="modal-actions-row" style={{ marginTop: '16px' }}>
-                  <button type="button" className="ads-secondary-btn" onClick={() => setEditingCampaign(null)} disabled={editLoading}>
-                    {isRtl ? 'إلغاء' : 'Cancel'}
-                  </button>
-                  <button type="submit" className="ads-primary-btn" disabled={editLoading}>
-                    {editLoading ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ التعديلات' : 'Save Changes')}
-                  </button>
-                </div>
-              </form>
+              <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'flex-end', marginTop: 'var(--sp-1)' }}>
+                <Button variant="outline" size="sm" onClick={() => setEditingCampaign(camp)}>
+                  Edit
+                </Button>
+                <Dropdown
+                  align="end"
+                  trigger={
+                    <Button variant="ghost" size="sm">
+                      <MoreVertical size={16} />
+                    </Button>
+                  }
+                  items={getRowActions(camp)}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        />
+      </Card>
 
-      {/* Styles for Desktop, Tablet, and Mobile */}
-      <style>{`
-        /* ── Page Body ── */
-        .campaigns-page-body {
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-          margin-top: 24px;
-          width: 100%;
-          max-width: 100%;
-          box-sizing: border-box;
-          overflow: hidden;
-        }
-
-        /* ── Tabs ── */
-        .segmented-tabs-wrapper {
-          padding-inline-start: 0;
-          gap: 8px;
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        .tab-item-btn {
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
-
-        .tab-item-btn:hover {
-          color: var(--text-primary) !important;
-        }
-
-        /* ── Controls Row ── */
-        .table-controls-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          align-items: center;
-          width: 100%;
-          box-sizing: border-box;
-        }
-
-        .search-input-wrapper {
-          flex: 1 1 200px;
-          min-width: 0;
-          position: relative;
-        }
-
-        /* The filters group: flex row on desktop/tablet, wraps on mobile */
-        .filters-group {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          flex-shrink: 0;
-        }
-
-        .filter-select-wrapper {
-          position: relative;
-          flex-shrink: 0;
-        }
-
-        .filter-button-overlay {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 10px 14px;
-          border: 1px solid var(--border-color);
-          background: var(--bg-surface-hover);
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--text-primary);
-          box-sizing: border-box;
-          height: 41.5px;
-          white-space: nowrap;
-          pointer-events: none;
-          user-select: none;
-          width: 100%;
-        }
-
-        .filter-button-overlay-left {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .real-select {
-          position: absolute;
-          inset: 0;
-          opacity: 0;
-          cursor: pointer;
-          width: 100%;
-          height: 100%;
-          appearance: none;
-          box-sizing: border-box;
-        }
-
-        /* ── Table Card ── */
-        .campaigns-table-card {
-          border-radius: 16px;
-          overflow: hidden;
-          padding: 0 !important;
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-          box-sizing: border-box;
-          border: 1px solid var(--border-color);
-          background: var(--bg-surface);
-          box-shadow: var(--shadow-sm);
-        }
-
-        .table-scroll-container {
-          overflow-x: auto;
-          width: 100%;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        .campaigns-table {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 900px;
-        }
-
-        .campaigns-table th {
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--text-muted);
-          padding: 14px 16px;
-          border-bottom: 1px solid var(--border-color);
-          background: var(--bg-surface-hover);
-          white-space: nowrap;
-        }
-
-        .campaigns-table td {
-          padding: 14px 16px;
-          font-size: 13px;
-          border-bottom: 1px solid var(--border-color);
-          color: var(--text-primary);
-          vertical-align: middle;
-          white-space: nowrap;
-        }
-
-        .campaigns-table tbody tr:last-child td {
-          border-bottom: none;
-        }
-
-        .campaigns-table tr:hover td {
-          background: var(--bg-surface-hover);
-        }
-
-        .empty-table-cell {
-          text-align: center;
-          padding: 48px !important;
-          color: var(--text-muted);
-          font-size: 14px;
-          white-space: normal;
-        }
-
-        .custom-table-checkbox {
-          width: 16px;
-          height: 16px;
-          border-radius: 3px;
-          cursor: pointer;
-          accent-color: var(--color-primary);
-        }
-
-        /* ── Status Pills ── */
-        .status-pill {
-          display: inline-flex;
-          align-items: center;
-          font-size: 11px;
-          font-weight: 600;
-          padding: 3px 10px 3px 8px;
-          border-radius: 9999px;
-          text-transform: capitalize;
-          white-space: nowrap;
-        }
-
-        .status-pill::before {
-          content: "";
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          display: inline-block;
-          margin-inline-end: 6px;
-          flex-shrink: 0;
-        }
-
-        .status-pill.active    { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-        .status-pill.active::before  { background: #22c55e; }
-        .status-pill.paused    { background: var(--bg-surface-hover); color: var(--text-muted); }
-        .status-pill.paused::before  { background: var(--text-muted); }
-        .status-pill.scheduled { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-        .status-pill.scheduled::before { background: #f59e0b; }
-        .status-pill.expired   { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-        .status-pill.expired::before { background: #ef4444; }
-
-        /* ── Action Buttons ── */
-        .action-icon-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 28px;
-          height: 28px;
-          border-radius: 6px;
-          border: 1px solid var(--border-color);
-          background: var(--bg-surface-hover);
-          color: var(--text-muted);
-          cursor: pointer;
-          transition: all 0.15s ease;
-          flex-shrink: 0;
-        }
-
-        .action-icon-btn:hover {
-          background: var(--bg-surface);
-          color: var(--text-primary);
-          border-color: var(--border-color);
-        }
-
-        .action-icon-btn.delete:hover {
-          background: rgba(239, 68, 68, 0.15);
-          color: #ef4444;
-          border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        /* ── Pagination ── */
-        .pagination-btn {
-          width: 32px;
-          height: 32px;
-          border-radius: 6px;
-          border: 1px solid var(--border-color);
-          background: var(--bg-surface-hover);
-          color: var(--text-muted);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-        }
-
-        .pagination-btn:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-
-        /* ── Primary / Secondary Buttons ── */
-        .ads-primary-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 9px 16px;
-          background: var(--color-primary);
-          color: #FFFFFF;
-          border: none;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: opacity 0.15s ease;
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
-
-        .ads-primary-btn:hover { opacity: 0.87; }
-
-        .ads-secondary-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 9px 16px;
-          background: var(--bg-surface);
-          color: var(--text-primary);
-          border: 1px solid var(--border-color);
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
-
-        .ads-secondary-btn:hover { background: var(--bg-surface-hover); }
-
-        /* ── Modal ── */
-        .modal-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(0,0,0,0.65);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
-          padding: 16px;
-          box-sizing: border-box;
-        }
-
-        .modal-content {
-          width: 100%;
-          max-width: 480px;
-          max-height: 90vh;
-          overflow-y: auto;
-          border-radius: 16px;
-          background: var(--bg-surface);
-          border: 1px solid var(--border-color);
-          padding: 24px;
-          box-sizing: border-box;
-          box-shadow: var(--shadow-sm);
-        }
-
-        .modal-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 20px;
-        }
-
-        .modal-close-btn {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          border: 1px solid var(--border-color);
-          background: transparent;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--text-muted);
-        }
-        .modal-close-btn:hover { background: var(--bg-surface-hover); }
-
-        .modal-form {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .form-label {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-secondary);
-        }
-
-        .form-input, .form-select {
-          width: 100%;
-          padding: 10px 12px;
-          border: 1px solid var(--border-color);
-          background: var(--bg-surface-hover);
-          color: var(--text-primary);
-          font-size: 13px;
-          border-radius: 8px;
-          outline: none;
-          box-sizing: border-box;
-          font-family: inherit;
-        }
-
-        .form-input:focus, .form-select:focus {
-          border-color: var(--color-primary);
-        }
-
-        .modal-actions-row {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 8px;
-        }
-
-        .card-title {
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--text-primary);
-          margin: 0;
-        }
-
-        /* ── Tablet (769px – 1150px) ── */
-        @media (min-width: 769px) and (max-width: 1150px) {
-          .campaigns-page-body { gap: 20px; }
-          .table-controls-row { gap: 8px; }
-          .filter-select-wrapper select {
-            font-size: 12px;
-            padding: 8px 32px 8px 10px;
-          }
-        }
-
-        /* ── Mobile (≤768px) ── */
-        @media (max-width: 768px) {
-          .main-content {
-            margin-inline-start: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 84px !important;
-            padding-inline-start: 0 !important;
-            padding-inline-end: 0 !important;
-          }
-
-          .mobile-subheader {
-            height: auto !important;
-            padding: 14px 20px !important;
-          }
-
-          .campaigns-page-body {
-            padding: 12px 16px 16px !important;
-            margin-top: 0 !important;
-            gap: 12px !important;
-            max-width: 100% !important;
-          }
-
-          /* Tabs: equal width pills */
-          .segmented-tabs-wrapper {
-            gap: 0 !important;
-            overflow-x: visible !important;
-          }
-
-          .tab-item-btn {
-            flex: 1 !important;
-            justify-content: center !important;
-            padding: 10px 2px !important;
-            font-size: 12px !important;
-          }
-
-          /* Controls: stack vertically */
-          .table-controls-row {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 8px;
-          }
-
-          .search-input-wrapper {
-            flex: 1 1 auto;
-            min-width: unset;
-            width: 100%;
-          }
-
-          /* Filters group: 2-column grid on mobile */
-          .filters-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            width: 100%;
-          }
-
-          /* Last filter (Sort) spans full width if 3 items in 2-col grid */
-          .filters-group .filter-select-wrapper:last-child {
-            grid-column: 1 / -1;
-          }
-
-          .filter-select-wrapper {
-            flex: unset;
-            width: 100%;
-          }
-
-          .filter-select-wrapper select {
-            width: 100%;
-            box-sizing: border-box;
-          }
-
-          /* Mobile actions row */
-          .mobile-actions-row {
-            padding: 0 !important;
-          }
-
-          .mobile-actions-row .ads-primary-btn {
-            width: 100%;
-            justify-content: center;
-          }
-        }
-      `}</style>
-
+      <EditCampaignModal
+        campaign={editingCampaign}
+        onClose={() => setEditingCampaign(null)}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 };
 
 export default ActiveCampaignsPage;
-

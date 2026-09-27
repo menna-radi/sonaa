@@ -78,8 +78,9 @@ export const usePayments = () => {
   useEffect(() => {
     loadPaymentsData(true);
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       loadPaymentsData(false);
-    }, 4000);
+    }, 30000);
     return () => clearInterval(interval);
   }, [loadPaymentsData]);
 

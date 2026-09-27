@@ -67,6 +67,7 @@ export const useLiveActivity = () => {
 
     // Silent background auto-polling (no UI flickering)
     const pollInterval = window.setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       loadSnapshot(true);
     }, refreshInterval);
 

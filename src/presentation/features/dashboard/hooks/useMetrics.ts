@@ -64,38 +64,15 @@ export const useMetrics = () => {
     };
   }, [loadMetrics]);
 
-  // Simulate real-time streaming telemetry updates for visual excitement
+  // Periodic telemetry refresh adhering to polling budget (30s, off in background)
   useEffect(() => {
     const timer = setInterval(() => {
-      // Only simulate updates if we successfully have metrics and are NOT in error state
-      if (metrics.length > 0 && !error) {
-        // Pick a random metric to update
-        const randomIndex = Math.floor(Math.random() * metrics.length);
-        const target = metrics[randomIndex];
-        
-        let newValue = target.value;
-
-        switch (target.id) {
-          case 'cpu':
-            newValue = Math.max(10, Math.min(98, target.value + (Math.floor(Math.random() * 21) - 10)));
-            break;
-          case 'memory':
-            newValue = Math.max(50, Math.min(92, target.value + (Math.floor(Math.random() * 5) - 2)));
-            break;
-          case 'network':
-            newValue = Math.max(80, Math.min(1000, target.value + (Math.floor(Math.random() * 101) - 50)));
-            break;
-          case 'users':
-            newValue = Math.max(100, Math.min(2000, target.value + (Math.floor(Math.random() * 11) - 5)));
-            break;
-        }
-
-        updateMetricValue(target.id, newValue);
-      }
-    }, 4000); // Trigger update every 4 seconds
+      if (typeof document !== 'undefined' && document.hidden) return;
+      loadMetrics(false);
+    }, 30000);
 
     return () => clearInterval(timer);
-  }, [metrics, error, updateMetricValue]);
+  }, [loadMetrics]);
 
   return {
     metrics,

@@ -36,8 +36,9 @@ export const useTasks = () => {
   useEffect(() => {
     fetchTasks(false);
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       fetchTasks(true);
-    }, 10000);
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchTasks]);
 

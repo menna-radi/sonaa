@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
+import { Mail, Lock, Eye, EyeOff, ShieldAlert, Globe, ShieldCheck, MapPin } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Layers, Mail, Lock, ShieldAlert, Globe, Eye, EyeOff } from 'lucide-react';
+import { Button } from '../../../components/ui/Button';
+import { TextField } from '../../../components/ui/FormFields';
+import { AlertBanner } from '../../../components/ui/AlertBanner';
+import { Segmented } from '../../../components/ui/Segmented';
+import { useBreakpoint } from '../../../components/ui/useBreakpoint';
 
 export const LoginPage: React.FC = () => {
-  const { t, language, setLanguage } = useLanguage();
+  const { t, language, setLanguage, isRtl } = useLanguage();
   const { login, error: authError, clearError } = useAuth();
+  const { isMobile } = useBreakpoint();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,312 +56,258 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const errorMessage =
+    validationError ||
+    (authError === 'credentials_invalid'
+      ? t('login_err_invalid') || 'Invalid email or password'
+      : authError);
+
   return (
-    <div className="login-page-container" style={{
-      display: 'flex',
-      minHeight: '100vh',
-      background: 'var(--bg-base)',
-      color: 'var(--text-primary)'
-    }}>
-      {/* Dynamic language picker absolute top right */}
-      <div className="login-lang-header" style={{
-        position: 'absolute',
-        top: '20px',
-        insetInlineEnd: '20px',
-        zIndex: 10,
+    <div
+      style={{
         display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        background: 'var(--bg-surface)',
-        padding: '4px',
-        borderRadius: '8px',
-        border: '1px solid var(--border-color)',
-        boxShadow: 'var(--glass-shadow)'
-      }}>
-        <Globe size={14} style={{ color: 'var(--text-muted)' }} />
-        {(['en', 'ar', 'he'] as const).map(lang => (
-          <button
-            key={lang}
-            onClick={() => {
-              setLanguage(lang);
-              setValidationError(null);
-              clearError();
-            }}
-            style={{
-              padding: '3px 8px',
-              fontSize: '0.75rem',
-              borderRadius: '4px',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              background: language === lang ? 'var(--color-primary)' : 'transparent',
-              color: language === lang ? 'var(--bg-surface)' : 'var(--text-secondary)'
-            }}
-          >
-            {lang}
-          </button>
-        ))}
-      </div>
-
-      {/* Brand illustration side (Hidden on mobile/tablet) */}
-      <div className="login-sidebar" style={{
-        flex: '1.2',
-        background: '#171717',
-        color: '#FFFFFF',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '8% 6%',
+        minHeight: '100vh',
+        background: 'var(--surface-base)',
+        color: 'var(--text-primary)',
+        direction: isRtl ? 'rtl' : 'ltr',
         position: 'relative',
-        overflow: 'hidden',
-        borderInlineEnd: '1px solid rgba(255,255,255,0.06)'
-      }}>
-        {/* Subtle decorative circles */}
-        <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0) 70%)' }} />
-        <div style={{ position: 'absolute', bottom: '-20%', left: '-10%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.03) 0%, rgba(0,0,0,0) 70%)' }} />
-
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: '42px', height: '42px', borderRadius: '8px', flexShrink: 0 }} />
-            <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.04em', color: '#ffffff' }}>
-              Arox Admin
-            </h1>
-          </div>
-          <p style={{ fontSize: '1.1rem', color: '#ffffff', lineHeight: 1.6, maxWidth: '440px' }}>
-            {t('login_welcome_subtitle') || 'Access platform analytics, technician verification, and operations control center.'}
-          </p>
-
-          {/* Real Platform Status & Security Highlights */}
-          <div className="login-stats-preview" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '16px' }}>
-              <span style={{ display: 'block', fontSize: '0.78rem', color: '#94a3b8' }}>System Security</span>
-              <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', marginTop: '6px', color: '#10b981', fontFamily: 'var(--font-title)' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }}></span>
-                256-Bit SSL Encrypted
-              </strong>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '16px' }}>
-              <span style={{ display: 'block', fontSize: '0.78rem', color: '#94a3b8' }}>Operations Region</span>
-              <strong style={{ display: 'block', fontSize: '0.95rem', marginTop: '6px', color: '#f8fafc', fontFamily: 'var(--font-title)' }}>
-                Jerusalem & West Bank
-              </strong>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ position: 'absolute', bottom: '20px', left: '40px', right: '40px', fontSize: '0.75rem', color: '#94a3b8', zIndex: 2 }}>
-          © 2026 AROX Operations Portal • Developed by Qatfa Code
-        </div>
+      }}
+    >
+      {/* Dynamic language picker in top corner */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 'var(--sp-4)',
+          insetInlineEnd: 'var(--sp-4)',
+          zIndex: 10,
+        }}
+      >
+        <Segmented
+          value={language}
+          onChange={(val) => {
+            setLanguage(val as 'en' | 'ar' | 'he');
+            setValidationError(null);
+            clearError();
+          }}
+          items={[
+            { value: 'en', label: 'EN' },
+            { value: 'ar', label: 'AR' },
+            { value: 'he', label: 'HE' },
+          ]}
+        />
       </div>
+
+      {/* Brand panel on start (Desktop & Tablet) */}
+      {!isMobile && (
+        <div
+          style={{
+            flex: '1.1',
+            background: 'var(--surface-inverse)',
+            color: 'var(--on-inverse)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '8% 6%',
+            position: 'relative',
+            overflow: 'hidden',
+            borderInlineEnd: '1px solid var(--border-color)',
+          }}
+        >
+          {/* Subtle background glow */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '-15%',
+              right: '-15%',
+              width: '450px',
+              height: '450px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }}
+          />
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
+              <img
+                src="/arox-icon.svg"
+                alt="Arox Logo"
+                style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-sm)', flexShrink: 0 }}
+              />
+              <span
+                style={{
+                  fontSize: 'var(--font-size-2xl)',
+                  fontWeight: 700,
+                  letterSpacing: '-0.03em',
+                  color: 'var(--on-inverse)',
+                }}
+              >
+                Arox Admin
+              </span>
+            </div>
+
+            <p style={{ fontSize: 'var(--font-size-base)', opacity: 0.85, lineHeight: 1.6, maxWidth: '420px', margin: 0 }}>
+              {t('login_welcome_subtitle') ||
+                'Access platform analytics, technician verification, and operations control center.'}
+            </p>
+
+            {/* Platform Trust Highlights */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 'var(--sp-3)',
+                marginTop: 'var(--sp-6)',
+              }}
+            >
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: 'var(--sp-3)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-1)', color: 'var(--color-success)' }}>
+                  <ShieldCheck size={16} />
+                  <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>256-Bit SSL</span>
+                </div>
+                <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', opacity: 0.7, marginTop: '2px' }}>
+                  Secure Encrypted Access
+                </span>
+              </div>
+
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: 'var(--sp-3)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-1)', color: 'var(--on-inverse)' }}>
+                  <MapPin size={16} />
+                  <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>Jerusalem & WB</span>
+                </div>
+                <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', opacity: 0.7, marginTop: '2px' }}>
+                  Regional Operations
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.6, position: 'relative', zIndex: 1 }}>
+            &copy; 2026 AROX Operations Portal &bull; All Rights Reserved
+          </div>
+        </div>
+      )}
 
       {/* Main Login Form side */}
-      <div className="login-form-side" style={{
-        flex: '1',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '0 8%',
-        background: 'var(--bg-base)'
-      }}>
-        <div style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
-          {/* Brand header for mobile screens */}
-          <div className="mobile-login-logo" style={{ display: 'none', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-lg)' }}>
-            <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: '32px', height: '32px', borderRadius: '6px', flexShrink: 0 }} />
-            <h2 style={{ fontFamily: 'var(--font-title)', fontWeight: 700 }}>Arox</h2>
-          </div>
-
-          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <h2 style={{ fontSize: '2rem', fontFamily: 'var(--font-title)', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
-              {t('login_welcome_title')}
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.925rem' }}>
-              {t('login_welcome_subtitle')}
-            </p>
-          </div>
-
-          {/* Localized Error Messages */}
-          {(validationError || authError) && (
-            <div className="login-error-banner" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              background: 'var(--bg-surface-hover)',
-              border: '1px solid var(--color-danger)',
-              borderRadius: 'var(--border-radius-sm)',
-              padding: '12px var(--spacing-sm)',
-              marginBottom: 'var(--spacing-md)',
-              color: 'var(--color-danger)',
-              fontSize: '0.85rem'
-            }}>
-              <ShieldAlert size={16} />
-              <span>
-                {validationError || (authError === 'credentials_invalid' ? t('login_err_invalid') : authError)}
-              </span>
+      <div
+        style={{
+          flex: '1',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: isMobile ? 'var(--sp-6) var(--sp-4)' : '0 8%',
+          background: 'var(--surface-base)',
+        }}
+      >
+        <div style={{ width: '100%', maxWidth: '400px' }}>
+          {/* Mobile brand header */}
+          {isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: 'var(--sp-6)' }}>
+              <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)' }} />
+              <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>Arox Admin</span>
             </div>
           )}
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                {t('login_label_email')}
-                <span style={{ color: '#ef4444', marginInlineStart: '2px' }}>*</span>
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={16} style={{ position: 'absolute', top: '50%', insetInlineStart: '12px', transform: 'translateY(-50%)', color: fieldErrors.email ? '#ef4444' : 'var(--text-muted)' }} />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); setFieldErrors(prev => ({ ...prev, email: undefined })); }}
-                  placeholder={t('login_placeholder_email')}
-                  style={{
-                    width: '100%',
-                    background: 'var(--bg-surface-hover)',
-                    border: `1px solid ${fieldErrors.email ? '#ef4444' : 'var(--border-color)'}`,
-                    borderRadius: 'var(--border-radius-sm)',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    paddingInlineStart: '36px',
-                    paddingInlineEnd: '16px',
-                    fontSize: '0.9rem',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    transition: 'var(--transition-fast)'
-                  }}
-                  className="login-input"
-                />
-              </div>
-              {fieldErrors.email && (
-                <span style={{ fontSize: '11px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {fieldErrors.email}
-                </span>
-              )}
+          <div style={{ marginBottom: 'var(--sp-6)' }}>
+            <h1 style={{ margin: 0, fontSize: 'var(--font-size-2xl)', fontWeight: 700, color: 'var(--text-primary)' }}>
+              {t('login_welcome_title') || 'Welcome back'}
+            </h1>
+            <p style={{ margin: 'var(--sp-1) 0 0 0', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
+              {t('login_welcome_subtitle') || 'Enter your credentials to access the admin portal'}
+            </p>
+          </div>
+
+          {/* Error Banner */}
+          {errorMessage && (
+            <div style={{ marginBottom: 'var(--sp-4)' }}>
+              <AlertBanner
+                tone="danger"
+                icon={<ShieldAlert size={18} />}
+                title={errorMessage}
+              />
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+            <div style={{ position: 'relative' }}>
+              <TextField
+                label={t('login_label_email') || 'Email Address'}
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                }}
+                placeholder={t('login_placeholder_email') || 'admin@sonaa.com'}
+                error={fieldErrors.email}
+                required
+              />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div className="flex-between">
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                  {t('login_label_password')}
-                  <span style={{ color: '#ef4444', marginInlineStart: '2px' }}>*</span>
-                </label>
-              </div>
-              <div style={{ position: 'relative' }}>
-                <Lock size={16} style={{ position: 'absolute', top: '50%', insetInlineStart: '12px', transform: 'translateY(-50%)', color: fieldErrors.password ? '#ef4444' : 'var(--text-muted)' }} />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setFieldErrors(prev => ({ ...prev, password: undefined })); }}
-                  placeholder={t('login_placeholder_password')}
-                  style={{
-                    width: '100%',
-                    background: 'var(--bg-surface-hover)',
-                    border: `1px solid ${fieldErrors.password ? '#ef4444' : 'var(--border-color)'}`,
-                    borderRadius: 'var(--border-radius-sm)',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    paddingInlineStart: '36px',
-                    paddingInlineEnd: '40px',
-                    fontSize: '0.9rem',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    transition: 'var(--transition-fast)'
-                  }}
-                  className="login-input"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(prev => !prev)}
-                  style={{
-                    position: 'absolute',
-                    top: '50%',
-                    insetInlineEnd: '12px',
-                    transform: 'translateY(-50%)',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'var(--text-muted)',
-                    padding: '0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    transition: 'color 0.15s'
-                  }}
-                  tabIndex={-1}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-              {fieldErrors.password && (
-                <span style={{ fontSize: '11px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {fieldErrors.password}
-                </span>
-              )}
+            <div style={{ position: 'relative' }}>
+              <TextField
+                label={t('login_label_password') || 'Password'}
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                }}
+                placeholder={t('login_placeholder_password') || '••••••••'}
+                error={fieldErrors.password}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{
+                  position: 'absolute',
+                  top: '38px',
+                  insetInlineEnd: '12px',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-muted)',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+                tabIndex={-1}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
 
-            <button
+            <Button
+              variant="primary"
+              size="lg"
               type="submit"
-              disabled={loading}
-              style={{
-                width: '100%',
-                background: loading ? 'var(--text-muted)' : 'var(--color-primary, #2563eb)',
-                color: '#FFFFFF',
-                paddingTop: '13px',
-                paddingBottom: '13px',
-                borderRadius: '10px',
-                fontWeight: 700,
-                fontSize: '0.95rem',
-                marginTop: 'var(--spacing-xs)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: 'none',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
-                transition: 'all 0.15s ease'
-              }}
-              className="login-submit-btn"
+              loading={loading}
+              style={{ width: '100%', marginTop: 'var(--sp-2)' }}
             >
-              {loading ? (
-                <div style={{ width: '20px', height: '20px', border: '2.5px solid rgba(255,255,255,0.2)', borderTopColor: '#FFFFFF', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-              ) : (
-                <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{t('login_btn_submit') || 'Sign In'}</span>
-              )}
-            </button>
+              {t('login_btn_submit') || 'Sign In'}
+            </Button>
           </form>
-
         </div>
       </div>
-
-      <style>{`
-        .login-input:focus {
-          border-color: #171717 !important;
-          box-shadow: 0 0 0 2px rgba(23,23,23,0.1);
-        }
-        .login-submit-btn:hover:not(:disabled) {
-          background: #333333 !important;
-          transform: translateY(-1px);
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
-        }
-        /* Browser Autofill Styling Fix */
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover,
-        input:-webkit-autofill:focus,
-        input:-webkit-autofill:active {
-          -webkit-box-shadow: 0 0 0 30px #f5f5f5 inset !important;
-          -webkit-text-fill-color: #171717 !important;
-        }
-        @media (max-width: 1024px) {
-          .login-sidebar {
-            display: none !important;
-          }
-          .mobile-login-logo {
-            display: flex !important;
-          }
-          .login-form-side {
-            padding: 0 4% !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };
+
 export default LoginPage;

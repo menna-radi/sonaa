@@ -140,14 +140,15 @@ export const useChat = () => {
     fetchRooms(true);
   }, [fetchRooms]);
 
-  // 5. Silent periodic polling fallback (every 5 seconds)
+  // 5. Silent periodic safety refetch fallback (every 60s, paused in background tab)
   useEffect(() => {
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       fetchRooms(false);
       if (activeRoomIdRef.current) {
         fetchMessages(activeRoomIdRef.current, false);
       }
-    }, 5000);
+    }, 60000);
     return () => clearInterval(interval);
   }, [fetchRooms, fetchMessages]);
 
