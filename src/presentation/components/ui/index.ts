@@ -19,6 +19,7 @@ export * from './Drawer';
 export * from './ConfirmDialog';
 export * from './Toast';
 export * from './Dropdown';
+export * from './LanguageMenu';
 export * from './AlertBanner';
 export * from './useBreakpoint';
 export * from './DataTable';

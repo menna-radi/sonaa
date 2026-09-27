@@ -67,6 +67,26 @@ export const translations: TranslationDict = {
     ar: 'بيانات الدخول التجريبية: admin@sonaa.com / admin123',
     he: 'פרטי התחברות לדוגמה: admin@sonaa.com / admin123'
   },
+  login_brand_headline: {
+    en: 'Command center for your marketplace',
+    ar: 'مركز قيادة السوق الخاص بك',
+    he: 'מרכז הבקרה של השוק שלך'
+  },
+  login_feat_live: {
+    en: 'Real-time activity monitoring',
+    ar: 'مراقبة النشاط لحظياً',
+    he: 'ניטור פעילות בזמן אמת'
+  },
+  login_feat_verify: {
+    en: 'Craftsman verification queue',
+    ar: 'قائمة توثيق الحرفيين',
+    he: 'תור אימות בעלי מקצוע'
+  },
+  login_feat_payments: {
+    en: 'Payments, payouts & plans',
+    ar: 'المدفوعات والسحوبات والخطط',
+    he: 'תשלומים, משיכות ותוכניות'
+  },
   sidebar_dashboard: {
     en: 'Overview',
     ar: 'نظرة عامة',
@@ -827,6 +847,11 @@ export const translations: TranslationDict = {
     ar: 'طلبات التوثيق المعلقة',
     he: 'בקשות אימות'
   },
+  metrics_online_now: {
+    en: 'online now',
+    ar: 'متصل الآن',
+    he: 'מחובר עכשיו'
+  },
 
   // Needs Attention
   sec_needs_attention: {
@@ -1173,6 +1198,11 @@ export const translations: TranslationDict = {
     en: 'Search users, tasks, transactions...',
     ar: 'ابحث عن المستخدمين، المهام، المعاملات...',
     he: 'חפש משתמשים, משימות, עסקאות...'
+  },
+  search_placeholder_short: {
+    en: 'Search…',
+    ar: 'بحث…',
+    he: 'חיפוש…'
   },
   tasks_title: {
     en: 'Tasks',

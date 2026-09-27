@@ -25,14 +25,18 @@ export const useDashboard = () => {
   const categories = data?.categories || [];
   const reports = data?.reports || [];
   const submissions = data?.submissions || [];
+  const verificationTotal = data?.verificationTotal ?? submissions.length;
   const cohortData = data?.cohortData || [];
+  const revenueAnalytics = data?.revenueAnalytics || null;
 
   return {
     metrics,
     categories,
     reports,
     submissions,
+    verificationTotal,
     cohortData,
+    revenueAnalytics,
     loading: isLoading,
     error: error instanceof Error ? error.message : null,
     refresh: refetch,

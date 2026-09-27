@@ -18,46 +18,31 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics, loading = fal
     {
       icon: React.ReactNode;
       labelKey: string;
-      captionKey?: string;
-      defaultCaption: string;
-      defaultDelta?: number;
     }
   > = {
     users: {
       icon: <Users size={16} />,
-      labelKey: 'kpi_total_users',
-      defaultCaption: 'vs last week',
-      defaultDelta: 12.4,
+      labelKey: 'metrics_total_users',
     },
     craftsmen: {
       icon: <Wrench size={16} />,
-      labelKey: 'kpi_active_craftsmen',
-      defaultCaption: '312 online now',
-      defaultDelta: 8.2,
+      labelKey: 'metrics_active_craftsmen',
     },
     tasks: {
       icon: <Briefcase size={16} />,
-      labelKey: 'kpi_active_tasks',
-      defaultCaption: 'active operations',
-      defaultDelta: 5.6,
+      labelKey: 'metrics_active_tasks',
     },
     revenue: {
       icon: <Wallet size={16} />,
-      labelKey: 'kpi_revenue_mtd',
-      defaultCaption: 'vs last month',
-      defaultDelta: 18.9,
+      labelKey: 'metrics_revenue_mtd',
     },
     emergency: {
       icon: <Siren size={16} />,
-      labelKey: 'kpi_emergency_reqs',
-      defaultCaption: 'last 24 hours',
-      defaultDelta: undefined,
+      labelKey: 'metrics_emergency_reqs',
     },
     verification: {
       icon: <ShieldCheck size={16} />,
-      labelKey: 'kpi_verification_reqs',
-      defaultCaption: 'pending review',
-      defaultDelta: undefined,
+      labelKey: 'metrics_verification_reqs',
     },
   };
 
@@ -86,14 +71,19 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics, loading = fal
 
         const isEmergency = id === 'emergency' && val > 0;
 
+        // Caption only when backed by live data (online count from the backend).
+        const caption =
+          id === 'craftsmen' && metric?.onlineCount != null
+            ? `${formatNumber(metric.onlineCount, language)} ${t('metrics_online_now')}`
+            : undefined;
+
         return (
           <KpiCard
             key={id}
             icon={config.icon}
             label={t(config.labelKey) || (metric ? t(metric.nameKey) : id)}
             value={formattedValue}
-            delta={config.defaultDelta}
-            caption={config.defaultCaption}
+            caption={caption}
             tone={isEmergency ? 'danger' : 'default'}
             loading={loading}
           />

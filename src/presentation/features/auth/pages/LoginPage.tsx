@@ -1,17 +1,61 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ShieldAlert, Globe, ShieldCheck, MapPin } from 'lucide-react';
+import { Eye, EyeOff, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useLanguage } from '../../../context/LanguageContext';
+import type { Language } from '../../../context/LanguageContext';
 import { Button } from '../../../components/ui/Button';
 import { TextField } from '../../../components/ui/FormFields';
 import { AlertBanner } from '../../../components/ui/AlertBanner';
-import { Segmented } from '../../../components/ui/Segmented';
+import { LanguageMenu } from '../../../components/ui/LanguageMenu';
 import { useBreakpoint } from '../../../components/ui/useBreakpoint';
+import { LoginBrandBand, LoginBrandPanel } from '../components/LoginBrandPanel';
+
+/** Compact logo + wordmark used in the top bar (mobile/tablet). */
+const BrandMark: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'sm' }) => {
+  const box = size === 'sm' ? 34 : 40;
+  const icon = size === 'sm' ? 20 : 24;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+      <div
+        style={{
+          width: `${box}px`,
+          height: `${box}px`,
+          borderRadius: 'var(--radius-sm)',
+          background: '#09090B',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: `${icon}px`, height: `${icon}px` }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <span
+          style={{
+            fontSize: 'var(--fs-card-title, 16px)',
+            fontWeight: 700,
+            color: 'var(--text-primary)',
+            display: 'block',
+            lineHeight: 1.25,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          AROX Admin
+        </span>
+        <span style={{ display: 'block', marginTop: '3px', fontSize: 'var(--fs-micro, 11px)', lineHeight: 1.4, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+          Operations Portal
+        </span>
+      </div>
+    </div>
+  );
+};
 
 export const LoginPage: React.FC = () => {
   const { t, language, setLanguage, isRtl } = useLanguage();
   const { login, error: authError, clearError } = useAuth();
-  const { isMobile } = useBreakpoint();
+  const { isMobile, isTablet, isDesktop } = useBreakpoint();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,6 +100,12 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    setValidationError(null);
+    clearError();
+  };
+
   const errorMessage =
     validationError ||
     (authError === 'credentials_invalid'
@@ -66,6 +116,7 @@ export const LoginPage: React.FC = () => {
     <div
       style={{
         display: 'flex',
+        flexDirection: isDesktop ? 'row' : 'column',
         minHeight: '100vh',
         background: 'var(--surface-base)',
         color: 'var(--text-primary)',
@@ -73,166 +124,42 @@ export const LoginPage: React.FC = () => {
         position: 'relative',
       }}
     >
-      {/* Dynamic language picker in top corner */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 'var(--sp-4)',
-          insetInlineEnd: 'var(--sp-4)',
-          zIndex: 10,
-        }}
-      >
-        <Segmented
-          value={language}
-          onChange={(val) => {
-            setLanguage(val as 'en' | 'ar' | 'he');
-            setValidationError(null);
-            clearError();
-          }}
-          items={[
-            { value: 'en', label: 'EN' },
-            { value: 'ar', label: 'AR' },
-            { value: 'he', label: 'HE' },
-          ]}
-        />
-      </div>
-
-      {/* Brand panel on start (Desktop & Tablet) */}
-      {!isMobile && (
+      {/* Desktop: language dropdown floats in the top corner */}
+      {isDesktop && (
         <div
           style={{
-            flex: '1',
-            minWidth: '380px',
-            maxWidth: '520px',
-            background: '#09090B',
-            color: '#FFFFFF',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '8% 6%',
-            position: 'relative',
-            overflow: 'hidden',
-            borderInlineEnd: '1px solid rgba(255, 255, 255, 0.08)',
+            position: 'absolute',
+            top: 'var(--sp-4)',
+            insetInlineEnd: 'var(--sp-4)',
+            zIndex: 10,
           }}
         >
-          {/* Subtle background glow */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '-15%',
-              right: '-15%',
-              width: '450px',
-              height: '450px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%)',
-              pointerEvents: 'none',
-            }}
-          />
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-              <div
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'linear-gradient(135deg, #1C1C1E 0%, #09090B 100%)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
-                }}
-              >
-                <img
-                  src="/arox-icon.svg"
-                  alt="Arox Logo"
-                  style={{ width: '26px', height: '26px' }}
-                />
-              </div>
-              <div>
-                <span
-                  style={{
-                    fontSize: 'var(--fs-page-title, 24px)',
-                    fontWeight: 700,
-                    letterSpacing: '-0.02em',
-                    color: '#FFFFFF',
-                    display: 'block',
-                    lineHeight: 1.1,
-                  }}
-                >
-                  AROX
-                </span>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(255, 255, 255, 0.55)',
-                    fontWeight: 600,
-                  }}
-                >
-                  Operations &bull; Admin
-                </span>
-              </div>
-            </div>
-
-            <p style={{ fontSize: 'var(--fs-body, 14px)', color: 'rgba(255, 255, 255, 0.75)', lineHeight: 1.6, maxWidth: '420px', margin: 0 }}>
-              {t('login_welcome_subtitle') ||
-                'Access platform analytics, technician verification, and operations control center.'}
-            </p>
-
-            {/* Platform Trust Highlights */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 'var(--space-3)',
-                marginTop: 'var(--space-4)',
-              }}
-            >
-              <div
-                style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: 'var(--space-3) var(--space-4)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-success, #10B981)' }}>
-                  <ShieldCheck size={16} />
-                  <span style={{ fontSize: 'var(--fs-caption, 12px)', fontWeight: 600, color: '#FFFFFF' }}>256-Bit SSL</span>
-                </div>
-                <span style={{ display: 'block', fontSize: 'var(--fs-micro, 11px)', color: 'rgba(255, 255, 255, 0.5)', marginTop: '4px' }}>
-                  Secure Encrypted Access
-                </span>
-              </div>
-
-              <div
-                style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: 'var(--space-3) var(--space-4)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: '#FFFFFF' }}>
-                  <MapPin size={16} style={{ color: 'var(--accent, #6366F1)' }} />
-                  <span style={{ fontSize: 'var(--fs-caption, 12px)', fontWeight: 600, color: '#FFFFFF' }}>Jerusalem & WB</span>
-                </div>
-                <span style={{ display: 'block', fontSize: 'var(--fs-micro, 11px)', color: 'rgba(255, 255, 255, 0.5)', marginTop: '4px' }}>
-                  Regional Operations
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ fontSize: 'var(--fs-micro, 11px)', color: 'rgba(255, 255, 255, 0.45)', position: 'relative', zIndex: 1 }}>
-            &copy; 2026 AROX Operations Portal &bull; All Rights Reserved
-          </div>
+          <LanguageMenu value={language} onChange={handleLanguageChange} />
         </div>
       )}
+
+      {/* Mobile & tablet: in-flow top bar with brand + language dropdown */}
+      {!isDesktop && (
+        <header
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            width: '100%',
+            padding: isMobile ? '12px 16px' : '16px 28px',
+          }}
+        >
+          <BrandMark size="sm" />
+          <LanguageMenu value={language} onChange={handleLanguageChange} size="sm" />
+        </header>
+      )}
+
+      {/* Brand panel (desktop only) */}
+      {isDesktop && <LoginBrandPanel />}
+
+      {/* Tablet: compact brand band above the form */}
+      {isTablet && <LoginBrandBand />}
 
       {/* Main Login Form side */}
       <div
@@ -242,14 +169,15 @@ export const LoginPage: React.FC = () => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: isMobile ? 'var(--space-6) var(--space-4)' : 'var(--space-8)',
+          width: '100%',
+          padding: isMobile ? '24px 16px 32px' : isTablet ? '36px 28px 48px' : 'var(--space-8)',
           background: 'var(--surface-base)',
         }}
       >
         <div
           style={{
             width: '100%',
-            maxWidth: '420px',
+            maxWidth: isMobile ? '100%' : isTablet ? '480px' : '420px',
             background: 'var(--surface-card)',
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-lg)',
@@ -257,37 +185,8 @@ export const LoginPage: React.FC = () => {
             boxShadow: 'var(--shadow-pop)',
           }}
         >
-          {/* Mobile brand header */}
-          {isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
-              <div
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: '#09090B',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: '22px', height: '22px' }} />
-              </div>
-              <div>
-                <span style={{ fontSize: 'var(--fs-card-title, 16px)', fontWeight: 700, color: 'var(--text-primary)', display: 'block', lineHeight: 1.2 }}>
-                  AROX Admin
-                </span>
-                <span style={{ fontSize: 'var(--fs-micro, 11px)', color: 'var(--text-muted)' }}>
-                  Operations Portal
-                </span>
-              </div>
-            </div>
-          )}
-
           <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h1 style={{ margin: 0, fontSize: 'var(--fs-page-title, 24px)', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            <h1 style={{ margin: 0, fontSize: isMobile ? '22px' : 'var(--fs-page-title, 24px)', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
               {t('login_welcome_title') || 'Welcome back'}
             </h1>
             <p style={{ margin: 'var(--space-1) 0 0 0', color: 'var(--text-muted)', fontSize: 'var(--fs-small, 13px)' }}>
@@ -370,6 +269,20 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
         </div>
+
+        {/* Mobile & tablet footer */}
+        {!isDesktop && (
+          <p
+            style={{
+              margin: '24px 0 0 0',
+              fontSize: 'var(--fs-micro, 11px)',
+              color: 'var(--text-muted)',
+              textAlign: 'center',
+            }}
+          >
+            &copy; 2026 AROX Operations Portal &bull; All Rights Reserved
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,13 @@
 import { Metric, MetricStatus } from '../../domain/entities/Metric';
 import { MetricMapper } from '../mappers/MetricMapper';
-import type { 
-  MetricRepository, 
-  CategoryVolume, 
-  PendingReport, 
-  VerificationSubmission, 
-  CohortData 
+import type {
+  MetricRepository,
+  CategoryVolume,
+  PendingReport,
+  VerificationSubmission,
+  VerificationSubmissions,
+  CohortData,
+  RevenueAnalytics
 } from '../../domain/repositories/MetricRepository';
 import { Result, ok, fail } from '../../core/result/Result';
 import { NotFoundError, AppError } from '../../core/errors/AppError';
@@ -92,14 +94,30 @@ export class MockMetricRepository implements MetricRepository {
     return ok([...this.reports]);
   }
 
-  public async getVerificationSubmissions(): Promise<Result<VerificationSubmission[]>> {
+  public async getVerificationSubmissions(): Promise<Result<VerificationSubmissions>> {
     await new Promise((resolve) => setTimeout(resolve, 100));
-    return ok([...this.verifications]);
+    return ok({ submissions: [...this.verifications], total: this.verifications.length });
   }
 
   public async getCohortData(): Promise<Result<CohortData[]>> {
     await new Promise((resolve) => setTimeout(resolve, 100));
     return ok([...this.cohortData]);
+  }
+
+  public async getRevenueAnalytics(): Promise<Result<RevenueAnalytics>> {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return ok({
+      gmv: 4120000,
+      takeRate: 20.4,
+      avgOrderValue: 342,
+      disputeRate: 0.8,
+      series: [
+        { date: 'W1', revenue: 62000 },
+        { date: 'W2', revenue: 71000 },
+        { date: 'W3', revenue: 68000 },
+        { date: 'W4', revenue: 84000 },
+      ],
+    });
   }
 }
 export default MockMetricRepository;

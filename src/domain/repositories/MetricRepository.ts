@@ -5,7 +5,8 @@ export interface CategoryVolume {
   nameKey: string;
   tasksCount: number;
   percentage: number;
-  trendPercentage: number;
+  /** Week-over-week trend — only set when measured. Never fabricated. */
+  trendPercentage?: number;
 }
 
 export interface PendingReport {
@@ -21,6 +22,28 @@ export interface VerificationSubmission {
   roleKey: string;
   timeKey: string;
   avatarUrl: string;
+  /** Real submission timestamp from the queue endpoint (ISO string). */
+  submittedAt?: string;
+}
+
+export interface VerificationSubmissions {
+  submissions: VerificationSubmission[];
+  /** Full queue size from the backend (may exceed the previewed submissions). */
+  total: number;
+}
+
+export interface RevenuePoint {
+  date: string;
+  revenue: number;
+}
+
+/** Real revenue analytics from GET /admin/overview-stats → analytics. */
+export interface RevenueAnalytics {
+  gmv: number;
+  takeRate: number;
+  avgOrderValue: number;
+  disputeRate: number;
+  series: RevenuePoint[];
 }
 
 export interface CohortData {
@@ -35,6 +58,7 @@ export interface MetricRepository {
   updateMetric(id: string, value: number): Promise<Result<Metric>>;
   getCategoryVolumes(): Promise<Result<CategoryVolume[]>>;
   getPendingReports(): Promise<Result<PendingReport[]>>;
-  getVerificationSubmissions(): Promise<Result<VerificationSubmission[]>>;
+  getVerificationSubmissions(): Promise<Result<VerificationSubmissions>>;
   getCohortData(): Promise<Result<CohortData[]>>;
+  getRevenueAnalytics(): Promise<Result<RevenueAnalytics>>;
 }

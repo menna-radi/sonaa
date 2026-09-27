@@ -21,7 +21,7 @@ import {
   Clock,
   Percent,
   TrendingUp,
-  Settings,
+  Check,
   Wrench,
   ChevronDown,
   Globe,
@@ -60,6 +60,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { data: counts } = useSidebarCounts();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+
+  const themeOptions = [
+    { key: 'system', label: 'System', icon: <Laptop size={14} /> },
+    { key: 'light', label: 'Light', icon: <Sun size={14} /> },
+    { key: 'dark', label: 'Dark', icon: <Moon size={14} /> },
+  ];
+  const activeTheme = themeOptions.find((o) => o.key === theme) ?? themeOptions[0];
 
   const menuSections: MenuSection[] = [
     {
@@ -221,30 +229,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div
           className="sidebar-brand"
           style={{
-            height: 'var(--topbar-h)',
+            minHeight: 'var(--topbar-h)',
             display: 'flex',
             alignItems: 'center',
-            padding: '0 var(--space-4)',
+            padding: '14px var(--space-4)',
             borderBottom: '1px solid var(--sidebar-border)',
             gap: 'var(--space-3)',
           }}
         >
           <div
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: '#FFFFFF',
-              color: '#000000',
+              width: 36,
+              height: 36,
+              borderRadius: 'var(--radius-md)',
+              background: 'linear-gradient(135deg, #26262B 0%, #09090B 70%)',
+              border: '1px solid rgba(255, 255, 255, 0.16)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: 16,
               flexShrink: 0,
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
             }}
           >
-            A
+            <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: 22, height: 22 }} />
           </div>
           <div
             className="sidebar-brand-text"
@@ -252,17 +259,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           >
             <span
               style={{
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: 'var(--fs-body)',
                 color: '#FFFFFF',
-                lineHeight: 1.2,
+                lineHeight: 1.25,
               }}
             >
               Arox Admin
             </span>
             <span
               style={{
+                display: 'block',
+                marginTop: '2px',
                 fontSize: 'var(--fs-caption)',
+                lineHeight: 1.4,
                 color: 'var(--sidebar-section)',
               }}
             >
@@ -390,7 +400,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           ))}
         </div>
 
-        {/* Footer: Settings & User Profile with Popover */}
+        {/* Footer: User Profile with Popover */}
         <div
           className="sidebar-footer"
           style={{
@@ -402,39 +412,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             position: 'relative',
           }}
         >
-          {/* Settings link */}
-          <a
-            href="#settings"
-            title={t('nav_settings') || 'Settings'}
-            className={`sidebar-nav-item ${currentPage === 'settings' ? 'active' : ''}`}
-            onClick={(e) => handleNavClick(e, 'settings')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              height: 36,
-              padding: '0 var(--space-3)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: 'var(--fs-body)',
-              fontWeight: currentPage === 'settings' ? 600 : 500,
-              backgroundColor:
-                currentPage === 'settings' ? 'var(--sidebar-active-bg)' : 'transparent',
-              color:
-                currentPage === 'settings'
-                  ? 'var(--sidebar-active-text)'
-                  : 'var(--sidebar-text)',
-              textDecoration: 'none',
-              transition: 'all var(--dur-fast) var(--ease)',
-            }}
-          >
-            <Settings size={16} />
-            <span className="sidebar-item-label">{t('nav_settings') || 'Settings'}</span>
-          </a>
-
           {/* User Row with Chevron Menu */}
           {user && (
             <div
-              onClick={() => setUserMenuOpen((prev) => !prev)}
+              onClick={() => {
+                setUserMenuOpen((prev) => {
+                  if (!prev) setThemeMenuOpen(false);
+                  return !prev;
+                });
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -523,77 +509,167 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   insetInlineStart: 'var(--space-3)',
                   insetInlineEnd: 'var(--space-3)',
                   backgroundColor: 'var(--n-900)',
-                  border: '1px solid var(--n-800)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: 6,
+                  border: '1px solid rgba(255, 255, 255, 0.09)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: 8,
                   boxShadow: 'var(--shadow-modal)',
                   zIndex: 999,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 4,
+                  gap: 2,
                 }}
               >
                 {/* Language selection */}
-                <div style={{ padding: '4px 8px', fontSize: 11, fontWeight: 600, color: 'var(--n-400)', textTransform: 'uppercase' }}>
+                <div style={{ padding: '6px 10px 2px', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: 'var(--n-400)', textTransform: 'uppercase' }}>
                   {t('language') || 'Language'}
                 </div>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {(['en', 'ar', 'he'] as const).map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setLanguage(l)}
-                      style={{
-                        flex: 1,
-                        padding: '6px 0',
-                        fontSize: 12,
-                        fontWeight: language === l ? 700 : 500,
-                        backgroundColor: language === l ? '#FFFFFF' : 'var(--n-800)',
-                        color: language === l ? '#000000' : 'var(--n-300)',
-                        border: 'none',
-                        borderRadius: 'var(--radius-xs)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {l.toUpperCase()}
-                    </button>
-                  ))}
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 4,
+                    padding: 4,
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                  }}
+                >
+                  {(['en', 'ar', 'he'] as const).map((l) => {
+                    const isActive = language === l;
+                    return (
+                      <button
+                        key={l}
+                        onClick={() => setLanguage(l)}
+                        title={l === 'en' ? 'English' : l === 'ar' ? 'العربية' : 'עברית'}
+                        style={{
+                          flex: 1,
+                          padding: '7px 0',
+                          fontSize: 12,
+                          fontWeight: isActive ? 700 : 500,
+                          backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                          color: isActive ? '#FFFFFF' : 'var(--n-300)',
+                          border: '1px solid',
+                          borderColor: isActive ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+                          borderRadius: 'var(--radius-sm)',
+                          cursor: 'pointer',
+                          transition: 'background var(--dur-fast) var(--ease)',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        {l.toUpperCase()}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* Theme selection */}
-                <div style={{ padding: '8px 8px 4px', fontSize: 11, fontWeight: 600, color: 'var(--n-400)', textTransform: 'uppercase' }}>
+                {/* Theme selection (dropdown list) */}
+                <div style={{ padding: '10px 10px 2px', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: 'var(--n-400)', textTransform: 'uppercase' }}>
                   Theme
                 </div>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {[
-                    { key: 'system', icon: <Laptop size={12} /> },
-                    { key: 'light', icon: <Sun size={12} /> },
-                    { key: 'dark', icon: <Moon size={12} /> },
-                  ].map((tOption) => (
-                    <button
-                      key={tOption.key}
-                      onClick={() => setTheme(tOption.key as any)}
+                <div style={{ position: 'relative', padding: '0 2px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setThemeMenuOpen((prev) => !prev)}
+                    aria-haspopup="listbox"
+                    aria-expanded={themeMenuOpen}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      color: '#FFFFFF',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      {activeTheme.icon}
+                      <span>{activeTheme.label}</span>
+                    </span>
+                    <ChevronDown
+                      size={13}
                       style={{
-                        flex: 1,
-                        padding: '6px 0',
+                        color: 'var(--n-300)',
+                        transform: themeMenuOpen ? 'rotate(180deg)' : 'none',
+                        transition: 'transform var(--dur-fast) var(--ease)',
+                      }}
+                    />
+                  </button>
+
+                  {themeMenuOpen && (
+                    <div
+                      role="listbox"
+                      aria-label="Theme"
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 4px)',
+                        insetInlineStart: 0,
+                        insetInlineEnd: 0,
+                        backgroundColor: 'var(--n-800)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: 'var(--radius-md)',
+                        boxShadow: 'var(--shadow-pop)',
+                        padding: 4,
+                        zIndex: 1000,
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 4,
-                        fontSize: 12,
-                        fontWeight: theme === tOption.key ? 700 : 500,
-                        backgroundColor: theme === tOption.key ? '#FFFFFF' : 'var(--n-800)',
-                        color: theme === tOption.key ? '#000000' : 'var(--n-300)',
-                        border: 'none',
-                        borderRadius: 'var(--radius-xs)',
-                        cursor: 'pointer',
+                        flexDirection: 'column',
+                        gap: 2,
                       }}
                     >
-                      {tOption.icon}
-                    </button>
-                  ))}
+                      {themeOptions.map((tOption) => {
+                        const isActive = theme === tOption.key;
+                        return (
+                          <button
+                            key={tOption.key}
+                            role="option"
+                            aria-selected={isActive}
+                            onClick={() => {
+                              setTheme(tOption.key as any);
+                              setThemeMenuOpen(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              width: '100%',
+                              padding: '8px 10px',
+                              fontSize: 12,
+                              fontWeight: isActive ? 700 : 500,
+                              backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                              color: isActive ? '#FFFFFF' : 'var(--n-300)',
+                              border: 'none',
+                              borderRadius: 'var(--radius-sm)',
+                              cursor: 'pointer',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                              {tOption.icon}
+                              <span>{tOption.label}</span>
+                            </span>
+                            {isActive && <Check size={13} />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                <div style={{ height: 1, backgroundColor: 'var(--n-800)', margin: '4px 0' }} />
+                <div style={{ height: 1, backgroundColor: 'rgba(255, 255, 255, 0.07)', margin: '8px 4px 6px' }} />
 
                 {/* Logout */}
                 <button
@@ -605,16 +681,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 8,
-                    padding: '8px',
+                    padding: '9px 10px',
                     width: '100%',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderRadius: 'var(--radius-xs)',
-                    color: 'var(--danger)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.09)',
+                    border: '1px solid rgba(239, 68, 68, 0.16)',
+                    borderRadius: 'var(--radius-sm)',
+                    color: '#F87171',
                     fontSize: 13,
                     fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'start',
+                    transition: 'background var(--dur-fast) var(--ease)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.09)';
                   }}
                 >
                   <LogOut size={14} />

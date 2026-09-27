@@ -2,14 +2,17 @@ import React from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
 import { Card, Avatar, Button } from '../../../components/ui';
+import { formatRelativeTime } from '../../../../core/utils/format';
 import type { VerificationSubmission } from '../../../../domain/repositories/MetricRepository';
 import { ArrowRight } from 'lucide-react';
 
 interface ModeratorReviewProps {
   submissions: VerificationSubmission[];
+  /** Full queue size from the backend (may exceed the previewed submissions). */
+  total?: number;
 }
 
-export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions }) => {
+export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions, total }) => {
   const { t, language } = useLanguage();
   const { navigate } = useNavigation();
 
@@ -26,7 +29,7 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
       subtitle={t('sec_recent_verification')}
       headerAction={
         <span style={{ fontSize: 'var(--fs-caption)', fontWeight: 600, color: 'var(--text-muted)' }}>
-          {t('open_queue') || 'Open queue'} ({submissions.length})
+          {t('open_queue') || 'Open queue'} ({total ?? submissions.length})
         </span>
       }
       className="moderator-review-card"
@@ -100,7 +103,7 @@ export const ModeratorReview: React.FC<ModeratorReviewProps> = ({ submissions })
               }}
             >
               <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-faint)' }}>
-                {t(sub.timeKey)}
+                {sub.submittedAt ? formatRelativeTime(sub.submittedAt, language) : t(sub.timeKey)}
               </span>
 
               <Button

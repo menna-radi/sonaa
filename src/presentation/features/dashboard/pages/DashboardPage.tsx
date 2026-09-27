@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
 import { useDashboard } from '../hooks/useDashboard';
@@ -20,11 +20,16 @@ import { PaymentsPage } from '../../payments/pages/PaymentsPage';
 import { AnalyticsPage } from '../../analytics/pages/AnalyticsPage';
 import { BroadcastPage } from '../../broadcast/pages/BroadcastPage';
 import { NotificationsPage } from '../../notifications/pages/NotificationsPage';
-import { AdsPage } from '../../ads/pages/AdsPage';
-import { ActiveCampaignsPage } from '../../ads/pages/ActiveCampaignsPage';
-import { CreateAdPage } from '../../ads/pages/CreateAdPage';
-import { PromotionsPage } from '../../ads/pages/PromotionsPage';
-import { AdAnalyticsPage } from '../../ads/pages/AdAnalyticsPage';
+// Ads feature pages are lazy-loaded on purpose: their module URLs contain
+// ad-filter keywords (ads/campaigns/promotions) that ad-blockers block outright
+// (net::ERR_BLOCKED_BY_CLIENT). Static imports would fail the whole module graph
+// and render a blank dashboard, so these load on demand behind Suspense +
+// PageErrorBoundary (shows a retry fallback instead of a white screen).
+const AdsPage = React.lazy(() => import('../../ads/pages/AdsPage'));
+const ActiveCampaignsPage = React.lazy(() => import('../../ads/pages/ActiveCampaignsPage'));
+const CreateAdPage = React.lazy(() => import('../../ads/pages/CreateAdPage'));
+const PromotionsPage = React.lazy(() => import('../../ads/pages/PromotionsPage'));
+const AdAnalyticsPage = React.lazy(() => import('../../ads/pages/AdAnalyticsPage'));
 import { SettingsPage } from '../../settings/pages/SettingsPage';
 import { ServiceManagementPage } from '../../service_management/pages/ServiceManagementPage';
 import { Calendar, Download, RefreshCw, AlertTriangle } from 'lucide-react';
@@ -37,7 +42,9 @@ const OverviewPage: React.FC = () => {
     categories,
     reports,
     submissions,
+    verificationTotal,
     cohortData,
+    revenueAnalytics,
     loading,
     error,
     refresh,
@@ -125,7 +132,7 @@ const OverviewPage: React.FC = () => {
             }}
           >
             <div style={{ minWidth: 0 }}>
-              <RevenueChart />
+              <RevenueChart analytics={revenueAnalytics} />
             </div>
             <div style={{ minWidth: 0 }}>
               <TopCategories categories={categories} />
@@ -149,7 +156,7 @@ const OverviewPage: React.FC = () => {
             </div>
           </div>
 
-          <ModeratorReview submissions={submissions} />
+          <ModeratorReview submissions={submissions} total={verificationTotal} />
 
           <div style={{ display: 'flex', justifyContent: 'center', margin: 'var(--sp-4) 0' }}>
             <Button
@@ -168,6 +175,54 @@ const OverviewPage: React.FC = () => {
 };
 
 // ── Page Router wrapped in AppShell ──────────────────────────────────────────
+// Catches chunk-load failures (e.g. ad-blocker killing a lazy page) so one
+// blocked page degrades to a retry card instead of a blank white dashboard.
+class PageErrorBoundary extends React.Component<
+  { pageKey: string; children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown): void {
+    // eslint-disable-next-line no-console
+    console.error('Dashboard page failed to render:', error);
+  }
+
+  componentDidUpdate(prevProps: { pageKey: string }): void {
+    if (prevProps.pageKey !== this.props.pageKey && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+
+  private handleRetry = (): void => {
+    this.setState({ hasError: false });
+  };
+
+  render(): React.ReactNode {
+    if (this.state.hasError) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', width: '100%' }}>
+          <AlertBanner
+            title="Page failed to load"
+            body="This section could not be loaded. If you use an ad-blocker, allow this site and try again."
+            icon={<AlertTriangle size={18} />}
+          />
+          <div>
+            <Button variant="primary" size="sm" onClick={this.handleRetry}>
+              Retry
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export const DashboardPage: React.FC = () => {
   const { currentPage } = useNavigation();
 
@@ -218,7 +273,22 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
-  return <AppShell>{renderContent()}</AppShell>;
+  return (
+    <AppShell>
+      <PageErrorBoundary pageKey={currentPage}>
+        <Suspense
+          fallback={
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', width: '100%' }}>
+              <Skeleton variant="card" height={120} />
+              <Skeleton variant="card" height={320} />
+            </div>
+          }
+        >
+          {renderContent()}
+        </Suspense>
+      </PageErrorBoundary>
+    </AppShell>
+  );
 };
 
 export default DashboardPage;

@@ -16,7 +16,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://72.62.154.98',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
         configure: (proxy) => {
@@ -27,7 +27,7 @@ export default defineConfig({
         },
       },
       '/socket.io': {
-        target: 'https://72.62.154.98',
+        target: 'http://localhost:3000',
         ws: true,
         changeOrigin: true,
         secure: false,
@@ -39,6 +39,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // Ads feature modules carry ad-filter keywords (ads/campaigns/promotions)
+          // in their paths. Bundle them under a neutral chunk name so ad-blockers
+          // can't strip them from production builds.
+          if (id.includes('/features/ads/')) {
+            return 'console-sections';
+          }
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
             return 'vendor-react';
           }

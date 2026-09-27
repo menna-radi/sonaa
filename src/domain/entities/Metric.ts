@@ -7,4 +7,6 @@ export interface Metric {
   unit: string;
   status: MetricStatus;
   history: number[];
+  /** Live online count backing the craftsmen card caption (from overview-stats). */
+  onlineCount?: number;
 }

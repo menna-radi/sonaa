@@ -1,4 +1,4 @@
-import { MetricRepository, CategoryVolume, PendingReport, VerificationSubmission, CohortData } from '../../domain/repositories/MetricRepository';
+import { MetricRepository, CategoryVolume, PendingReport, VerificationSubmission, VerificationSubmissions, CohortData, RevenueAnalytics } from '../../domain/repositories/MetricRepository';
 import { Metric } from '../../domain/entities/Metric';
 import { Result, ok, fail } from '../../core/result/Result';
 import { apiClient } from '../../core/network/apiClient';
@@ -12,7 +12,7 @@ export class ApiMetricRepository implements MetricRepository {
       const m = response.metrics || {};
       const metrics: Metric[] = [
         { id: 'users', nameKey: 'metrics_total_users', value: m.totalUsers || 0, unit: '', status: 'normal', history: [] },
-        { id: 'craftsmen', nameKey: 'metrics_active_craftsmen', value: m.activeCraftsmen || 0, unit: '', status: 'normal', history: [] },
+        { id: 'craftsmen', nameKey: 'metrics_active_craftsmen', value: m.activeCraftsmen || 0, unit: '', status: 'normal', history: [], onlineCount: m.onlineCraftsmenCount || 0 },
         { id: 'tasks', nameKey: 'metrics_active_tasks', value: m.activeTasks || 0, unit: '', status: 'normal', history: [] },
         { id: 'revenue', nameKey: 'metrics_revenue_mtd', value: m.revenueMtd || 0, unit: 'ILS', status: 'normal', history: [] },
         { id: 'emergency', nameKey: 'metrics_emergency_reqs', value: m.emergencyReqs || 0, unit: '', status: 'normal', history: [] },
@@ -37,7 +37,6 @@ export class ApiMetricRepository implements MetricRepository {
         nameKey: `cat_${c.category.toLowerCase()}`,
         tasksCount: c.count || 0,
         percentage: Math.round(((c.count || 0) / totalCount) * 100),
-        trendPercentage: 0
       }));
       return ok(volumes);
     } catch (error) {
@@ -60,7 +59,7 @@ export class ApiMetricRepository implements MetricRepository {
     }
   }
 
-  public async getVerificationSubmissions(): Promise<Result<VerificationSubmission[]>> {
+  public async getVerificationSubmissions(): Promise<Result<VerificationSubmissions>> {
     try {
       const response = await apiClient.get<any>(API_ENDPOINTS.admin.verificationQueue);
       const mapped: VerificationSubmission[] = (response.submissions || []).slice(0, 5).map((r: any) => {
@@ -72,9 +71,13 @@ export class ApiMetricRepository implements MetricRepository {
           roleKey: `role_${role.toLowerCase().replace(/[^a-z]/g, '_')}`,
           timeKey: 'Recent',
           avatarUrl: r.craftsmanProfile?.avatarUrl || undefined,
+          submittedAt: r.submittedAt || r.createdAt || undefined,
         };
       });
-      return ok(mapped);
+      return ok({
+        submissions: mapped,
+        total: typeof response.queueCount === 'number' ? response.queueCount : mapped.length,
+      });
     } catch (error) {
       return fail(error as AppError);
     }
@@ -84,6 +87,25 @@ export class ApiMetricRepository implements MetricRepository {
     try {
       const response = await apiClient.get<CohortData[]>('/admin/metrics/cohort');
       return ok(response);
+    } catch (error) {
+      return fail(error as AppError);
+    }
+  }
+
+  public async getRevenueAnalytics(): Promise<Result<RevenueAnalytics>> {
+    try {
+      const response = await apiClient.get<any>(API_ENDPOINTS.admin.overviewStats);
+      const a = response.analytics || {};
+      const series = Array.isArray(a.chartData)
+        ? a.chartData.map((p: any) => ({ date: String(p.date || ''), revenue: Number(p.revenue || 0) }))
+        : [];
+      return ok({
+        gmv: Number(a.gmv || 0),
+        takeRate: Number(a.takeRate || 0),
+        avgOrderValue: Number(a.avgOrderValue || 0),
+        disputeRate: Number(a.disputeRate || 0),
+        series,
+      });
     } catch (error) {
       return fail(error as AppError);
     }

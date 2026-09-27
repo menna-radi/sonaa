@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguage, type Language } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '../context/NavigationContext';
+import { useBreakpoint } from '../components/ui/useBreakpoint';
 import { useDependencies } from '../../core/di/DependencyProvider';
 import { NotificationItem, NotificationCategory } from '../../domain/entities/Notification';
-import { Search, Bell, Globe, Menu, X, Check, MessageSquare, AlertTriangle, UserCheck, AlertCircle, ShieldAlert, TrendingUp } from 'lucide-react';
+import { Search, Bell, Globe, Menu, X, Check, MessageSquare, AlertTriangle, UserCheck, AlertCircle, ShieldAlert, TrendingUp, Settings, LogOut } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { storageService } from '../../core/storage/StorageService';
 
@@ -15,7 +17,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const { t, language, setLanguage, isRtl } = useLanguage();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
-  const { navigate, searchQuery, setSearchQuery } = useNavigation();
+  const { navigate, currentPage, searchQuery, setSearchQuery } = useNavigation();
+  const { logout } = useAuth();
+  const { isMobile } = useBreakpoint();
   const { dependencies } = useDependencies();
   const { notificationRepository } = dependencies;
 
@@ -149,8 +153,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 var(--page-pad)',
-        gap: 'var(--space-4)',
+        padding: isMobile ? '0 12px' : '0 var(--page-pad)',
+        gap: isMobile ? 10 : 'var(--space-4)',
         position: 'sticky',
         top: 0,
         zIndex: 50,
@@ -176,18 +180,19 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
       </button>
 
       {/* Centered Search Pill */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minWidth: 0 }}>
         <div
           style={{
             position: 'relative',
             width: '100%',
             maxWidth: 560,
+            minWidth: 0,
             display: 'flex',
             alignItems: 'center',
             backgroundColor: 'var(--surface-sunken)',
             borderRadius: 'var(--radius-full)',
-            padding: '0 14px',
-            height: 38,
+            padding: isMobile ? '0 10px' : '0 14px',
+            height: isMobile ? 36 : 38,
             border: '1px solid transparent',
             transition: 'all var(--dur-fast) var(--ease)',
           }}
@@ -197,11 +202,16 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           <input
             ref={searchInputRef}
             type="text"
-            placeholder={t('search_placeholder') || 'Search users, tasks, transactions... (⌘K)'}
+            placeholder={
+              isMobile
+                ? t('search_placeholder_short') || 'Search…'
+                : t('search_placeholder') || 'Search users, tasks, transactions... (⌘K)'
+            }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
               flex: 1,
+              minWidth: 0,
               border: 'none',
               background: 'transparent',
               outline: 'none',
@@ -229,26 +239,30 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
               <X size={14} />
             </button>
           ) : (
-            <kbd
-              style={{
-                fontSize: 11,
-                padding: '2px 6px',
-                borderRadius: 'var(--radius-xs)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--surface-card)',
-                color: 'var(--text-faint)',
-                userSelect: 'none',
-                fontFamily: 'inherit',
-              }}
-            >
-              ⌘K
-            </kbd>
+            /* ⌘K hint is desktop-only — no room or shortcut on touch */
+            !isMobile && (
+              <kbd
+                style={{
+                  fontSize: 11,
+                  padding: '2px 6px',
+                  borderRadius: 'var(--radius-xs)',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'var(--surface-card)',
+                  color: 'var(--text-faint)',
+                  userSelect: 'none',
+                  fontFamily: 'inherit',
+                  flexShrink: 0,
+                }}
+              >
+                ⌘K
+              </kbd>
+            )
           )}
         </div>
       </div>
 
       {/* End Controls: Notification Bell + Language */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 4 : 'var(--space-2)', flexShrink: 0 }}>
         {/* Notification Bell */}
         <div style={{ position: 'relative' }}>
           <button
@@ -490,6 +504,64 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
             </>
           )}
         </div>
+
+        {/* Settings shortcut (relocated from sidebar footer) */}
+        <button
+          onClick={() => {
+            setLangMenuOpen(false);
+            setNotifMenuOpen(false);
+            navigate('settings');
+          }}
+          aria-label={t('nav_settings') || 'Settings'}
+          title={t('nav_settings') || 'Settings'}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 'var(--radius-sm)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: currentPage === 'settings' ? 'var(--surface-hover)' : 'transparent',
+            border: 'none',
+            color: currentPage === 'settings' ? 'var(--text-strong)' : 'var(--text-body)',
+            cursor: 'pointer',
+            transition: 'background var(--dur-fast) var(--ease)',
+          }}
+        >
+          <Settings size={18} />
+        </button>
+
+        {/* Sign Out */}
+        <button
+          onClick={() => {
+            setLangMenuOpen(false);
+            setNotifMenuOpen(false);
+            logout();
+          }}
+          aria-label={t('btn_logout') || 'Sign Out'}
+          title={t('btn_logout') || 'Sign Out'}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 'var(--radius-sm)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--danger)',
+            cursor: 'pointer',
+            transition: 'background var(--dur-fast) var(--ease)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          <LogOut size={18} />
+        </button>
       </div>
     </header>
   );

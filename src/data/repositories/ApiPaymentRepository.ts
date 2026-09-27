@@ -22,7 +22,7 @@ export class ApiPaymentRepository implements PaymentRepository {
         gmvChangePct: 0,
         netRevenue: response.netRevenue || 0,
         revenueChangePct: 0,
-        takeRate: response.takeRate || 20.0,
+        takeRate: response.takeRate ?? 0,
         takeRateChangePct: 0,
         pendingPayouts: 0,
         pendingCraftsmenCount: 0,
