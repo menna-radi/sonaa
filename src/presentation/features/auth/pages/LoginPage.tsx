@@ -101,16 +101,18 @@ export const LoginPage: React.FC = () => {
       {!isMobile && (
         <div
           style={{
-            flex: '1.1',
-            background: 'var(--surface-inverse)',
-            color: 'var(--on-inverse)',
+            flex: '1',
+            minWidth: '380px',
+            maxWidth: '520px',
+            background: '#09090B',
+            color: '#FFFFFF',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             padding: '8% 6%',
             position: 'relative',
             overflow: 'hidden',
-            borderInlineEnd: '1px solid var(--border-color)',
+            borderInlineEnd: '1px solid rgba(255, 255, 255, 0.08)',
           }}
         >
           {/* Subtle background glow */}
@@ -122,31 +124,61 @@ export const LoginPage: React.FC = () => {
               width: '450px',
               height: '450px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%)',
               pointerEvents: 'none',
             }}
           />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
-              <img
-                src="/arox-icon.svg"
-                alt="Arox Logo"
-                style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-sm)', flexShrink: 0 }}
-              />
-              <span
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+              <div
                 style={{
-                  fontSize: 'var(--font-size-2xl)',
-                  fontWeight: 700,
-                  letterSpacing: '-0.03em',
-                  color: 'var(--on-inverse)',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'linear-gradient(135deg, #1C1C1E 0%, #09090B 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
                 }}
               >
-                Arox Admin
-              </span>
+                <img
+                  src="/arox-icon.svg"
+                  alt="Arox Logo"
+                  style={{ width: '26px', height: '26px' }}
+                />
+              </div>
+              <div>
+                <span
+                  style={{
+                    fontSize: 'var(--fs-page-title, 24px)',
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    color: '#FFFFFF',
+                    display: 'block',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  AROX
+                </span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(255, 255, 255, 0.55)',
+                    fontWeight: 600,
+                  }}
+                >
+                  Operations &bull; Admin
+                </span>
+              </div>
             </div>
 
-            <p style={{ fontSize: 'var(--font-size-base)', opacity: 0.85, lineHeight: 1.6, maxWidth: '420px', margin: 0 }}>
+            <p style={{ fontSize: 'var(--fs-body, 14px)', color: 'rgba(255, 255, 255, 0.75)', lineHeight: 1.6, maxWidth: '420px', margin: 0 }}>
               {t('login_welcome_subtitle') ||
                 'Access platform analytics, technician verification, and operations control center.'}
             </p>
@@ -156,47 +188,47 @@ export const LoginPage: React.FC = () => {
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
-                gap: 'var(--sp-3)',
-                marginTop: 'var(--sp-6)',
+                gap: 'var(--space-3)',
+                marginTop: 'var(--space-4)',
               }}
             >
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
                   borderRadius: 'var(--radius-md)',
-                  padding: 'var(--sp-3)',
+                  padding: 'var(--space-3) var(--space-4)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-1)', color: 'var(--color-success)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-success, #10B981)' }}>
                   <ShieldCheck size={16} />
-                  <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>256-Bit SSL</span>
+                  <span style={{ fontSize: 'var(--fs-caption, 12px)', fontWeight: 600, color: '#FFFFFF' }}>256-Bit SSL</span>
                 </div>
-                <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', opacity: 0.7, marginTop: '2px' }}>
+                <span style={{ display: 'block', fontSize: 'var(--fs-micro, 11px)', color: 'rgba(255, 255, 255, 0.5)', marginTop: '4px' }}>
                   Secure Encrypted Access
                 </span>
               </div>
 
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
                   borderRadius: 'var(--radius-md)',
-                  padding: 'var(--sp-3)',
+                  padding: 'var(--space-3) var(--space-4)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-1)', color: 'var(--on-inverse)' }}>
-                  <MapPin size={16} />
-                  <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>Jerusalem & WB</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: '#FFFFFF' }}>
+                  <MapPin size={16} style={{ color: 'var(--accent, #6366F1)' }} />
+                  <span style={{ fontSize: 'var(--fs-caption, 12px)', fontWeight: 600, color: '#FFFFFF' }}>Jerusalem & WB</span>
                 </div>
-                <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', opacity: 0.7, marginTop: '2px' }}>
+                <span style={{ display: 'block', fontSize: 'var(--fs-micro, 11px)', color: 'rgba(255, 255, 255, 0.5)', marginTop: '4px' }}>
                   Regional Operations
                 </span>
               </div>
             </div>
           </div>
 
-          <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.6, position: 'relative', zIndex: 1 }}>
+          <div style={{ fontSize: 'var(--fs-micro, 11px)', color: 'rgba(255, 255, 255, 0.45)', position: 'relative', zIndex: 1 }}>
             &copy; 2026 AROX Operations Portal &bull; All Rights Reserved
           </div>
         </div>
@@ -205,36 +237,67 @@ export const LoginPage: React.FC = () => {
       {/* Main Login Form side */}
       <div
         style={{
-          flex: '1',
+          flex: '1.2',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: isMobile ? 'var(--sp-6) var(--sp-4)' : '0 8%',
+          padding: isMobile ? 'var(--space-6) var(--space-4)' : 'var(--space-8)',
           background: 'var(--surface-base)',
         }}
       >
-        <div style={{ width: '100%', maxWidth: '400px' }}>
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '420px',
+            background: 'var(--surface-card)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: isMobile ? 'var(--space-6) var(--space-5)' : 'var(--space-8)',
+            boxShadow: 'var(--shadow-pop)',
+          }}
+        >
           {/* Mobile brand header */}
           {isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: 'var(--sp-6)' }}>
-              <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)' }} />
-              <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>Arox Admin</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: '#09090B',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: '22px', height: '22px' }} />
+              </div>
+              <div>
+                <span style={{ fontSize: 'var(--fs-card-title, 16px)', fontWeight: 700, color: 'var(--text-primary)', display: 'block', lineHeight: 1.2 }}>
+                  AROX Admin
+                </span>
+                <span style={{ fontSize: 'var(--fs-micro, 11px)', color: 'var(--text-muted)' }}>
+                  Operations Portal
+                </span>
+              </div>
             </div>
           )}
 
-          <div style={{ marginBottom: 'var(--sp-6)' }}>
-            <h1 style={{ margin: 0, fontSize: 'var(--font-size-2xl)', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <div style={{ marginBottom: 'var(--space-6)' }}>
+            <h1 style={{ margin: 0, fontSize: 'var(--fs-page-title, 24px)', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
               {t('login_welcome_title') || 'Welcome back'}
             </h1>
-            <p style={{ margin: 'var(--sp-1) 0 0 0', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
+            <p style={{ margin: 'var(--space-1) 0 0 0', color: 'var(--text-muted)', fontSize: 'var(--fs-small, 13px)' }}>
               {t('login_welcome_subtitle') || 'Enter your credentials to access the admin portal'}
             </p>
           </div>
 
           {/* Error Banner */}
           {errorMessage && (
-            <div style={{ marginBottom: 'var(--sp-4)' }}>
+            <div style={{ marginBottom: 'var(--space-4)' }}>
               <AlertBanner
                 tone="danger"
                 icon={<ShieldAlert size={18} />}
@@ -243,11 +306,12 @@ export const LoginPage: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             <div style={{ position: 'relative' }}>
               <TextField
                 label={t('login_label_email') || 'Email Address'}
                 type="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -263,6 +327,7 @@ export const LoginPage: React.FC = () => {
               <TextField
                 label={t('login_label_password') || 'Password'}
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -299,7 +364,7 @@ export const LoginPage: React.FC = () => {
               size="lg"
               type="submit"
               loading={loading}
-              style={{ width: '100%', marginTop: 'var(--sp-2)' }}
+              style={{ width: '100%', marginTop: 'var(--space-2)' }}
             >
               {t('login_btn_submit') || 'Sign In'}
             </Button>

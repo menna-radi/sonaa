@@ -115,6 +115,25 @@
   --space-8: 32px;
   --space-10: 40px;
 
+  /* Aliases for spacing */
+  --sp-1: var(--space-1);
+  --sp-2: var(--space-2);
+  --sp-3: var(--space-3);
+  --sp-4: var(--space-4);
+  --sp-5: var(--space-5);
+  --sp-6: var(--space-6);
+  --sp-8: var(--space-8);
+  --sp-10: var(--space-10);
+
+  /* Aliases for font sizes */
+  --font-size-xs: var(--fs-micro);
+  --font-size-sm: var(--fs-caption);
+  --font-size-base: var(--fs-body);
+  --font-size-lg: var(--fs-card-title);
+  --font-size-xl: var(--fs-kpi);
+  --font-size-2xl: var(--fs-page-title);
+  --font-size-3xl: var(--fs-display);
+
   --radius-xs:   6px;    /* chips inside tables (trust score), kbd */
   --radius-sm:   8px;    /* buttons, inputs, segmented items */
   --radius-md:   12px;   /* stat tiles, list items inside cards */
