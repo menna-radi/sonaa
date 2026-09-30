@@ -79,6 +79,7 @@ export class ApiAdRepository implements AdRepository {
         imageUrl: response.imageUrl || details?.imageUrl,
         description: response.description || details?.description,
         ctaText: response.ctaText || details?.ctaText,
+        targetUrl: response.targetUrl || details?.targetUrl,
         startDate: response.startDate || details?.startDate || null,
         endDate: response.endDate || details?.endDate || null,
       };

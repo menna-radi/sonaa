@@ -20,6 +20,7 @@ interface EditCampaignModalProps {
       description?: string;
       ctaText?: string;
       imageUrl?: string;
+      targetUrl?: string;
       startDate?: string;
       endDate?: string | null;
     }
@@ -43,6 +44,7 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
   const [placement, setPlacement] = useState('Home Banner');
   const [description, setDescription] = useState('');
   const [ctaText, setCtaText] = useState('Claim Offer');
+  const [targetUrl, setTargetUrl] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -59,6 +61,7 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
       setPlacement(campaign.placement || 'Home Banner');
       setDescription(campaign.description || '');
       setCtaText(campaign.ctaText || 'Claim Offer');
+      setTargetUrl(campaign.targetUrl || '');
       setImageUrl(campaign.imageUrl || '');
       setImageFile(null);
       setImagePreview(campaign.imageUrl || null);
@@ -131,6 +134,7 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
         placement,
         description: description.trim(),
         ctaText: ctaText.trim(),
+        targetUrl: targetUrl.trim() || undefined,
         imageUrl: finalImageUrl,
         startDate: baseStart.toISOString(),
         endDate: finalEndDate,
@@ -198,6 +202,14 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
             ]}
           />
         </div>
+
+        <TextField
+          label="Destination / Action Link (URL)"
+          placeholder="https://example.com/promo or https://..."
+          value={targetUrl}
+          onChange={(e) => setTargetUrl(e.target.value)}
+          helperText="The web link opened when a user clicks or taps this banner"
+        />
 
         <TextField
           label="Budget (ILS)"

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Download, Plus, Play, Pause, Edit2, Trash2, Clock, Image as ImageIcon } from 'lucide-react';
+import { Download, Plus, Play, Pause, Edit2, Trash2, Clock, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
@@ -284,6 +284,35 @@ export const AdsPage: React.FC = () => {
               >
                 {camp.description}
               </span>
+            )}
+            {camp.targetUrl && (
+              <a
+                href={camp.targetUrl.startsWith('http') ? camp.targetUrl : `https://${camp.targetUrl}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--primary)',
+                  textDecoration: 'none',
+                  marginTop: '2px',
+                  maxWidth: '220px',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink size={11} style={{ flexShrink: 0 }} />
+                <span
+                  style={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {camp.targetUrl}
+                </span>
+              </a>
             )}
           </div>
         </div>
