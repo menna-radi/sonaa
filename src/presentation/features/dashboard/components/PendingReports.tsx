@@ -33,7 +33,7 @@ export const PendingReports: React.FC<PendingReportsProps> = ({ reports }) => {
   return (
     <Card
       title={t('sec_pending_reports')}
-      subtitle={`${reports.length} require review`}
+      subtitle={`${reports.length} ${t('require_review') || 'require review'}`}
       className="pending-reports-card"
       headerAction={
         <Button

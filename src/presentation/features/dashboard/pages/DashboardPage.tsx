@@ -10,6 +10,7 @@ import { TopCategories } from '../components/TopCategories';
 import { CohortVelocity } from '../components/CohortVelocity';
 import { PendingReports } from '../components/PendingReports';
 import { ModeratorReview } from '../components/ModeratorReview';
+import { exportOverviewPdf } from '../utils/overviewPdfExport';
 import { LiveActivityPage } from '../../live_activity/pages/LiveActivityPage';
 import { CraftsmenPage } from '../../craftsmen/pages/CraftsmenPage';
 import { TasksPage } from '../../tasks/pages/TasksPage';
@@ -51,25 +52,19 @@ const OverviewPage: React.FC = () => {
   } = useDashboard();
 
   const handleExport = () => {
-    let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
-    csvContent += 'Metric,Value\n';
-
-    metrics.forEach((m) => {
-      csvContent += `"${t(m.nameKey)}","${m.value} ${m.unit}"\n`;
-    });
-
-    csvContent += '\nCategory,Tasks Count,Percentage\n';
-    categories.forEach((c) => {
-      csvContent += `"${t(c.nameKey)}","${c.tasksCount}","${c.percentage}%"\n`;
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `sonaa_overview_export_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      exportOverviewPdf({
+        metrics,
+        categories,
+        reports,
+        submissions,
+        verificationTotal,
+        cohortData,
+        revenueAnalytics,
+      });
+    } catch (err) {
+      console.error('Overview PDF export failed:', err);
+    }
   };
 
   return (

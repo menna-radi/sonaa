@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -30,6 +30,8 @@ import {
   Laptop,
   LogOut,
   MessageSquare,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -61,6 +63,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  // Desktop collapsible rail (persisted). Drawer behavior on mobile/tablet untouched.
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('sidebar-collapsed') === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0');
+    } catch {
+      // storage unavailable — collapse still works for the session
+    }
+    document.body.classList.toggle('has-collapsed-sidebar', collapsed);
+    return () => {
+      document.body.classList.remove('has-collapsed-sidebar');
+    };
+  }, [collapsed]);
+
+  const languageOptions = [
+    { key: 'en', label: 'English', code: 'EN' },
+    { key: 'ar', label: 'العربية', code: 'AR' },
+    { key: 'he', label: 'עברית', code: 'HE' },
+  ];
+  const activeLanguage = languageOptions.find((o) => o.key === language) ?? languageOptions[0];
 
   const themeOptions = [
     { key: 'system', label: 'System', icon: <Laptop size={14} /> },
@@ -224,7 +254,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   return (
     <>
       {isOpen && <div className="sidebar-backdrop" onClick={onClose} />}
-      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+      <aside className={`sidebar ${isOpen ? 'open' : ''} ${collapsed ? 'is-collapsed' : ''}`}>
+        {/* Edge collapse handle — rides the sidebar border */}
+        <button
+          type="button"
+          onClick={() => setCollapsed((prev) => !prev)}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="sidebar-collapse-btn"
+        >
+          {(isRtl ? !collapsed : collapsed) ? <ChevronsRight size={14} /> : <ChevronsLeft size={14} />}
+        </button>
         {/* Brand Block */}
         <div
           className="sidebar-brand"
@@ -316,7 +356,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <li key={item.key}>
                       <a
                         href={`#${item.pageKey}`}
-                        title={item.label}
+                        title={collapsed ? undefined : item.label}
+                        data-label={item.label}
                         className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
                         onClick={(e) => handleNavClick(e, item.pageKey)}
                         style={{
@@ -346,6 +387,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {item.badge &&
                           (isLive ? (
                             <span
+                              className="sidebar-item-badge"
                               style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
@@ -417,7 +459,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <div
               onClick={() => {
                 setUserMenuOpen((prev) => {
-                  if (!prev) setThemeMenuOpen(false);
+                  if (!prev) {
+                    setThemeMenuOpen(false);
+                    setLangMenuOpen(false);
+                  }
                   return !prev;
                 });
               }}
@@ -425,18 +470,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: 'var(--space-2) var(--space-3)',
+                padding: '6px var(--space-3)',
                 borderRadius: 'var(--radius-sm)',
                 cursor: 'pointer',
                 userSelect: 'none',
               }}
               className="sidebar-user-row"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <div
                   style={{
-                    width: 32,
-                    height: 32,
+                    width: 28,
+                    height: 28,
                     borderRadius: 'var(--radius-md)',
                     backgroundColor: 'var(--n-800)',
                     color: '#FFFFFF',
@@ -444,31 +489,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 600,
-                    fontSize: 12,
+                    fontSize: 11,
                     flexShrink: 0,
                   }}
                 >
                   {getInitials(user.name || user.email)}
                 </div>
                 <div
-                  className="sidebar-item-label"
+                  className="sidebar-item-label sidebar-user-details"
                   style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}
                 >
                   <span
                     style={{
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: 600,
                       color: '#FFFFFF',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
+                      lineHeight: 1.3,
                     }}
                   >
                     {user.name || 'Admin'}
                   </span>
                   <span
                     style={{
-                      fontSize: 12,
+                      fontSize: 10,
+                      lineHeight: 1.3,
                       color: 'var(--sidebar-section)',
                     }}
                   >
@@ -478,7 +525,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </div>
               <ChevronDown
                 size={14}
-                className="sidebar-item-label"
+                className="sidebar-user-chevron"
                 style={{
                   color: 'var(--sidebar-text)',
                   transform: userMenuOpen ? 'rotate(180deg)' : 'none',
@@ -503,6 +550,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 onClick={() => setUserMenuOpen(false)}
               />
               <div
+                className="sidebar-user-popover"
                 style={{
                   position: 'absolute',
                   bottom: 'calc(100% + 8px)',
@@ -519,51 +567,112 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   gap: 2,
                 }}
               >
-                {/* Language selection */}
+                {/* Language selection (dropdown list) */}
                 <div style={{ padding: '6px 10px 2px', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: 'var(--n-400)', textTransform: 'uppercase' }}>
                   {t('language') || 'Language'}
                 </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 4,
-                    padding: 4,
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                  }}
-                >
-                  {(['en', 'ar', 'he'] as const).map((l) => {
-                    const isActive = language === l;
-                    return (
-                      <button
-                        key={l}
-                        onClick={() => setLanguage(l)}
-                        title={l === 'en' ? 'English' : l === 'ar' ? 'العربية' : 'עברית'}
-                        style={{
-                          flex: 1,
-                          padding: '7px 0',
-                          fontSize: 12,
-                          fontWeight: isActive ? 700 : 500,
-                          backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-                          color: isActive ? '#FFFFFF' : 'var(--n-300)',
-                          border: '1px solid',
-                          borderColor: isActive ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
-                          borderRadius: 'var(--radius-sm)',
-                          cursor: 'pointer',
-                          transition: 'background var(--dur-fast) var(--ease)',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
-                        }}
-                      >
-                        {l.toUpperCase()}
-                      </button>
-                    );
-                  })}
+                <div style={{ position: 'relative', padding: '0 2px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLangMenuOpen((prev) => !prev);
+                      setThemeMenuOpen(false);
+                    }}
+                    aria-haspopup="listbox"
+                    aria-expanded={langMenuOpen}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      color: '#FFFFFF',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <Globe size={14} style={{ color: 'var(--n-300)' }} />
+                      <span>{activeLanguage.label}</span>
+                    </span>
+                    <ChevronDown
+                      size={13}
+                      style={{
+                        color: 'var(--n-300)',
+                        transform: langMenuOpen ? 'rotate(180deg)' : 'none',
+                        transition: 'transform var(--dur-fast) var(--ease)',
+                      }}
+                    />
+                  </button>
+
+                  {langMenuOpen && (
+                    <div
+                      role="listbox"
+                      aria-label={t('language') || 'Language'}
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 4px)',
+                        insetInlineStart: 0,
+                        insetInlineEnd: 0,
+                        backgroundColor: 'var(--n-800)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: 'var(--radius-md)',
+                        boxShadow: 'var(--shadow-pop)',
+                        padding: 4,
+                        zIndex: 1000,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                      }}
+                    >
+                      {languageOptions.map((opt) => {
+                        const isActive = language === opt.key;
+                        return (
+                          <button
+                            key={opt.key}
+                            role="option"
+                            aria-selected={isActive}
+                            onClick={() => {
+                              setLanguage(opt.key as any);
+                              setLangMenuOpen(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              width: '100%',
+                              padding: '8px 10px',
+                              fontSize: 12,
+                              fontWeight: isActive ? 700 : 500,
+                              backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                              color: isActive ? '#FFFFFF' : 'var(--n-300)',
+                              border: 'none',
+                              borderRadius: 'var(--radius-sm)',
+                              cursor: 'pointer',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <span>{opt.label}</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ fontSize: 10, color: 'var(--n-400)', fontWeight: 600 }}>
+                                {opt.code}
+                              </span>
+                              {isActive && <Check size={13} />}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Theme selection (dropdown list) */}
@@ -573,7 +682,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <div style={{ position: 'relative', padding: '0 2px' }}>
                   <button
                     type="button"
-                    onClick={() => setThemeMenuOpen((prev) => !prev)}
+                    onClick={() => {
+                      setThemeMenuOpen((prev) => !prev);
+                      setLangMenuOpen(false);
+                    }}
                     aria-haspopup="listbox"
                     aria-expanded={themeMenuOpen}
                     style={{

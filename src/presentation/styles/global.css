@@ -113,7 +113,162 @@ button {
   flex-direction: column;
   z-index: 100;
   transition: transform var(--dur-normal) var(--ease), width var(--dur-normal) var(--ease);
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+/* Scrollable nav body: slim auto-collapsing (overlay-style) scrollbar */
+.sidebar-scrollable-body {
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+.sidebar-scrollable-body:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+.sidebar-scrollable-body::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scrollable-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scrollable-body::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+  transition: background var(--dur-fast) var(--ease);
+}
+.sidebar-scrollable-body:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+}
+.sidebar-scrollable-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.sidebar-scrollable-body::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* Collapsed rail: scrollbar fully hidden (no track, thumb, or arrows) */
+.sidebar.is-collapsed .sidebar-scrollable-body {
+  scrollbar-width: none;
+}
+.sidebar.is-collapsed .sidebar-scrollable-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* Desktop collapsible rail (toggled via .is-collapsed + body.has-collapsed-sidebar) */
+@media (min-width: 1280px) {
+  /* Arrow handle riding the sidebar border edge */
+  .sidebar-collapse-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    inset-inline-end: -12px;
+    width: 24px;
+    height: 52px;
+    margin: 0;
+    padding: 0;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #6D6DFB 0%, #8B5CF6 100%);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 0 18px rgba(99, 102, 241, 0.5), 0 4px 14px rgba(0, 0, 0, 0.45);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 6;
+    transition: box-shadow var(--dur-fast) var(--ease), filter var(--dur-fast) var(--ease);
+  }
+  .sidebar-collapse-btn svg {
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .sidebar-collapse-btn:hover {
+    filter: brightness(1.12);
+    box-shadow: 0 0 26px rgba(99, 102, 241, 0.7), 0 4px 14px rgba(0, 0, 0, 0.45);
+  }
+  .sidebar-collapse-btn:hover svg {
+    transform: translateX(2px);
+  }
+  [dir="rtl"] .sidebar-collapse-btn:hover svg {
+    transform: translateX(-2px);
+  }
+  .sidebar-collapse-btn:active svg {
+    transform: scale(0.88);
+  }
+
+  .sidebar.is-collapsed {
+    width: var(--sidebar-rail-w) !important;
+  }
+
+  body.has-collapsed-sidebar .main-content {
+    margin-inline-start: var(--sidebar-rail-w) !important;
+    width: calc(100% - var(--sidebar-rail-w)) !important;
+  }
+
+  .sidebar.is-collapsed .sidebar-brand {
+    padding: 14px 0 !important;
+    justify-content: center !important;
+  }
+
+  .sidebar.is-collapsed .sidebar-brand-text,
+  .sidebar.is-collapsed .sidebar-section-title,
+  .sidebar.is-collapsed .sidebar-item-label,
+  .sidebar.is-collapsed .sidebar-item-badge,
+  .sidebar.is-collapsed .sidebar-user-details,
+  .sidebar.is-collapsed .sidebar-user-chevron {
+    display: none !important;
+  }
+
+  .sidebar.is-collapsed .sidebar-scrollable-body {
+    padding: var(--space-2) !important;
+  }
+
+  .sidebar.is-collapsed .sidebar-nav-item {
+    justify-content: center !important;
+    padding: 10px !important;
+    position: relative;
+  }
+
+  /* Custom rail tooltip (replaces the native browser tooltip in rail mode) */
+  .sidebar.is-collapsed .sidebar-nav-item::after {
+    content: attr(data-label);
+    position: absolute;
+    inset-inline-start: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--sidebar-bg, #000000);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-fast) var(--ease);
+    z-index: 60;
+  }
+  .sidebar.is-collapsed .sidebar-nav-item:hover::after {
+    opacity: 1;
+  }
+
+  .sidebar.is-collapsed .sidebar-user-row {
+    justify-content: center !important;
+  }
+
+  .sidebar.is-collapsed .sidebar-user-popover {
+    width: 232px !important;
+    inset-inline-end: auto !important;
+  }
+}
+
+@media (max-width: 1279.98px) {
+  .sidebar-collapse-btn {
+    display: none !important;
+  }
 }
 
 /* Mobile bottom tabs hidden on desktop by default */

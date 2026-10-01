@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguage, type Language } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '../context/NavigationContext';
 import { useBreakpoint } from '../components/ui/useBreakpoint';
 import { useDependencies } from '../../core/di/DependencyProvider';
 import { NotificationItem, NotificationCategory } from '../../domain/entities/Notification';
-import { Search, Bell, Globe, Menu, X, Check, MessageSquare, AlertTriangle, UserCheck, AlertCircle, ShieldAlert, TrendingUp, Settings, LogOut } from 'lucide-react';
+import { Search, Bell, Globe, Menu, X, Check, MessageSquare, AlertTriangle, UserCheck, AlertCircle, ShieldAlert, TrendingUp, Settings } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { storageService } from '../../core/storage/StorageService';
 
@@ -18,7 +17,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
   const { navigate, currentPage, searchQuery, setSearchQuery } = useNavigation();
-  const { logout } = useAuth();
   const { isMobile } = useBreakpoint();
   const { dependencies } = useDependencies();
   const { notificationRepository } = dependencies;
@@ -529,38 +527,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           }}
         >
           <Settings size={18} />
-        </button>
-
-        {/* Sign Out */}
-        <button
-          onClick={() => {
-            setLangMenuOpen(false);
-            setNotifMenuOpen(false);
-            logout();
-          }}
-          aria-label={t('btn_logout') || 'Sign Out'}
-          title={t('btn_logout') || 'Sign Out'}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--danger)',
-            cursor: 'pointer',
-            transition: 'background var(--dur-fast) var(--ease)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-          }}
-        >
-          <LogOut size={18} />
         </button>
       </div>
     </header>

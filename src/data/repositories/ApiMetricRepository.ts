@@ -51,7 +51,7 @@ export class ApiMetricRepository implements MetricRepository {
         id: d.id,
         typeKey: 'report_service_dispute',
         details: d.subtitle,
-        timeKey: d.timeLabel || 'Recent'
+        timeKey: d.timeLabel && d.timeLabel !== 'Recent' ? d.timeLabel : 'time_recent'
       }));
       return ok(reports);
     } catch (error) {
@@ -69,7 +69,7 @@ export class ApiMetricRepository implements MetricRepository {
           id: r.id,
           name,
           roleKey: `role_${role.toLowerCase().replace(/[^a-z]/g, '_')}`,
-          timeKey: 'Recent',
+          timeKey: 'time_recent',
           avatarUrl: r.craftsmanProfile?.avatarUrl || undefined,
           submittedAt: r.submittedAt || r.createdAt || undefined,
         };

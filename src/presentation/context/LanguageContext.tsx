@@ -978,6 +978,11 @@ export const translations: TranslationDict = {
     ar: 'منذ 52 دقيقة',
     he: 'לפני 52 דק׳'
   },
+  time_recent: {
+    en: 'Recent',
+    ar: 'مؤخراً',
+    he: 'לאחרונה'
+  },
 
   // Roles
   role_electrician: {
@@ -1343,6 +1348,21 @@ export const translations: TranslationDict = {
     en: 'View Details',
     ar: 'عرض التفاصيل',
     he: 'הצג פרטים'
+  },
+  view_all: {
+    en: 'View all',
+    ar: 'عرض الكل',
+    he: 'הצג הכל'
+  },
+  open_queue: {
+    en: 'Open queue',
+    ar: 'قائمة الانتظار المفتوحة',
+    he: 'תור פתוח'
+  },
+  require_review: {
+    en: 'require review',
+    ar: 'تحتاج إلى مراجعة',
+    he: 'דורש בדיקה'
   },
   freeze: {
     en: 'Freeze',
