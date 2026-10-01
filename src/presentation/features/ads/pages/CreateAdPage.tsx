@@ -37,6 +37,7 @@ export const CreateAdPage: React.FC = () => {
     '20% discount on all AC maintenance & cleaning services this season'
   );
   const [imageUrlInput, setImageUrlInput] = useState('');
+  const [targetUrl, setTargetUrl] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -226,7 +227,7 @@ export const CreateAdPage: React.FC = () => {
         description: description,
         ctaText: isRtl ? 'عرض التفاصيل' : 'Claim Offer',
         targetType: userType === 'Both' ? 'ALL' : userType === 'Craftsmen' ? 'CRAFTSMEN' : 'CUSTOMERS',
-        targetUrl: `/offers/${encodeURIComponent(adTitle)}?cities=${encodeURIComponent(targetCities.join(','))}&cats=${encodeURIComponent(targetCats.join(','))}`,
+        targetUrl: targetUrl.trim() || undefined,
         startDate: scheduleDetails.startDate.toISOString(),
         endDate: scheduleDetails.endDate ? scheduleDetails.endDate.toISOString() : null,
       });
@@ -370,6 +371,18 @@ export const CreateAdPage: React.FC = () => {
                     setImagePreview(null);
                   }
                 }}
+              />
+
+              <TextField
+                label={isRtl ? 'رابط الإعلان / الوجهة (URL)' : 'Destination / Action Link (URL)'}
+                placeholder="https://example.com/promo or https://..."
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                helperText={
+                  isRtl
+                    ? 'الرابط الذي سيتم فتحه عند نقر المستخدم على البانر الإعلاني في الموبايل'
+                    : 'The link opened when a user taps this banner in the mobile app'
+                }
               />
             </div>
           </Card>
