@@ -57,21 +57,3 @@ export const ChecklistChip: React.FC<ChecklistChipProps> = ({
     </div>
   );
 };
-
-export interface KeyValueListProps {
-  items: { label: React.ReactNode; value: React.ReactNode }[];
-  className?: string;
-}
-
-export const KeyValueList: React.FC<KeyValueListProps> = ({ items, className = '' }) => {
-  return (
-    <div className={`ui-key-value-list ${className}`}>
-      {items.map((item, idx) => (
-        <div key={idx} className="ui-key-value-row">
-          <span className="ui-key-value-row__label">{item.label}</span>
-          <span className="ui-key-value-row__value">{item.value}</span>
-        </div>
-      ))}
-    </div>
-  );
-};

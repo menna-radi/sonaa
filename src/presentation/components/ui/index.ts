@@ -24,3 +24,6 @@ export * from './AlertBanner';
 export * from './useBreakpoint';
 export * from './DataTable';
 export * from './PageHeader';
+export * from './FormModal';
+export * from './KeyValueList';
+export * from './ProofViewer';

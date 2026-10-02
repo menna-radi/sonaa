@@ -2086,6 +2086,16 @@ export const translations: TranslationDict = {
     ar: 'إعادة المحاولة',
     he: 'נסה שוב'
   },
+  btn_cancel: {
+    en: 'Cancel',
+    ar: 'إلغاء',
+    he: 'ביטול'
+  },
+  btn_save: {
+    en: 'Save',
+    ar: 'حفظ',
+    he: 'שמירה'
+  },
   status_unknown: {
     en: 'Unknown',
     ar: 'غير معروف',
