@@ -1117,6 +1117,10 @@
 .ui-table-empty-cell { padding: 0; }
 .ui-table-empty { padding: 48px; text-align: center; color: var(--text-muted); }
 
+/* ---- App shell content ---- */
+.ui-shell__content { max-width: var(--content-max); margin: 0 auto; width: 100%; padding: var(--page-pad); box-sizing: border-box; }
+@media (max-width: 767px) { .ui-shell__content { padding: var(--sp-4); } }
+
 /* ---- KeyValueList ---- */
 .ui-kv { display: flex; flex-direction: column; gap: var(--sp-2); margin: 0; min-width: 0; }
 .ui-kv--2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2) var(--sp-4); }

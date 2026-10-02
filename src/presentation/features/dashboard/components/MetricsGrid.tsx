@@ -13,62 +13,26 @@ interface MetricsGridProps {
 export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics, loading = false }) => {
   const { t, language } = useLanguage();
 
-  const metricConfigs: Record<
-    string,
-    {
-      icon: React.ReactNode;
-      labelKey: string;
-    }
-  > = {
-    users: {
-      icon: <Users size={16} />,
-      labelKey: 'metrics_total_users',
-    },
-    craftsmen: {
-      icon: <Wrench size={16} />,
-      labelKey: 'metrics_active_craftsmen',
-    },
-    tasks: {
-      icon: <Briefcase size={16} />,
-      labelKey: 'metrics_active_tasks',
-    },
-    revenue: {
-      icon: <Wallet size={16} />,
-      labelKey: 'metrics_revenue_mtd',
-    },
-    emergency: {
-      icon: <Siren size={16} />,
-      labelKey: 'metrics_emergency_reqs',
-    },
-    verification: {
-      icon: <ShieldCheck size={16} />,
-      labelKey: 'metrics_verification_reqs',
-    },
+  const metricConfigs: Record<string, { icon: React.ReactNode; labelKey: string }> = {
+    users: { icon: <Users size={16} />, labelKey: 'metrics_total_users' },
+    craftsmen: { icon: <Wrench size={16} />, labelKey: 'metrics_active_craftsmen' },
+    tasks: { icon: <Briefcase size={16} />, labelKey: 'metrics_active_tasks' },
+    revenue: { icon: <Wallet size={16} />, labelKey: 'metrics_revenue_mtd' },
+    emergency: { icon: <Siren size={16} />, labelKey: 'metrics_emergency_reqs' },
+    verification: { icon: <ShieldCheck size={16} />, labelKey: 'metrics_verification_reqs' },
   };
 
   const metricOrder = ['users', 'craftsmen', 'tasks', 'revenue', 'emergency', 'verification'];
 
   return (
-    <div
-      className="dashboard-metrics-grid"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-        gap: 'var(--gap-grid)',
-        marginBottom: 'var(--gap-grid)',
-      }}
-    >
+    <div className="ui-kpi-grid">
       {metricOrder.map((id) => {
         const metric = metrics.find((m) => m.id === id);
         const config = metricConfigs[id];
         if (!config) return null;
 
         const val = metric ? metric.value : 0;
-        const formattedValue =
-          id === 'revenue'
-            ? formatMoney(val, 'ILS', language)
-            : formatNumber(val, language);
-
+        const formattedValue = id === 'revenue' ? formatMoney(val, 'ILS', language) : formatNumber(val, language);
         const isEmergency = id === 'emergency' && val > 0;
 
         // Caption only when backed by live data (online count from the backend).

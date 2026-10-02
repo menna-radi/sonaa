@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { useDependencies } from '../../../../core/di/DependencyProvider';
 import { PaymentSummary } from '../../../../domain/entities/Payment';
 import type { RevenueAnalytics } from '../../../../domain/repositories/MetricRepository';
 import { Card } from '../../../components/ui/Card';
@@ -11,6 +10,8 @@ import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 interface RevenueChartProps {
   /** Live revenue analytics from GET /admin/overview-stats → analytics. */
   analytics?: RevenueAnalytics | null;
+  /** Payment summary for the header (null when unavailable). */
+  summary?: PaymentSummary | null;
 }
 
 const VIEW_W = 600;
@@ -47,24 +48,10 @@ const deriveTrend = (series: Array<{ revenue: number }>): number | null => {
   return ((avg(tail) - base) / base) * 100;
 };
 
-export const RevenueChart: React.FC<RevenueChartProps> = ({ analytics }) => {
+export const RevenueChart: React.FC<RevenueChartProps> = ({ analytics, summary }) => {
   const { t, language } = useLanguage();
-  const { repositories } = useDependencies();
-  const [summary, setSummary] = useState<PaymentSummary | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    repositories.paymentRepository.getPaymentSummary().then((res) => {
-      if (isMounted && res.success) {
-        setSummary(res.data);
-      }
-    });
-    return () => {
-      isMounted = false;
-    };
-  }, [repositories.paymentRepository]);
-
-  const series = analytics?.series || [];
+  const series = useMemo(() => analytics?.series || [], [analytics]);
   const { points, fillPoints } = useMemo(() => toPoints(series), [series]);
   const trend = useMemo(() => deriveTrend(series), [series]);
 
@@ -81,112 +68,46 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ analytics }) => {
 
   return (
     <Card
-      eyebrow={t('sec_revenue_analytics') || 'Revenue Analytics'}
+      eyebrow={t('sec_revenue_analytics')}
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 'var(--fs-display)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-            {displayRevenue}
-          </span>
+        <div className="ov-revenue-title">
+          <span className="ov-revenue-value">{displayRevenue}</span>
           {trend != null && (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 2,
-                color: trendPositive ? 'var(--success)' : 'var(--danger)',
-                fontSize: 13,
-                fontWeight: 700,
-              }}
-            >
+            <span className={`ov-trend ${trendPositive ? 'ov-trend--up' : 'ov-trend--down'}`}>
               {trendPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
               {`${trendPositive ? '+' : ''}${trend.toFixed(1)}%`}
             </span>
           )}
         </div>
       }
-      actions={
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            padding: '4px 10px',
-            borderRadius: 'var(--radius-full)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted)',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Last 30 days
-        </span>
-      }
-      style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+      className="ov-card-fill"
     >
-      <p style={{ margin: '0 0 var(--space-4) 0', fontSize: 'var(--fs-caption)', color: 'var(--text-muted)' }}>
-        Live platform revenue · Compared to prior week
-      </p>
+      <p className="ov-revenue-sub">{t('rev_subtitle')}</p>
 
       {/* Area Chart */}
       {series.length > 0 ? (
         <AreaChart points={points} fillPoints={fillPoints} height={180} ariaLabel="Revenue analytics chart" />
       ) : (
-        <div
-          style={{
-            height: 180,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px dashed var(--border)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--text-muted)',
-            fontSize: 'var(--fs-small)',
-          }}
-        >
-          No revenue data yet
-        </div>
+        <div className="ov-chart-empty">{t('rev_no_data')}</div>
       )}
 
       {/* Mini Stats Footer Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-          gap: 'var(--space-4)',
-          borderTop: '1px solid var(--border)',
-          paddingTop: 'var(--space-4)',
-          marginTop: 'var(--space-4)',
-        }}
-      >
+      <div className="ov-stats-grid">
         <div>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-            GMV
-          </span>
-          <strong style={{ display: 'block', fontSize: 'var(--fs-body)', color: 'var(--text-strong)', marginTop: 2 }}>
-            {`${(gmv / 1000000).toFixed(2)}M ILS`}
-          </strong>
+          <span className="ov-stat-label">{t('rev_gmv')}</span>
+          <strong className="ov-stat-value">{formatMoney(gmv, 'ILS', language)}</strong>
         </div>
         <div>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-            Take Rate
-          </span>
-          <strong style={{ display: 'block', fontSize: 'var(--fs-body)', color: 'var(--text-strong)', marginTop: 2 }}>
-            {`${takeRate}%`}
-          </strong>
+          <span className="ov-stat-label">{t('rev_take_rate')}</span>
+          <strong className="ov-stat-value">{`${takeRate}%`}</strong>
         </div>
         <div>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-            Avg Order
-          </span>
-          <strong style={{ display: 'block', fontSize: 'var(--fs-body)', color: 'var(--text-strong)', marginTop: 2 }}>
-            {formatMoney(avgOrder, 'ILS', language)}
-          </strong>
+          <span className="ov-stat-label">{t('rev_avg_order')}</span>
+          <strong className="ov-stat-value">{formatMoney(avgOrder, 'ILS', language)}</strong>
         </div>
         <div>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-            Disputes
-          </span>
-          <strong style={{ display: 'block', fontSize: 'var(--fs-body)', color: 'var(--text-strong)', marginTop: 2 }}>
-            {`${disputeRate}%`}
-          </strong>
+          <span className="ov-stat-label">{t('rev_disputes')}</span>
+          <strong className="ov-stat-value">{`${disputeRate}%`}</strong>
         </div>
       </div>
     </Card>

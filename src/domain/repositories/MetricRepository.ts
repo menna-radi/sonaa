@@ -14,6 +14,12 @@ export interface PendingReport {
   typeKey: string;
   details: string;
   timeKey: string;
+  /** Real dispute title from the backend (B09) when present. */
+  title?: string;
+  /** Real "A vs B" subtitle from the backend (B09) when present. */
+  subtitle?: string;
+  /** Real creation timestamp from the backend (B09) when present. */
+  createdAt?: string;
 }
 
 export interface VerificationSubmission {
@@ -21,7 +27,7 @@ export interface VerificationSubmission {
   name: string;
   roleKey: string;
   timeKey: string;
-  avatarUrl: string;
+  avatarUrl?: string;
   /** Real submission timestamp from the queue endpoint (ISO string). */
   submittedAt?: string;
 }

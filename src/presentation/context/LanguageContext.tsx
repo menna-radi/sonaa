@@ -2235,6 +2235,106 @@ export const translations: TranslationDict = {
     en: 'Closed',
     ar: 'مغلق',
     he: 'סגור'
+  },
+  status_error_title: {
+    en: 'Could not load data',
+    ar: 'تعذر تحميل البيانات',
+    he: 'לא ניתן לטעון נתונים'
+  },
+  btn_sync: {
+    en: 'Refresh',
+    ar: 'تحديث',
+    he: 'רענן'
+  },
+  range_last_7d: {
+    en: 'Last 7 days',
+    ar: 'آخر 7 أيام',
+    he: '7 הימים האחרונים'
+  },
+  range_last_30d: {
+    en: 'Last 30 days',
+    ar: 'آخر 30 يومًا',
+    he: '30 הימים האחרונים'
+  },
+  range_last_90d: {
+    en: 'Last 90 days',
+    ar: 'آخر 90 يومًا',
+    he: '90 הימים האחרונים'
+  },
+  rev_gmv: {
+    en: 'GMV',
+    ar: 'إجمالي قيمة البضائع',
+    he: 'GMV'
+  },
+  rev_take_rate: {
+    en: 'Take rate',
+    ar: 'معدل العمولة',
+    he: 'שיעור עמלה'
+  },
+  rev_avg_order: {
+    en: 'Avg order',
+    ar: 'متوسط الطلب',
+    he: 'הזמנה ממוצעת'
+  },
+  rev_disputes: {
+    en: 'Disputes',
+    ar: 'النزاعات',
+    he: 'סכסוכים'
+  },
+  rev_no_data: {
+    en: 'No revenue data yet',
+    ar: 'لا توجد بيانات إيرادات بعد',
+    he: 'אין עדיין נתוני הכנסות'
+  },
+  rev_subtitle: {
+    en: 'Live platform revenue',
+    ar: 'إيرادات المنصة المباشرة',
+    he: 'הכנסות הפלטפורמה בזמן אמת'
+  },
+  unit_tasks: {
+    en: 'tasks',
+    ar: 'مهام',
+    he: 'משימות'
+  },
+  updated: {
+    en: 'Updated',
+    ar: 'آخر تحديث',
+    he: 'עודכן'
+  },
+  empty_pending_reports: {
+    en: 'No pending reports',
+    ar: 'لا توجد بلاغات معلقة',
+    he: 'אין דיווחים ממתינים'
+  },
+  empty_verification: {
+    en: 'Verification queue is empty',
+    ar: 'قائمة التحقق فارغة',
+    he: 'תור האימות ריק'
+  },
+  page_failed_title: {
+    en: 'Page failed to load',
+    ar: 'تعذر تحميل الصفحة',
+    he: 'הדף נכשל בטעינה'
+  },
+  page_failed_body: {
+    en: 'This section could not be loaded. If you use an ad-blocker, allow this site and try again.',
+    ar: 'تعذر تحميل هذا القسم. إذا كنت تستخدم مانع إعلانات، اسمح بهذا الموقع وحاول مرة أخرى.',
+    he: 'לא ניתן לטעון חלק זה. אם אתה משתמש בחוסם פרסומות, אפשר אתר זה ונסה שוב.'
+  },
+  sec_pending_disputes: {
+    en: 'Pending disputes',
+    ar: 'النزاعات المعلقة',
+    he: 'סכסוכים ממתינים'
+  },
+  empty_pending_disputes: {
+    en: 'No pending disputes',
+    ar: 'لا توجد نزاعات معلقة',
+    he: 'אין סכסוכים ממתינים'
+  },
+  nav_customers: {
+    en: 'Customers',
+    ar: 'العملاء',
+    he: 'לקוחות'
   }
 };
 

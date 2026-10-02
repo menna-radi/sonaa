@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useNavigation } from '../../../context/NavigationContext';
 import { Card } from '../../../components/ui/Card';
 import { ProgressBar } from '../../../components/ui/ProgressBar';
 import { Dropdown } from '../../../components/ui/Dropdown';
@@ -13,6 +14,7 @@ interface TopCategoriesProps {
 
 export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
   const { t, language } = useLanguage();
+  const { navigate } = useNavigation();
   const maxTasks = Math.max(...categories.map((c) => c.tasksCount), 1);
 
   const formatCategoryName = (key: string) => {
@@ -25,58 +27,42 @@ export const TopCategories: React.FC<TopCategoriesProps> = ({ categories }) => {
 
   return (
     <Card
-      eyebrow={t('sec_top_categories') || 'Top Categories'}
-      title={t('sec_by_volume') || 'By volume'}
+      eyebrow={t('sec_top_categories')}
+      title={t('sec_by_volume')}
       actions={
         <Dropdown
           trigger={
-            <button
-              type="button"
-              aria-label="Category options"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                display: 'flex',
-                padding: 4,
-                cursor: 'pointer',
-              }}
-            >
+            <button type="button" aria-label={t('sec_top_categories')} className="ov-icon-btn">
               <MoreHorizontal size={16} />
             </button>
           }
           items={[
             {
               key: 'view_all',
-              label: 'View all categories',
-              onClick: () => {},
+              label: t('view_all'),
+              onClick: () => navigate('service_management'),
             },
           ]}
         />
       }
-      style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+      className="ov-card-fill"
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', flexGrow: 1 }}>
+      <div className="ov-cat-list">
         {categories.map((cat, idx) => {
           const percentage = (cat.tasksCount / maxTasks) * 100;
           return (
-            <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--text-strong)' }}>
-                  {formatCategoryName(cat.nameKey)}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {formatNumber(cat.tasksCount, language)} tasks
+            <div key={idx} className="ov-cat-row">
+              <div className="ov-cat-head">
+                <span className="ov-cat-name">{formatCategoryName(cat.nameKey)}</span>
+                <div className="ov-cat-meta">
+                  <span className="ov-cat-count">
+                    {formatNumber(cat.tasksCount, language)} {t('unit_tasks')}
                   </span>
                   {cat.trendPercentage != null && (
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--success)' }}>
-                      +{cat.trendPercentage}%
-                    </span>
+                    <span className="ov-cat-trend">+{cat.trendPercentage}%</span>
                   )}
                 </div>
               </div>
-
               <ProgressBar value={percentage} dense />
             </div>
           );

@@ -12,10 +12,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { currentPage } = useNavigation();
 
-  // Close mobile drawer on route transition
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [currentPage]);
+  // Close the mobile drawer on route transition (render-time reset pattern).
+  const [prevPage, setPrevPage] = useState(currentPage);
+  if (prevPage !== currentPage) {
+    setPrevPage(currentPage);
+    if (sidebarOpen) setSidebarOpen(false);
+  }
 
   // Close mobile drawer on Escape key
   useEffect(() => {
@@ -39,13 +41,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         <Header onMenuToggle={() => setSidebarOpen(true)} />
         <main
           className="ui-shell__content"
-          style={{
-            maxWidth: 'var(--content-max)',
-            margin: '0 auto',
-            width: '100%',
-            padding: 'var(--page-pad)',
-            boxSizing: 'border-box',
-          }}
         >
           {children}
         </main>
