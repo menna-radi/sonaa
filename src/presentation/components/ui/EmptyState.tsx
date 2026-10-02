@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from './Button';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -34,22 +35,27 @@ export interface ErrorStateProps {
   title?: string;
   message?: string;
   onRetry?: () => void;
+  retryLabel?: string;
   className?: string;
 }
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
-  title = 'Something went wrong',
-  message = 'An unexpected error occurred while loading this data.',
+  title,
+  message,
   onRetry,
+  retryLabel,
   className = '',
 }) => {
+  const { t } = useLanguage();
+  const heading = title ?? t('err_generic_title');
+  const body = message ?? t('err_generic');
   return (
     <div className={`ui-error-state ${className}`}>
       <div className="ui-error-state__icon">
         <AlertCircle size={24} />
       </div>
-      <div className="ui-error-state__title">{title}</div>
-      <div className="ui-error-state__body">{message}</div>
+      <div className="ui-error-state__title">{heading}</div>
+      <div className="ui-error-state__body">{body}</div>
       {onRetry && (
         <Button
           variant="outline"
@@ -57,7 +63,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
           icon={<RefreshCw size={14} />}
           onClick={onRetry}
         >
-          Retry
+          {retryLabel ?? t('btn_retry')}
         </Button>
       )}
     </div>

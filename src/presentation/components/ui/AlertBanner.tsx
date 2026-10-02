@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ZoomIn } from 'lucide-react';
+import { X } from 'lucide-react';
 import { resolveMediaUrl } from '../../../core/utils/mediaUrl';
 import { IconButton } from './Button';
 
@@ -50,7 +50,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
       >
         <IconButton
           aria-label="Close image lightbox"
-          icon={<X size={24} color="#FFFFFF" />}
+          icon={<X size={24} color="var(--n-0)" />}
           size="lg"
           onClick={onClose}
         />

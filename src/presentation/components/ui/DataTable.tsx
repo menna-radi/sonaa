@@ -56,7 +56,7 @@ export function DataTable<T>({
   if (isMobile && mobile) {
     if (loading) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="ui-table-mobile-list">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton.Card key={i} height={96} />
           ))}
@@ -69,7 +69,7 @@ export function DataTable<T>({
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }} className={className}>
+      <div className={`ui-table-mobile-list ${className}`}>
         {rows.map((row, index) => (
           <div
             key={rowKey(row)}
@@ -84,7 +84,7 @@ export function DataTable<T>({
             <span>
               Page {pagination.page} of {pagination.totalPages}
             </span>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="ui-table-pagination__actions">
               <Button
                 variant="outline"
                 size="sm"
@@ -144,9 +144,9 @@ export function DataTable<T>({
             ))
           ) : rows.length === 0 ? (
             <tr>
-              <td colSpan={visibleColumns.length} style={{ padding: 0 }}>
+              <td colSpan={visibleColumns.length} className="ui-table-empty-cell">
                 {empty || (
-                  <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <div className="ui-table-empty">
                     No records found
                   </div>
                 )}
@@ -175,7 +175,7 @@ export function DataTable<T>({
                   {visibleColumns.map((col) => {
                     const content = col.render
                       ? col.render(row, rIdx)
-                      : (row as Record<string, any>)[col.key];
+                      : (row as Record<string, React.ReactNode>)[col.key];
 
                     return (
                       <td
@@ -211,7 +211,7 @@ export function DataTable<T>({
               </>
             )}
           </span>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="ui-table-pagination__actions">
             <Button
               variant="outline"
               size="sm"

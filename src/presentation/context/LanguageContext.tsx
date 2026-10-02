@@ -2075,6 +2075,156 @@ export const translations: TranslationDict = {
     en: 'Verification evidence is incomplete.',
     ar: 'أدلة التحقق غير مكتملة.',
     he: 'ראיות האימות אינן שלמות.'
+  },
+  err_generic_title: {
+    en: 'Something went wrong',
+    ar: 'حدث خطأ ما',
+    he: 'משהו השתבש'
+  },
+  btn_retry: {
+    en: 'Retry',
+    ar: 'إعادة المحاولة',
+    he: 'נסה שוב'
+  },
+  status_unknown: {
+    en: 'Unknown',
+    ar: 'غير معروف',
+    he: 'לא ידוע'
+  },
+  status_pending_verification: {
+    en: 'Pending verification',
+    ar: 'بانتظار التحقق',
+    he: 'ממתין לאימות'
+  },
+  status_approved: {
+    en: 'Approved',
+    ar: 'معتمد',
+    he: 'מאושר'
+  },
+  status_rejected: {
+    en: 'Rejected',
+    ar: 'مرفوض',
+    he: 'נדחה'
+  },
+  status_cancelled: {
+    en: 'Cancelled',
+    ar: 'ملغي',
+    he: 'מבוטל'
+  },
+  status_under_investigation: {
+    en: 'Under investigation',
+    ar: 'قيد التحقيق',
+    he: 'בבדיקה'
+  },
+  status_dismissed: {
+    en: 'Dismissed',
+    ar: 'مستبعد',
+    he: 'נדחה'
+  },
+  status_resolved: {
+    en: 'Resolved',
+    ar: 'تم الحل',
+    he: 'נפתר'
+  },
+  status_scheduled: {
+    en: 'Scheduled',
+    ar: 'مجدول',
+    he: 'מתוזמן'
+  },
+  status_ended: {
+    en: 'Ended',
+    ar: 'منتهٍ',
+    he: 'הסתיים'
+  },
+  status_paused: {
+    en: 'Paused',
+    ar: 'متوقف مؤقتًا',
+    he: 'מושהה'
+  },
+  status_sent: {
+    en: 'Sent',
+    ar: 'مُرسل',
+    he: 'נשלח'
+  },
+  status_failed: {
+    en: 'Failed',
+    ar: 'فشل',
+    he: 'נכשל'
+  },
+  status_suspended: {
+    en: 'Suspended',
+    ar: 'موقوف',
+    he: 'מושהה'
+  },
+  status_blocked: {
+    en: 'Blocked',
+    ar: 'محظور',
+    he: 'חסום'
+  },
+  status_active: {
+    en: 'Active',
+    ar: 'نشط',
+    he: 'פעיל'
+  },
+  status_expired: {
+    en: 'Expired',
+    ar: 'منتهٍ',
+    he: 'פג'
+  },
+  status_locked: {
+    en: 'Locked',
+    ar: 'مقفل',
+    he: 'נעול'
+  },
+  status_free: {
+    en: 'Free',
+    ar: 'مجاني',
+    he: 'חינם'
+  },
+  status_commission: {
+    en: 'Commission',
+    ar: 'عمولة',
+    he: 'עמלה'
+  },
+  status_subscription: {
+    en: 'Subscription',
+    ar: 'اشتراك',
+    he: 'מנוי'
+  },
+  status_accepted: {
+    en: 'Accepted',
+    ar: 'مقبول',
+    he: 'התקבל'
+  },
+  status_pre_chat_pending: {
+    en: 'Awaiting chat',
+    ar: 'بانتظار المحادثة',
+    he: "ממתין לצ'אט"
+  },
+  status_chat_open: {
+    en: 'Chat open',
+    ar: 'المحادثة مفتوحة',
+    he: "הצ'אט פתוח"
+  },
+  status_agreement_pending: {
+    en: 'Agreement pending',
+    ar: 'بانتظار الاتفاق',
+    he: 'ממתין להסכם'
+  },
+  status_work_submitted: {
+    en: 'Work submitted',
+    ar: 'تم تسليم العمل',
+    he: 'העבודה הוגשה'
+  },
+  status_rating_pending: {
+    en: 'Rating pending',
+    ar: 'بانتظار التقييم',
+    he: 'ממתין לדירוג'
+  },
+  status_closed: {
+    en: 'Closed',
+    ar: 'مغلق',
+    he: 'סגור'
   }
 };
 

@@ -119,7 +119,7 @@
 
 .ui-btn--danger {
   background-color: var(--danger);
-  color: #FFFFFF;
+  color: var(--n-0);
 }
 .ui-btn--danger:hover:not(:disabled) {
   filter: brightness(0.9);
@@ -844,7 +844,7 @@
   width: 16px;
   height: 16px;
   border-radius: var(--radius-full);
-  background-color: #FFFFFF;
+  background-color: var(--n-0);
   position: absolute;
   top: 3px;
   inset-inline-start: 3px;
@@ -1110,3 +1110,9 @@
     inset-inline-end: var(--space-4);
   }
 }
+
+/* ---- DataTable layout (no inline styles) ---- */
+.ui-table-mobile-list { display: flex; flex-direction: column; gap: 12px; }
+.ui-table-pagination__actions { display: flex; gap: 8px; }
+.ui-table-empty-cell { padding: 0; }
+.ui-table-empty { padding: 48px; text-align: center; color: var(--text-muted); }
