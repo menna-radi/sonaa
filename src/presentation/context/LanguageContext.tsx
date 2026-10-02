@@ -1920,6 +1920,86 @@ export const translations: TranslationDict = {
     en: 'Inactive',
     ar: 'غير نشط',
     he: 'לא פעיל'
+  },
+  val_required: {
+    en: 'This field is required',
+    ar: 'هذا الحقل مطلوب',
+    he: 'שדה זה נדרש'
+  },
+  val_min_len: {
+    en: 'Minimum {n} characters',
+    ar: 'الحد الأدنى {n} أحرف',
+    he: 'מינימום {n} תווים'
+  },
+  val_max_len: {
+    en: 'Maximum {n} characters',
+    ar: 'الحد الأقصى {n} أحرف',
+    he: 'מקסימום {n} תווים'
+  },
+  val_positive: {
+    en: 'Must be greater than 0',
+    ar: 'يجب أن يكون أكبر من 0',
+    he: 'חייב להיות גדול מ-0'
+  },
+  val_int: {
+    en: 'Must be a whole number',
+    ar: 'يجب أن يكون رقمًا صحيحًا',
+    he: 'חייב להיות מספר שלם'
+  },
+  val_range: {
+    en: 'Must be between {n}',
+    ar: 'يجب أن يكون بين {n}',
+    he: 'חייב להיות בין {n}'
+  },
+  val_url: {
+    en: 'Enter a valid http(s) link',
+    ar: 'أدخل رابط http(s) صالحًا',
+    he: 'הזן קישור http(s) תקין'
+  },
+  val_email: {
+    en: 'Enter a valid email',
+    ar: 'أدخل بريدًا إلكترونيًا صالحًا',
+    he: 'הזן כתובת אימייל תקינה'
+  },
+  val_phone: {
+    en: 'Enter a valid phone number',
+    ar: 'أدخل رقم هاتف صالحًا',
+    he: 'הזן מספר טלפון תקין'
+  },
+  val_key_format: {
+    en: 'Use 3–32 capital letters, digits or _',
+    ar: 'استخدم 3–32 حرفًا كبيرًا أو أرقامًا أو _',
+    he: 'השתמש ב-3–32 אותיות גדולות, ספרות או _'
+  },
+  val_date_order: {
+    en: 'End must be after start',
+    ar: 'يجب أن تكون النهاية بعد البداية',
+    he: 'הסיום חייב להיות אחרי ההתחלה'
+  },
+  val_future: {
+    en: 'Must be in the future',
+    ar: 'يجب أن يكون في المستقبل',
+    he: 'חייב להיות בעתיד'
+  },
+  val_max_items: {
+    en: 'At most {n} items',
+    ar: 'بحد أقصى {n} عناصر',
+    he: 'לכל היותר {n} פריטים'
+  },
+  val_letter: {
+    en: 'Must contain a letter',
+    ar: 'يجب أن يحتوي على حرف',
+    he: 'חייב להכיל אות'
+  },
+  val_digit: {
+    en: 'Must contain a digit',
+    ar: 'يجب أن يحتوي على رقم',
+    he: 'חייב להכיל ספרה'
+  },
+  val_match: {
+    en: 'Passwords do not match',
+    ar: 'كلمتا المرور غير متطابقتين',
+    he: 'הסיסמאות אינן תואמות'
   }
 };
 
