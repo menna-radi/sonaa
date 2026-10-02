@@ -204,6 +204,43 @@
   --border-radius-md: var(--radius-md);
   --border-radius-lg: var(--radius-lg);
   --border-radius-full: var(--radius-full);
+  /* T-F005 compatibility aliases for variables referenced in src but defined nowhere. */
+  --primary: var(--n-900);
+  --on-primary: var(--n-0);
+  --on-surface: var(--text-strong);
+  --on-surface-muted: var(--text-muted);
+  --on-surface-subtle: var(--text-muted);
+  --surface-base: var(--surface-card);
+  --surface-raised: var(--surface-card);
+  --bg-surface-elevated: var(--surface-card);
+  --text-base: var(--fs-body);
+  --text-lg: var(--fs-card-title);
+  --text-sm: var(--fs-small);
+  --text-xl: var(--fs-kpi);
+  --text-xs: var(--fs-micro);
+  --font-xs: var(--fs-micro);
+  --font-sm: var(--fs-caption);
+  --font-md: var(--fs-body);
+  --font-lg: var(--fs-card-title);
+  --fs-nano: var(--fs-micro);
+  --line-height-normal: 1.5;
+  --r-full: var(--radius-full);
+  --r-lg: var(--radius-lg);
+  --r-md: var(--radius-md);
+  --r-sm: var(--radius-sm);
+  --radius-pill: var(--radius-full);
+  --radius-xl: var(--radius-lg);
+  --border-subtle: var(--border);
+  --border-focus: var(--border-strong);
+  --danger-subtle: var(--danger-soft);
+  --danger-text: var(--danger);
+  --dur-normal: var(--dur-base);
+  --motion-fast: var(--dur-fast);
+  --shadow-md: var(--shadow-pop);
+  --shadow-overlay: var(--shadow-pop);
+  --shadow-sm: var(--shadow-pop);
+  --shadow-xs: var(--shadow-pop);
+  --spacing-xs: var(--space-1);
 }
 
 /* ==========================================================================
