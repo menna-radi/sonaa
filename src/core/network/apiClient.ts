@@ -11,6 +11,9 @@ import {
   ServerError,
   UnknownError,
   AppError,
+  ValidationError,
+  ConflictError,
+  BadRequestError,
 } from '../errors/AppError';
 
 class ApiClient {
@@ -36,7 +39,7 @@ class ApiClient {
           if (typeof config.headers.delete === 'function') {
             config.headers.delete('Content-Type');
           } else {
-            delete (config.headers as any)['Content-Type'];
+            delete (config.headers as Record<string, unknown>)['Content-Type'];
           }
         }
         logger.debug(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`);
@@ -119,22 +122,40 @@ class ApiClient {
     const responseData = axiosError.response.data;
     const msg = responseData?.message || 'HTTP Request Failed';
 
+    const body = axiosError.response.data as
+      | { error?: string; message?: string; details?: Array<{ field: string; message: string }> }
+      | undefined;
+    let err: AppError;
     switch (status) {
+      case 400:
+        err =
+          body?.error === 'VALIDATION_ERROR' || body?.details?.length
+            ? new ValidationError(msg, body?.details ?? [])
+            : new BadRequestError(msg);
+        break;
       case 401:
         // Automatically clear session on authentication failure and notify AuthContext
         storageService.clearToken();
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('auth:unauthorized'));
         }
-        return new UnauthorizedError(msg);
+        err = new UnauthorizedError(msg);
+        break;
       case 403:
-        return new ForbiddenError(msg);
+        err = new ForbiddenError(msg);
+        break;
       case 404:
-        return new NotFoundError(msg);
-      case 500:
+        err = new NotFoundError(msg);
+        break;
+      case 409:
+        err = new ConflictError(msg);
+        break;
       default:
-        return new ServerError(msg, status);
+        err = new ServerError(msg, status);
     }
+    err.backendCode = body?.error;
+    err.status = status;
+    return err;
   }
 
   public async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
@@ -152,8 +173,13 @@ class ApiClient {
     return response.data;
   }
 
-  public async delete<T>(url: string): Promise<T> {
-    const response = await this.client.delete<T>(url);
+  public async patch<T>(url: string, data?: unknown): Promise<T> {
+    const response = await this.client.patch<T>(url, data);
+    return response.data;
+  }
+
+  public async delete<T>(url: string, params?: Record<string, unknown>): Promise<T> {
+    const response = await this.client.delete<T>(url, { params });
     return response.data;
   }
 }

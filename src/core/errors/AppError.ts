@@ -1,5 +1,8 @@
 export abstract class AppError extends Error {
   public abstract readonly code: string;
+  /** Backend error code, e.g. COMMISSION_DEBT_UNSETTLED (body.error). */
+  public backendCode?: string;
+  public status?: number;
   constructor(message: string) {
     super(message);
     Object.setPrototypeOf(this, new.target.prototype);
@@ -35,6 +38,14 @@ export class ValidationError extends AppError {
 
 export class NotFoundError extends AppError {
   public readonly code = 'NOT_FOUND_ERROR';
+}
+
+export class ConflictError extends AppError {
+  public readonly code = 'CONFLICT_ERROR';
+}
+
+export class BadRequestError extends AppError {
+  public readonly code = 'BAD_REQUEST_ERROR';
 }
 
 export class TimeoutError extends AppError {

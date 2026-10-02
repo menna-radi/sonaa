@@ -2000,6 +2000,81 @@ export const translations: TranslationDict = {
     en: 'Passwords do not match',
     ar: 'كلمتا المرور غير متطابقتين',
     he: 'הסיסמאות אינן תואמות'
+  },
+  err_generic: {
+    en: 'Something went wrong. Please try again.',
+    ar: 'حدث خطأ ما. حاول مرة أخرى.',
+    he: 'משהו השתבש. נסה שוב.'
+  },
+  err_network: {
+    en: 'Network error. Please check your connection.',
+    ar: 'خطأ في الشبكة. تحقق من اتصالك.',
+    he: 'שגיאת רשת. בדוק את החיבור.'
+  },
+  err_timeout: {
+    en: 'Request timed out. Please try again.',
+    ar: 'انتهت مهلة الطلب. حاول مرة أخرى.',
+    he: 'הבקשה נכשלה. נסה שוב.'
+  },
+  err_server: {
+    en: 'Server error. Please try again later.',
+    ar: 'خطأ في الخادم. حاول لاحقًا.',
+    he: 'שגיאת שרת. נסה שוב מאוחר יותר.'
+  },
+  err_forbidden: {
+    en: 'You do not have permission to perform this action.',
+    ar: 'ليس لديك صلاحية لتنفيذ هذا الإجراء.',
+    he: 'אין לך הרשאה לבצע פעולה זו.'
+  },
+  err_session_expired: {
+    en: 'Session expired. Please log in again.',
+    ar: 'انتهت الجلسة. سجل الدخول مرة أخرى.',
+    he: 'ההפעלה פגה. התחבר שוב.'
+  },
+  err_not_found: {
+    en: 'The requested item was not found.',
+    ar: 'العنصر المطلوب غير موجود.',
+    he: 'הפריט המבוקש לא נמצא.'
+  },
+  err_conflict: {
+    en: 'This action conflicts with the current state. Please refresh and try again.',
+    ar: 'يتعارض هذا الإجراء مع الحالة الحالية. حدّث الصفحة وحاول مرة أخرى.',
+    he: 'הפעולה מתנגשת עם המצב הנוכחי. רענן ונסה שוב.'
+  },
+  err_duplicate: {
+    en: 'An item with these details already exists.',
+    ar: 'يوجد عنصر بهذه التفاصيل مسبقًا.',
+    he: 'פריט עם פרטים אלה כבר קיים.'
+  },
+  err_commission_debt: {
+    en: "Settle the craftsman's outstanding commission first.",
+    ar: 'سدّد عمولة الحرفي المستحقة أولًا.',
+    he: 'שלם תחילה את העמלה המגיעה.'
+  },
+  err_request_already_approved: {
+    en: 'This request has already been reviewed.',
+    ar: 'تمت مراجعة هذا الطلب مسبقًا.',
+    he: 'הבקשה כבר נבדקה.'
+  },
+  err_free_tasks_range: {
+    en: 'Free tasks must be a whole number from 0 to 100.',
+    ar: 'يجب أن تكون المهام المجانية رقمًا صحيحًا من 0 إلى 100.',
+    he: 'משימות חינם חייבות להיות מספר שלם מ-0 עד 100.'
+  },
+  err_ledger_mismatch: {
+    en: 'The payment no longer matches its outstanding commission entries.',
+    ar: 'الدفعة لم تعد تطابق قيود العمولة المستحقة.',
+    he: 'התשלום אינו תואם עוד את רשומות העמלה.'
+  },
+  err_verification_not_reviewable: {
+    en: 'This request cannot be reviewed in its current state.',
+    ar: 'لا يمكن مراجعة هذا الطلب في حالته الحالية.',
+    he: 'לא ניתן לבדוק בקשה זו במצבה הנוכחי.'
+  },
+  err_verification_incomplete: {
+    en: 'Verification evidence is incomplete.',
+    ar: 'أدلة التحقق غير مكتملة.',
+    he: 'ראיות האימות אינן שלמות.'
   }
 };
 

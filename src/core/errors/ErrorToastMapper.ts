@@ -46,6 +46,10 @@ export class ErrorToastMapper {
           ? 'حدث خطأ في الخادم الداخلي. يرجى المحاولة لاحقاً.' 
           : 'Internal server error. Please try again later.';
       
+      case 'CONFLICT_ERROR':
+      case 'BAD_REQUEST_ERROR':
+        return error.message;
+      
       default:
         return error.message || (isAr ? 'حدث خطأ غير متوقع.' : 'An unexpected error occurred.');
     }

@@ -1,46 +1,49 @@
 /**
  * AppColors mirrors the Flutter AppColors class.
  * Centralized theme colors to use programmatically in TS/TSX files.
+ * Values are design tokens (see src/presentation/styles/tokens.css) — no hex.
+ * NOTE: currently unreferenced; kept for programmatic use until T-F093
+ * removes it via unused-files.mjs if it stays unreferenced.
  */
 export const AppColors = {
   // =========================
   // PRIMARY BRAND COLORS
   // =========================
-  primary: '#171717',
-  black: '#000000',
-  blackSoft: '#0A0A0A',
+  primary: 'var(--n-900)',
+  black: 'var(--n-1000)',
+  blackSoft: 'var(--n-950)',
 
   // =========================
   // BACKGROUND & SURFACES
   // =========================
-  background: '#FAFAFA',
-  surface: '#FFFFFF',
-  surfaceLight: '#F5F5F5',
-  surfaceGrey: '#E5E5E5',
+  background: 'var(--surface-page)',
+  surface: 'var(--surface-card)',
+  surfaceLight: 'var(--n-100)',
+  surfaceGrey: 'var(--n-200)',
 
   // =========================
   // TEXT COLORS
   // =========================
-  textPrimary: '#000000',
-  textSecondary: '#525252',
-  textHint: '#737373',
-  textDisabled: '#A3A3A3',
+  textPrimary: 'var(--text-strong)',
+  textSecondary: 'var(--text-muted)',
+  textHint: 'var(--text-faint)',
+  textDisabled: 'var(--n-400)',
 
   // =========================
   // BORDER / OUTLINE
   // =========================
-  border: '#D1D6DB',
-  borderLight: '#D4D4D4',
-  iconInactive: '#9CA3AF',
+  border: 'var(--border)',
+  borderLight: 'var(--border-strong)',
+  iconInactive: 'var(--n-400)',
 
   // =========================
   // STATUS COLORS
   // =========================
-  success: '#22C55E',
-  error: '#DC2626',
-  errorLight: '#EF4444',
-  errorSoft: '#FEE2E2',
-  warning: '#F87171',
+  success: 'var(--success)',
+  error: 'var(--danger)',
+  errorLight: 'var(--danger)',
+  errorSoft: 'var(--danger-soft)',
+  warning: 'var(--warning)',
 
   // =========================
   // OPACITY COLORS
@@ -51,53 +54,53 @@ export const AppColors = {
   // =========================
   // NAVIGATION COLORS
   // =========================
-  navActive: '#171717',
-  navInactive: '#A3A3A3',
+  navActive: 'var(--n-900)',
+  navInactive: 'var(--n-400)',
 
   // =========================
   // BUTTON COLORS
   // =========================
-  buttonPrimary: '#171717',
-  buttonSecondary: '#F5F5F5',
-  buttonDisabled: '#E5E5E5',
+  buttonPrimary: 'var(--n-900)',
+  buttonSecondary: 'var(--n-100)',
+  buttonDisabled: 'var(--n-200)',
 
   // =========================
   // ADDITIONAL COLORS
   // =========================
-  white: '#FFFFFF',
-  info: '#3B82F6',
+  white: 'var(--n-0)',
+  info: 'var(--info)',
   transparent: 'transparent',
 
   // =========================
   // NEUTRAL UI SURFACES
   // =========================
-  neutralCircle: '#F2F2F7',
-  neutralBorder: '#E5E5EA',
-  neutralIcon: '#1C1C1E',
-  darkNeutralCircle: '#2C2C2E',
-  placeholderIcon: '#AEAEB2',
-  darkPlaceholderIcon: '#8E8E93',
-  starInactive: '#D1D1D6',
-  starActive: '#FFC107',
+  neutralCircle: 'var(--n-100)',
+  neutralBorder: 'var(--border)',
+  neutralIcon: 'var(--n-900)',
+  darkNeutralCircle: 'var(--n-800)',
+  placeholderIcon: 'var(--n-400)',
+  darkPlaceholderIcon: 'var(--n-500)',
+  starInactive: 'var(--n-300)',
+  starActive: 'var(--warning)',
 
   // =========================
   // DARK THEME COLORS
   // =========================
-  darkBackground: '#121212',
-  darkSurface: '#1E1E1E',
-  darkSurfaceLight: '#2A2A2A',
-  darkSurfaceGrey: '#333333',
-  darkTextPrimary: '#FFFFFF',
-  darkTextSecondary: '#A3A3A3',
-  darkTextHint: '#737373',
-  darkTextDisabled: '#525252',
-  darkBorder: '#333333',
-  darkBorderLight: '#2A2A2A',
-  darkIconInactive: '#6B7280',
-  darkNavActive: '#FFFFFF',
-  darkNavInactive: '#525252',
-  darkButtonSecondary: '#2A2A2A',
-  darkButtonDisabled: '#333333',
+  darkBackground: 'var(--n-950)',
+  darkSurface: 'var(--n-900)',
+  darkSurfaceLight: 'var(--n-800)',
+  darkSurfaceGrey: 'var(--n-800)',
+  darkTextPrimary: 'var(--n-0)',
+  darkTextSecondary: 'var(--n-400)',
+  darkTextHint: 'var(--n-500)',
+  darkTextDisabled: 'var(--n-600)',
+  darkBorder: 'var(--n-800)',
+  darkBorderLight: 'var(--n-800)',
+  darkIconInactive: 'var(--n-500)',
+  darkNavActive: 'var(--n-0)',
+  darkNavInactive: 'var(--n-600)',
+  darkButtonSecondary: 'var(--n-800)',
+  darkButtonDisabled: 'var(--n-800)',
 } as const;
 
 export default AppColors;
