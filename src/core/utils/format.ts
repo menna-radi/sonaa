@@ -97,3 +97,78 @@ export function formatRelativeTime(
     return date.toLocaleDateString();
   }
 }
+
+const DATE_LOCALES: Record<SupportedLocale, string> = {
+  en: 'en-GB',
+  ar: 'ar-EG',
+  he: 'he-IL',
+};
+
+function toDate(d: string | number | Date | null | undefined): Date | null {
+  if (d === null || d === undefined) return null;
+  const date = d instanceof Date ? d : new Date(d);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/** "12 Jan 2026" style date, or '—' for null/invalid. */
+export function formatDate(d: string | number | Date | null | undefined, locale: SupportedLocale = 'en'): string {
+  const date = toDate(d);
+  if (!date) return '—';
+  try {
+    return new Intl.DateTimeFormat(DATE_LOCALES[locale] || 'en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
+  } catch {
+    return '—';
+  }
+}
+
+/** Date + time, or '—' for null/invalid. */
+export function formatDateTime(
+  d: string | number | Date | null | undefined,
+  locale: SupportedLocale = 'en'
+): string {
+  const date = toDate(d);
+  if (!date) return '—';
+  try {
+    return new Intl.DateTimeFormat(DATE_LOCALES[locale] || 'en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  } catch {
+    return '—';
+  }
+}
+
+/** Minutes → "1h 18m", or '—' for null/invalid. */
+export function formatDuration(minutes: number | null | undefined): string {
+  if (minutes == null || Number.isNaN(minutes) || minutes < 0) return '—';
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  if (h <= 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
+
+/** Number → "8.0%" (no sign), or '—' for null/NaN. */
+export function formatPercentValue(v: number | null | undefined, digits = 1): string {
+  if (v == null || Number.isNaN(v)) return '—';
+  return `${v.toFixed(digits)}%`;
+}
+
+/** Compact number: 12.4K, or '—' for null/NaN. */
+export function formatCompact(v: number | null | undefined, locale: SupportedLocale = 'en'): string {
+  if (v == null || Number.isNaN(v)) return '—';
+  try {
+    return new Intl.NumberFormat(DATE_LOCALES[locale] || 'en-GB', {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(v);
+  } catch {
+    return '—';
+  }
+}
