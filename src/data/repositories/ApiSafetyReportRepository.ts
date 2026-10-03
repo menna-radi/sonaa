@@ -1,206 +1,142 @@
-import { SafetyReportRepository, SafetyReport } from '../../domain/repositories/SafetyReportRepository';
+import {
+  SafetyReportRepository,
+  SafetyReport,
+  SafetyReportsPage,
+  ReportCategory,
+  ReportStatus,
+} from '../../domain/repositories/SafetyReportRepository';
 import { Result, ok, fail } from '../../core/result/Result';
-import { AppError, UnknownError } from '../../core/errors/AppError';
+import { AppError } from '../../core/errors/AppError';
 import { apiClient } from '../../core/network/apiClient';
 import { API_ENDPOINTS } from '../../core/config/apiEndpoints';
 
-export class ApiSafetyReportRepository implements SafetyReportRepository {
-  public async getSafetyReports(): Promise<Result<SafetyReport[]>> {
-    try {
-      const response = await apiClient.get<any>(API_ENDPOINTS.admin.reports);
-      let items = response?.items || (Array.isArray(response) ? response : []);
-      
-      if (!items || items.length === 0) {
-        return ok([
-          {
-            id: 'R-2001',
-            title: 'Off-platform payment demand',
-            severity: 'high',
-            reporter: 'Saad Al-Dawsari',
-            reporterId: 'USR-8821',
-            reporterPhone: '+972 54 123 9988',
-            reporterPriorReportsCount: 1,
-            subject: 'Ahmad Al-Otaibi (Plumber)',
-            suspectId: 'CRF-4019',
-            suspectPhone: '+972 54 887 1122',
-            suspectStatus: 'ACTIVE',
-            suspectPriorReportsCount: 3,
-            subjectType: 'Craftsman / Partner',
-            category: 'fraud',
-            time: '34s ago',
-            desc: 'Craftsman insisted on direct cash payment of 350 ILS outside Sonaa to bypass platform fees and threatened to cancel order if unfulfilled.',
-            taskId: 'T-1001',
-            taskDisplayId: '#TSK-2001',
-            taskTitle: 'Emergency Plumbing Repair & Leak Isolation',
-            orderBudget: 350.00,
-            escrowStatus: 'FROZEN',
-            chatLogs: [
-              { sender: 'Saad Al-Dawsari', text: 'Hello Ahmad, when will you arrive for the pipe inspection in Shuafat?', time: '10:14 AM' },
-              { sender: 'Ahmad Al-Otaibi (Plumber)', text: 'I am arriving in 10 minutes. Please prepare 350 ILS cash directly, do not pay through the app.', time: '10:16 AM', flagged: true },
-              { sender: 'Saad Al-Dawsari', text: 'Why cash? The booking is already escrowed and protected in Sonaa.', time: '10:17 AM' },
-              { sender: 'Ahmad Al-Otaibi (Plumber)', text: 'If you refuse cash payment on site I will cancel the dispatch right now.', time: '10:19 AM', flagged: true }
-            ],
-            evidenceImages: [
-              'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
-              'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80'
-            ],
-            auditTrail: [
-              { action: 'Report Filed by Customer', actor: 'Saad Al-Dawsari', timestamp: '10:20 AM' },
-              { action: 'Escrow Payout Placed on Hold (350 ILS)', actor: 'System Safeguard', timestamp: '10:21 AM' },
-              { action: 'Opened in Admin Workspace', actor: 'Admin Moderator', timestamp: 'Just now' }
-            ]
-          },
-          {
-            id: 'R-2002',
-            title: 'Multiple rapid registrations detected',
-            severity: 'high',
-            reporter: 'System Safeguard AI',
-            reporterId: 'SYS-AI-01',
-            reporterPhone: '+972 2 500 0000',
-            reporterPriorReportsCount: 0,
-            subject: 'IP 81.10.142.90 (Jerusalem)',
-            suspectId: 'USR-BOT-99',
-            suspectPhone: '+972 50 999 0011',
-            suspectStatus: 'SUSPENDED',
-            suspectPriorReportsCount: 2,
-            subjectType: 'IP Cluster',
-            category: 'fake_accounts',
-            time: '6m ago',
-            desc: '5 accounts registered in under 90 seconds from identical fingerprint IP in Beit Hanina. Automated bot syndicate behavior detected.',
-            taskId: 'T-1002',
-            taskDisplayId: '#TSK-2002',
-            taskTitle: 'System Account Verification Batch',
-            orderBudget: 0.00,
-            escrowStatus: 'RELEASED',
-            chatLogs: [],
-            evidenceImages: [],
-            auditTrail: [
-              { action: 'Automated Anomaly Alert Triggered', actor: 'System Safeguard AI', timestamp: '10:10 AM' },
-              { action: 'IP Range Rate-Limited', actor: 'Security Firewall', timestamp: '10:11 AM' }
-            ]
-          },
-          {
-            id: 'R-2003',
-            title: 'Harassment and abusive message',
-            severity: 'medium',
-            reporter: 'Layla Mansour',
-            reporterId: 'USR-3190',
-            reporterPhone: '+972 52 445 6677',
-            reporterPriorReportsCount: 0,
-            subject: 'Tariq Nabulsi (Electrician)',
-            suspectId: 'CRF-1092',
-            suspectPhone: '+972 54 332 9900',
-            suspectStatus: 'ACTIVE',
-            suspectPriorReportsCount: 1,
-            subjectType: 'Craftsman / Partner',
-            category: 'chats',
-            time: '14m ago',
-            desc: 'Customer reported unprofessional and hostile communication following quote dispute.',
-            taskId: 'T-1003',
-            taskDisplayId: '#TSK-2003',
-            taskTitle: 'Main Distribution Board Circuit Breaker Swap',
-            orderBudget: 220.00,
-            escrowStatus: 'FROZEN',
-            chatLogs: [
-              { sender: 'Layla Mansour', text: 'You arrived 2 hours late and are quoting double the app estimated price.', time: '09:40 AM' },
-              { sender: 'Tariq Nabulsi (Electrician)', text: 'You do not understand electrical work, do not tell me how to price my job!', time: '09:42 AM', flagged: true },
-              { sender: 'Layla Mansour', text: 'Please leave the premises if you cannot honor the agreed rate.', time: '09:43 AM' },
-              { sender: 'Tariq Nabulsi (Electrician)', text: 'You will regret wasting my time, do not ever request me again.', time: '09:45 AM', flagged: true }
-            ],
-            evidenceImages: [
-              'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80'
-            ],
-            auditTrail: [
-              { action: 'Dispute Filed by Customer', actor: 'Layla Mansour', timestamp: '09:50 AM' },
-              { action: 'Order Placed in Disputed State', actor: 'System Safeguard', timestamp: '09:51 AM' }
-            ]
-          },
-          {
-            id: 'R-2004',
-            title: 'Spam service solicitation broadcast',
-            severity: 'low',
-            reporter: 'Omar Qadi',
-            reporterId: 'USR-5512',
-            reporterPhone: '+972 50 776 2211',
-            reporterPriorReportsCount: 0,
-            subject: 'Auto-Clean Solutions',
-            suspectId: 'USR-SPAM-12',
-            suspectPhone: '+972 59 111 8899',
-            suspectStatus: 'ACTIVE',
-            suspectPriorReportsCount: 4,
-            subjectType: 'Direct Chat Sender',
-            category: 'spam',
-            time: '42m ago',
-            desc: 'Unsolicited promotional WhatsApp / SMS blast sent to customer directory.',
-            taskId: 'T-1004',
-            taskDisplayId: '#TSK-2004',
-            taskTitle: 'Air Conditioning Duct Sanitization',
-            orderBudget: 150.00,
-            escrowStatus: 'RELEASED',
-            chatLogs: [
-              { sender: 'Auto-Clean Solutions', text: 'Special discount! 50% off all AC cleaning services this weekend only. Call 059-111-8899.', time: '08:30 AM', flagged: true }
-            ],
-            evidenceImages: [],
-            auditTrail: [
-              { action: 'Spam Flagged by User', actor: 'Omar Qadi', timestamp: '08:35 AM' }
-            ]
-          }
-        ]);
-      }
+const KNOWN_CATEGORIES = new Set<string>([
+  'INAPPROPRIATE_CONDUCT',
+  'VEHICLE_SAFETY',
+  'VERBAL_ABUSE',
+  'THEFT',
+  'PROPERTY_DAMAGE',
+  'OTHER',
+]);
 
-      const reports = items.map((item: any) => {
-        let category: SafetyReport['category'] = 'chats';
-        if (item.category === 'FRAUD') {
-          category = 'fraud';
+export class ApiSafetyReportRepository implements SafetyReportRepository {
+  public async getSafetyReports(q?: {
+    status?: ReportStatus | 'all';
+    page?: number;
+    limit?: number;
+  }): Promise<Result<SafetyReportsPage>> {
+    try {
+      const params: Record<string, string | number> = {};
+      if (q?.status && q.status !== 'all') {
+        params.status = q.status;
+      }
+      if (q?.page) params.page = q.page;
+      if (q?.limit) params.limit = q.limit;
+
+      const response = await apiClient.get<{ items?: unknown[]; total?: number; counts?: Record<string, number> } | unknown[]>(
+        API_ENDPOINTS.admin.reports,
+        params
+      );
+
+      const rawItems = Array.isArray(response)
+        ? response
+        : (response as { items?: unknown[] })?.items || [];
+
+      const items: SafetyReport[] = (rawItems as Record<string, unknown>[]).map((item): SafetyReport => {
+        const rawCat = typeof item.category === 'string' ? item.category.toUpperCase() : '';
+        let cat: ReportCategory = 'OTHER';
+        if (KNOWN_CATEGORIES.has(rawCat)) {
+          cat = rawCat as ReportCategory;
+        } else if (rawCat === 'FRAUD') {
+          cat = 'THEFT';
+        } else if (rawCat === 'SAFETY_VIOLATION') {
+          cat = 'VEHICLE_SAFETY';
         }
-        
-        const reporterName = item.reporter 
-          ? `${item.reporter.firstName} ${item.reporter.lastName}`
-          : 'Anonymous Customer';
-        const suspectName = item.suspect
-          ? `${item.suspect.firstName} ${item.suspect.lastName}`
-          : 'Reported Partner';
+
+        const repObj = item.reporter as { id?: string; firstName?: string; lastName?: string; phoneNumber?: string } | undefined;
+        const susObj = item.suspect as { id?: string; firstName?: string; lastName?: string; phoneNumber?: string; status?: string } | undefined;
+        const taskObj = item.task as { id?: string; displayId?: string; title?: string } | undefined;
+
+        const reporterName = repObj
+          ? `${repObj.firstName || ''} ${repObj.lastName || ''}`.trim() || 'Anonymous'
+          : null;
+        const suspectName = susObj
+          ? `${susObj.firstName || ''} ${susObj.lastName || ''}`.trim() || 'Suspect'
+          : null;
+
+        const reporter = reporterName
+          ? {
+              id: repObj?.id || '',
+              name: reporterName,
+              phone: repObj?.phoneNumber,
+            }
+          : null;
+
+        const suspect = suspectName
+          ? {
+              id: susObj?.id || '',
+              name: suspectName,
+              phone: susObj?.phoneNumber,
+            }
+          : null;
+
+        const task = taskObj?.id
+          ? {
+              id: taskObj.id,
+              displayId: taskObj.displayId || `#TSK-${taskObj.id.slice(0, 6)}`,
+              title: taskObj.title || '',
+            }
+          : undefined;
+
+        const createdAt = typeof item.createdAt === 'string' ? new Date(item.createdAt).toISOString() : new Date().toISOString();
+        const description = typeof item.description === 'string' ? item.description : '';
 
         return {
-          id: item.id,
-          title: item.category ? item.category.replace(/_/g, ' ') : 'Safety Violation Report',
-          severity: item.category === 'SAFETY_VIOLATION' || item.category === 'FRAUD' ? 'high' : 'medium',
-          reporter: reporterName,
-          reporterId: item.reporter?.id,
-          reporterPhone: item.reporter?.phoneNumber || '+972 54 123 9988',
-          reporterPriorReportsCount: 1,
-          subject: suspectName,
-          suspectId: item.suspect?.id,
-          suspectPhone: item.suspect?.phoneNumber || '+972 54 887 1122',
-          suspectStatus: item.suspect?.status || 'ACTIVE',
-          suspectPriorReportsCount: item.category === 'FRAUD' ? 3 : 2,
+          id: String(item.id || ''),
+          category: cat,
+          status: (item.status as ReportStatus) || 'PENDING',
+          description,
+          createdAt,
+          resolvedAt: typeof item.resolvedAt === 'string' ? item.resolvedAt : undefined,
+          moderatorNotes: typeof item.moderatorNotes === 'string' ? item.moderatorNotes : undefined,
+          reporter,
+          suspect,
+          task,
+          resolvedBy: typeof item.resolvedBy === 'string' ? item.resolvedBy : undefined,
+          title: cat.replace(/_/g, ' '),
+          severity: cat === 'THEFT' || cat === 'INAPPROPRIATE_CONDUCT' ? 'high' : 'medium',
+          reporterPhone: reporter?.phone,
+          reporterId: reporter?.id,
+          reporterPriorReportsCount: 0,
+          subject: suspect?.name || '',
+          suspectId: suspect?.id,
+          suspectPhone: suspect?.phone,
+          suspectStatus: susObj?.status || 'ACTIVE',
+          suspectPriorReportsCount: 0,
           subjectType: 'Craftsman / Partner',
-          category,
-          time: item.createdAt ? new Date(item.createdAt).toLocaleString() : 'Recent',
-          desc: item.description || 'Discreet safety report filed during active service job regarding off-platform payment demand and unapproved charges.',
-          taskId: item.task?.id,
-          taskDisplayId: item.task?.displayId || `#TSK-${item.id.slice(0, 4)}`,
-          taskTitle: item.task?.title || 'Emergency Electrical Repair & Maintenance',
-          orderBudget: 350.00,
-          escrowStatus: item.status === 'RESOLVED' ? 'REFUNDED' : 'FROZEN',
-          chatLogs: [
-            { sender: reporterName, text: 'Hello, what time will you arrive for the repair?', time: '10:14 AM' },
-            { sender: suspectName, text: 'I am on my way. Please pay me 200 ILS in cash directly instead of the app.', time: '10:16 AM', flagged: true },
-            { sender: reporterName, text: 'Why cash? The app says payment is managed securely via credit card.', time: '10:17 AM' },
-            { sender: suspectName, text: 'If you do not pay cash directly I will cancel the order.', time: '10:19 AM', flagged: true }
-          ],
-          evidenceImages: [
-            'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80'
-          ],
-          auditTrail: [
-            { action: 'Report Filed by Customer', actor: reporterName, timestamp: '10:20 AM' },
-            { action: 'Escrow Payout Placed on Hold', actor: 'System Safeguard', timestamp: '10:21 AM' },
-            { action: 'Opened in Admin Workspace', actor: 'Admin Moderator', timestamp: 'Just now' }
-          ]
+          time: createdAt,
+          desc: description,
+          taskDisplayId: task?.displayId,
+          taskTitle: task?.title,
+          orderBudget: 0,
+          escrowStatus: item.status === 'RESOLVED' ? 'RELEASED' : 'FROZEN',
         };
       });
-      return ok(reports);
+
+      const total = Array.isArray(response)
+        ? items.length
+        : (response as { total?: number })?.total ?? items.length;
+      const counts = Array.isArray(response)
+        ? undefined
+        : (response as { counts?: Record<string, number> })?.counts;
+
+      const page: SafetyReportsPage = Object.assign([...items], {
+        items,
+        total,
+        counts,
+      });
+
+      return ok(page);
     } catch (error) {
       return fail(error as AppError);
     }
@@ -208,14 +144,11 @@ export class ApiSafetyReportRepository implements SafetyReportRepository {
 
   public async moderateReport(
     id: string,
-    action: 'dismiss' | 'suspend' | 'ban',
+    action: 'dismiss' | 'investigate' | 'suspend' | 'ban',
     notes?: string
   ): Promise<Result<boolean>> {
     try {
-      await apiClient.put<any>(
-        `/admin/reports/${id}/moderate`,
-        { action, notes }
-      );
+      await apiClient.put<unknown>(`/admin/reports/${id}/moderate`, { action, notes });
       return ok(true);
     } catch (error) {
       return fail(error as AppError);
