@@ -3390,6 +3390,136 @@ export const translations: TranslationDict = {
     en: 'Offer status updated.',
     ar: 'تم تحديث حالة العرض.',
     he: 'סטטוס המבצע עודכן.'
+  },
+  campaigns_subtitle: {
+    en: 'Scheduling and analytics view of the same banners',
+    ar: 'عرض الجدولة والتحليلات للبانرات نفسها',
+    he: 'תצוגת תזמון וניתוח של אותם באנרים'
+  },
+  campaigns_new: {
+    en: 'New campaign',
+    ar: 'حملة جديدة',
+    he: 'קמפיין חדש'
+  },
+  campaigns_search_ph: {
+    en: 'Search campaigns…',
+    ar: 'ابحث في الحملات…',
+    he: 'חפש קמפיינים…'
+  },
+  campaigns_tab_active: {
+    en: 'Active',
+    ar: 'نشطة',
+    he: 'פעיל'
+  },
+  campaigns_tab_scheduled: {
+    en: 'Scheduled',
+    ar: 'مجدولة',
+    he: 'מתוזמן'
+  },
+  campaigns_tab_ended: {
+    en: 'Ended',
+    ar: 'منتهية',
+    he: 'הסתיים'
+  },
+  campaigns_tab_analytics: {
+    en: 'Analytics',
+    ar: 'التحليلات',
+    he: 'ניתוח'
+  },
+  campaigns_col_campaign: {
+    en: 'Campaign',
+    ar: 'الحملة',
+    he: 'קמפיין'
+  },
+  campaigns_col_placement: {
+    en: 'Placement',
+    ar: 'الموضع',
+    he: 'מיקום'
+  },
+  campaigns_col_window: {
+    en: 'Window',
+    ar: 'الفترة',
+    he: 'חלון'
+  },
+  campaigns_col_impressions: {
+    en: 'Impressions',
+    ar: 'المشاهدات',
+    he: 'חשיפות'
+  },
+  campaigns_col_clicks: {
+    en: 'Clicks',
+    ar: 'النقرات',
+    he: 'קליקים'
+  },
+  campaigns_col_ctr: {
+    en: 'CTR',
+    ar: 'نسبة النقر',
+    he: 'CTR'
+  },
+  campaigns_edit: {
+    en: 'Edit',
+    ar: 'تعديل',
+    he: 'ערוך'
+  },
+  campaigns_pause: {
+    en: 'Pause',
+    ar: 'إيقاف مؤقت',
+    he: 'השהה'
+  },
+  campaigns_resume: {
+    en: 'Resume',
+    ar: 'استئناف',
+    he: 'המשך'
+  },
+  campaigns_end: {
+    en: 'End',
+    ar: 'إنهاء',
+    he: 'סיים'
+  },
+  campaigns_end_title: {
+    en: 'End this campaign?',
+    ar: 'إنهاء هذه الحملة؟',
+    he: 'לסיים קמפיין זה?'
+  },
+  campaigns_end_body: {
+    en: 'The banner stops showing in the app. This cannot be undone.',
+    ar: 'يتوقف البانر عن الظهور في التطبيق. لا يمكن التراجع عن هذا.',
+    he: 'הבאנר יפסיק להופיע באפליקציה. לא ניתן לבטל זאת.'
+  },
+  campaigns_delete_title: {
+    en: 'Delete this campaign?',
+    ar: 'حذف هذه الحملة؟',
+    he: 'למחוק קמפיין זה?'
+  },
+  campaigns_delete_body: {
+    en: 'The campaign and its banner are deleted permanently.',
+    ar: 'تُحذف الحملة والبانر نهائيًا.',
+    he: 'הקמפיין והבאנר יימחקו לצמיתות.'
+  },
+  campaigns_impressions: {
+    en: 'impressions',
+    ar: 'مشاهدة',
+    he: 'חשיפות'
+  },
+  campaigns_clicks: {
+    en: 'clicks',
+    ar: 'نقرة',
+    he: 'קליקים'
+  },
+  empty_campaigns: {
+    en: 'No campaigns here yet',
+    ar: 'لا توجد حملات هنا بعد',
+    he: 'אין עדיין קמפיינים כאן'
+  },
+  toast_campaign_saved: {
+    en: 'Campaign saved.',
+    ar: 'تم حفظ الحملة.',
+    he: 'הקמפיין נשמר.'
+  },
+  toast_campaign_deleted: {
+    en: 'Campaign deleted.',
+    ar: 'تم حذف الحملة.',
+    he: 'הקמפיין נמחק.'
   }
 };
 

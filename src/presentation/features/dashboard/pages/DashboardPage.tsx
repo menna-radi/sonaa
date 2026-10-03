@@ -15,8 +15,7 @@ import { AnalyticsPage } from '../../analytics/pages/AnalyticsPage';
 import { BroadcastPage } from '../../broadcast/pages/BroadcastPage';
 import { NotificationsPage } from '../../notifications/pages/NotificationsPage';
 // Ads pages stay lazy: ad-blockers block their module URLs outright.
-const AdsPage = React.lazy(() => import('../../ads/pages/AdsPage'));
-const ActiveCampaignsPage = React.lazy(() => import('../../ads/pages/ActiveCampaignsPage'));
+const CampaignsPage = React.lazy(() => import('../../ads/pages/CampaignsPage'));
 const CreateAdPage = React.lazy(() => import('../../ads/pages/CreateAdPage'));
 const PromotionsPage = React.lazy(() => import('../../ads/pages/PromotionsPage'));
 const AdAnalyticsPage = React.lazy(() => import('../../ads/pages/AdAnalyticsPage'));
@@ -77,10 +76,20 @@ export const DashboardPage: React.FC = () => {
       case 'analytics': return <AnalyticsPage />;
       case 'broadcast': return <BroadcastPage />;
       case 'notifications': return <NotificationsPage />;
-      case 'ads': return <AdsPage />;
-      case 'campaigns': return <ActiveCampaignsPage key="campaigns" defaultTab="Active" />;
-      case 'scheduled': return <ActiveCampaignsPage key="scheduled" defaultTab="Scheduled" />;
-      case 'expired': return <ActiveCampaignsPage key="expired" defaultTab="Expired" />;
+      case 'ads':
+      case 'campaigns':
+      case 'scheduled':
+      case 'expired':
+      case 'ad_analytics': {
+        const tab =
+          currentPage === 'scheduled' ? 'Scheduled' : currentPage === 'expired' ? 'Ended' : currentPage === 'ad_analytics' ? 'Analytics' : 'Active';
+        try {
+          sessionStorage.setItem('campaigns_tab', tab);
+        } catch {
+          // storage unavailable — page defaults to Active
+        }
+        return <CampaignsPage key={currentPage} />;
+      }
       case 'create_ad': return <CreateAdPage />;
       case 'promotions': return <PromotionsPage />;
       case 'ad_analytics': return <AdAnalyticsPage />;

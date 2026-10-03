@@ -2,3 +2,11 @@
 .offer-card { min-width: 0; }
 .offer-card__media { margin-bottom: var(--sp-2); }
 .offer-card__title { font-weight: 700; color: var(--text-strong); font-size: var(--fs-body); }
+
+/* Campaigns */
+.campaign-cell { display: flex; flex-direction: column; min-width: 0; }
+.campaign-row { display: flex; flex-direction: column; gap: var(--sp-2); }
+.campaign-row__top { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); }
+.campaign-row__name { font-weight: 600; font-size: var(--fs-body); color: var(--text-strong); }
+.campaign-row__actions { display: flex; gap: var(--sp-2); justify-content: flex-end; }
+.campaign-row__actions > * { min-height: 44px; }

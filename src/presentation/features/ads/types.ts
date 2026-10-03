@@ -3,7 +3,7 @@ import { Campaign as DomainCampaign } from '../../../domain/repositories/AdRepos
 export type AdStatus = 'Active' | 'Paused' | 'Scheduled' | 'Expired';
 
 export interface Campaign extends Omit<DomainCampaign, 'status'> {
-  status: 'Active' | 'Paused' | 'Scheduled' | 'Expired';
+  status: 'Active' | 'Paused' | 'Scheduled' | 'Expired' | 'Ended';
 }
 
 export interface CityTarget {
