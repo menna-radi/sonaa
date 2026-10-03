@@ -5,9 +5,9 @@ import { Result, fail } from '../../../core/result/Result';
 import { ValidationError } from '../../../core/errors/AppError';
 
 // Validation Schema using Zod
-const loginSchema = z.object({
-  email: z.string().min(3, { message: 'Username or email must be at least 3 characters long' }),
-  password: z.string().min(4, { message: 'Password is required' }),
+export const loginSchema = z.object({
+  email: z.string().trim().min(3, 'val_min_len|3'),
+  password: z.string().min(6, 'val_min_len|6'),
 });
 
 export class LoginUseCase {
@@ -29,3 +29,5 @@ export class LoginUseCase {
     return this.authRepository.login(email, pass);
   }
 }
+
+export default LoginUseCase;

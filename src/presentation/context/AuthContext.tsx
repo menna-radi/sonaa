@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User } from '../../domain/entities/User';
 import { useDependencies } from '../../core/di/DependencyProvider';
+import { storageService } from '../../core/storage/StorageService';
+import { UnauthorizedError, ForbiddenError, NetworkError } from '../../core/errors/AppError';
 
 interface AuthContextType {
   user: User | null;
@@ -27,8 +29,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkSession = async () => {
       try {
         const result = await getCurrentUserUseCase.execute();
-        if (result.success) {
-          setUser(result.data);
+        if (result.success && result.data) {
+          if (result.data.role !== 'ADMIN') {
+            storageService.clearToken();
+            setUser(null);
+          } else {
+            setUser(result.data);
+          }
         } else {
           setUser(null);
         }
@@ -55,9 +62,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const result = await loginUseCase.execute(email, pass);
       if (result.success) {
-        setUser(result.data);
+        const loggedUser = result.data;
+        if (loggedUser.role !== 'ADMIN') {
+          storageService.clearToken();
+          setUser(null);
+          setError('login_error_not_admin');
+          throw new ForbiddenError('Access restricted to administrators only.');
+        }
+        setUser(loggedUser);
       } else {
-        setError(result.error.message || 'authentication_failed');
+        if (result.error instanceof UnauthorizedError) {
+          setError('login_error_invalid');
+        } else if (result.error instanceof ForbiddenError) {
+          setError('login_error_forbidden');
+        } else if (result.error instanceof NetworkError) {
+          setError('err_network');
+        } else {
+          setError(result.error.message || 'login_error_invalid');
+        }
         throw result.error;
       }
     } catch (err: unknown) {

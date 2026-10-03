@@ -57,6 +57,21 @@ export const translations: TranslationDict = {
     ar: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
     he: 'כתובת האימייל או הסיסמה אינם נכונים.'
   },
+  login_error_invalid: {
+    en: 'Wrong email or password',
+    ar: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    he: 'אימייל או סיסמה שגויים'
+  },
+  login_error_forbidden: {
+    en: 'Access forbidden. Your account does not have permission.',
+    ar: 'تم رفض الوصول. حسابك لا يملك الصلاحية.',
+    he: 'הגישה נדחתה. לחשבונך אין הרשאה מתאימה.'
+  },
+  login_error_not_admin: {
+    en: 'Access restricted to administrators only.',
+    ar: 'الوصول مقتصر على المشرفين فقط.',
+    he: 'הגישה מוגבלת למנהלים בלבד.'
+  },
   login_err_empty: {
     en: 'Please fill in all credentials.',
     ar: 'يرجى إدخال جميع البيانات المطلوبة.',
