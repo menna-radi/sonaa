@@ -12,12 +12,12 @@ export const planSchema = z.object({
   nameEn: text(3, 80),
   nameAr: text(3, 80),
   durationMonths: z.coerce
-    .number({ invalid_type_error: 'val_int' })
+    .number({ message: 'val_int' })
     .int('val_int')
     .min(1, 'val_range|1-36')
     .max(36, 'val_range|1-36'),
   price: z.coerce
-    .number({ invalid_type_error: 'val_positive' })
+    .number({ message: 'val_positive' })
     .positive('val_positive')
     .max(100000, 'val_range|0-100000'),
   featuresEn: lines(10),
@@ -39,7 +39,7 @@ export const rejectReasonSchema = z.object({ reason: text(3, 500) });
 
 export const extendDaysSchema = z.object({
   days: z.coerce
-    .number({ invalid_type_error: 'val_int' })
+    .number({ message: 'val_int' })
     .int('val_int')
     .min(1, 'val_range|1-3650')
     .max(3650, 'val_range|1-3650'),
@@ -47,7 +47,7 @@ export const extendDaysSchema = z.object({
 
 export const freeTasksSchema = z.object({
   freeTasksRemaining: z.coerce
-    .number({ invalid_type_error: 'val_int' })
+    .number({ message: 'val_int' })
     .int('val_int')
     .min(0, 'val_range|0-100')
     .max(100, 'val_range|0-100'),
@@ -56,7 +56,7 @@ export const freeTasksSchema = z.object({
 export const platformSettingsSchema = z.object({
   freeTasksCount: z.coerce.number().int('val_int').min(0, 'val_range|0-100').max(100, 'val_range|0-100'),
   commissionRatePercent: z.coerce
-    .number({ invalid_type_error: 'val_positive' })
+    .number({ message: 'val_positive' })
     .gt(0, 'val_range|0.1-50')
     .max(50, 'val_range|0.1-50'),
 });

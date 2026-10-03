@@ -33,7 +33,7 @@ export const adCampaignSchema = z
   .object({
     name: text(3, 80),
     budget: z.coerce
-      .number({ invalid_type_error: 'val_positive' })
+      .number({ message: 'val_positive' })
       .positive('val_positive')
       .max(10_000_000, 'val_range|0-10000000'),
     placement: z.enum(['Home Banner', 'Featured Slots']),
