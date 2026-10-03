@@ -10,3 +10,7 @@
 .campaign-row__name { font-weight: 600; font-size: var(--fs-body); color: var(--text-strong); }
 .campaign-row__actions { display: flex; gap: var(--sp-2); justify-content: flex-end; }
 .campaign-row__actions > * { min-height: 44px; }
+
+/* Target picker */
+.offer-target-chip { border: 1px solid var(--border); background: var(--surface-card); color: var(--text-strong); border-radius: var(--radius-full); padding: 6px 14px; font-size: var(--fs-small); cursor: pointer; min-height: 36px; }
+.offer-target-chip--active { border-color: var(--text-strong); font-weight: 700; }

@@ -3326,6 +3326,41 @@ export const translations: TranslationDict = {
     ar: 'رابط ويب',
     he: 'קישור אינטרנט'
   },
+  offers_opens_craftsman: {
+    en: 'Craftsman',
+    ar: 'حرفي',
+    he: 'בעל מקצוע'
+  },
+  offers_opens_category: {
+    en: 'Category',
+    ar: 'فئة',
+    he: 'קטגוריה'
+  },
+  offers_opens_task: {
+    en: 'Task',
+    ar: 'مهمة',
+    he: 'משימה'
+  },
+  offers_opens_service: {
+    en: 'Service',
+    ar: 'خدمة',
+    he: 'שירות'
+  },
+  offers_field_target: {
+    en: 'Target',
+    ar: 'الهدف',
+    he: 'יעד'
+  },
+  offers_target_id_help: {
+    en: 'Pick the item the banner opens in the app.',
+    ar: 'اختر العنصر الذي يفتحه البانر في التطبيق.',
+    he: 'בחר את הפריט שהבאנר פותח באפליקציה.'
+  },
+  offers_target_search_ph: {
+    en: 'Search craftsmen…',
+    ar: 'ابحث عن حرفيين…',
+    he: 'חפש בעלי מקצוע…'
+  },
   offers_placement_top: {
     en: 'Top',
     ar: 'الأعلى',

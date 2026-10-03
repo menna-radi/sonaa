@@ -105,7 +105,7 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
         try {
           const formData = new FormData();
           formData.append('file', imageFile);
-          const uploadRes = await apiClient.post<any>('/uploads', formData);
+          const uploadRes = await apiClient.post<{ fileUrl?: string; data?: { fileUrl?: string } }>('/uploads', formData);
           const uploaded = uploadRes?.fileUrl || uploadRes?.data?.fileUrl;
           if (uploaded) finalImageUrl = uploaded;
         } catch (uploadErr) {

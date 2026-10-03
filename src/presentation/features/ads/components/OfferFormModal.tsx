@@ -9,6 +9,7 @@ import { validate, tError, type FieldErrors } from '../../../../domain/validatio
 import { offerSchema } from '../../../../domain/validation/offers';
 import type { Offer, OfferInput } from '../../../../domain/entities/Offer';
 import { OFFER_TARGETS_ENABLED } from '../offerTargets';
+import { TargetPicker } from './TargetPicker';
 import { useCreateOffer, useUpdateOffer } from '../hooks/useOffers';
 
 interface OfferFormModalProps {
@@ -51,6 +52,7 @@ export const OfferFormModal: React.FC<OfferFormModalProps> = ({ offer, onClose }
   const [bannerType, setBannerType] = useState<'PROMO' | 'EMERGENCY_SOS'>(offer?.bannerType ?? 'PROMO');
   const [placement, setPlacement] = useState<'TOP' | 'FEATURED'>(offer?.placement ?? 'TOP');
   const [targetType, setTargetType] = useState<string>(offer?.targetType ?? 'NONE');
+  const [targetId, setTargetId] = useState<string | undefined>(offer?.targetId);
   const [targetUrl, setTargetUrl] = useState(offer?.targetUrl ?? '');
   const [startLocal, setStartLocal] = useState(toLocalInput(offer?.startDate));
   const [endLocal, setEndLocal] = useState(toLocalInput(offer?.endDate));
@@ -108,7 +110,7 @@ export const OfferFormModal: React.FC<OfferFormModalProps> = ({ offer, onClose }
       bannerType,
       placement,
       targetType,
-      targetId: undefined,
+      targetId,
       targetUrl: targetUrl || '',
       startDate: startLocal || null,
       endDate: endLocal || null,
@@ -131,7 +133,7 @@ export const OfferFormModal: React.FC<OfferFormModalProps> = ({ offer, onClose }
       bannerType: v.data.bannerType,
       placement: v.data.placement,
       targetType: v.data.targetType,
-      targetId: undefined,
+      targetId: v.data.targetId,
       targetUrl: (v.data.targetUrl as string | null) ?? undefined,
       startDate: (v.data.startDate as string | null) ?? undefined,
       endDate: (v.data.endDate as string | null) ?? undefined,
@@ -204,11 +206,18 @@ export const OfferFormModal: React.FC<OfferFormModalProps> = ({ offer, onClose }
         <Select
           label={t('offers_field_opens')}
           value={targetType}
-          onChange={(e) => setTargetType(e.target.value)}
+          onChange={(e) => {
+            const next = e.target.value;
+            setTargetType(next);
+            if (next === 'NONE' || next === 'URL') setTargetId(undefined);
+          }}
           options={OFFER_TARGETS_ENABLED.map((o) => ({ value: o, label: t(`offers_opens_${o.toLowerCase()}`) }))}
         />
         {targetType === 'URL' && (
           <TextField label={t('offers_field_link')} value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} error={err('targetUrl')} dir="ltr" />
+        )}
+        {targetType !== 'NONE' && targetType !== 'URL' && (
+          <TargetPicker targetType={targetType} targetId={targetId} onTargetIdChange={setTargetId} error={err('targetId')} />
         )}
         <TextField
           label={t('offers_field_starts')}
@@ -228,7 +237,7 @@ export const OfferFormModal: React.FC<OfferFormModalProps> = ({ offer, onClose }
       {bannerType === 'EMERGENCY_SOS' && <p className="ui-caption">{t('offers_sos_helper')}</p>}
       <div className="ui-row">
         {DURATIONS.map((d) => (
-          <button key={d.hours} type="button" className="billing-chip" onClick={() => applyDuration(d.hours)}>
+          <button key={d.hours} type="button" className="offer-target-chip" onClick={() => applyDuration(d.hours)}>
             <bdi className="ui-num">
               {d.days} {t('billing_plan_days_short')}
             </bdi>
