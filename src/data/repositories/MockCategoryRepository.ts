@@ -1,4 +1,9 @@
-import { CategoryRepository } from '../../domain/repositories/CategoryRepository';
+import {
+  CategoryRepository,
+  CategoryInput,
+  SubcategoryInput,
+  FieldInput,
+} from '../../domain/repositories/CategoryRepository';
 import { Category, Subcategory, FormField } from '../../domain/entities/Category';
 import { Result, ok, fail } from '../../core/result/Result';
 import { NotFoundError } from '../../core/errors/AppError';
@@ -38,7 +43,82 @@ export class MockCategoryRepository implements CategoryRepository {
 
   public async getCategories(): Promise<Result<Category[]>> {
     await new Promise((resolve) => setTimeout(resolve, 200));
-    return ok([...this.categories]);
+    return ok(
+      this.categories.map((c) => ({
+        ...c,
+        key: c.key ?? c.name.toUpperCase().replace(/[^A-Z0-9]/g, '_'),
+        taskVolume: c.taskVolume ?? 0,
+        isActive: c.visible,
+      }))
+    );
+  }
+
+  public async addCategory(input: CategoryInput): Promise<Result<Category>> {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const newCat: Category = {
+      id: String(this.categories.length + 1),
+      key: input.key,
+      name: input.nameEn,
+      nameAr: input.nameAr,
+      nameHe: input.nameHe,
+      description: input.key,
+      descriptionAr: '',
+      subcategoriesCount: 0,
+      status: 'Active',
+      requestVolume: 'Low',
+      iconName: '',
+      visible: true,
+      taskVolume: 0,
+      isActive: true,
+    };
+    this.categories.push(newCat);
+    return ok(newCat);
+  }
+
+  public async updateCategory(id: string, input: Omit<CategoryInput, 'key'>): Promise<Result<boolean>> {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const idx = this.categories.findIndex((c) => c.id === id);
+    if (idx === -1) return fail(new NotFoundError(`Category with ID ${id} not found.`));
+    this.categories[idx] = {
+      ...this.categories[idx],
+      name: input.nameEn,
+      nameAr: input.nameAr,
+      nameHe: input.nameHe,
+    };
+    return ok(true);
+  }
+
+  public async addSubcategory(categoryId: string, input: SubcategoryInput): Promise<Result<Subcategory>> {
+    const created = await this.createSubcategory(categoryId, input.nameEn);
+    if (!created.success) return created;
+    const idx = this.subcategories.findIndex((s) => s.id === created.data.id);
+    this.subcategories[idx] = { ...this.subcategories[idx], nameAr: input.nameAr, nameHe: input.nameHe };
+    return ok(this.subcategories[idx]);
+  }
+
+  public async updateSubcategory(id: string, input: SubcategoryInput): Promise<Result<boolean>> {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const idx = this.subcategories.findIndex((s) => s.id === id);
+    if (idx === -1) return fail(new NotFoundError(`Subcategory with ID ${id} not found.`));
+    this.subcategories[idx] = {
+      ...this.subcategories[idx],
+      name: input.nameEn,
+      nameAr: input.nameAr,
+      nameHe: input.nameHe,
+      imageUrl: input.imageUrl ?? this.subcategories[idx].imageUrl,
+    };
+    return ok(true);
+  }
+
+  public async addField(categoryId: string, input: FieldInput): Promise<Result<FormField>> {
+    return this.createField(categoryId, input.label, input.fieldType, {
+      options: input.options,
+    }).then((res) => {
+      if (!res.success) return res;
+      const idx = this.fields.findIndex((f) => f.id === res.data.id);
+      this.fields[idx] = { ...this.fields[idx], required: input.isRequired, fieldKey: input.fieldKey };
+      return ok(this.fields[idx]);
+    });
   }
 
   public async createCategory(name: string, description: string): Promise<Result<Category>> {

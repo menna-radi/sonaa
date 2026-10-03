@@ -1,359 +1,192 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { Category, Subcategory } from '../../../../domain/entities/Category';
 import {
-  Card,
   DataTable,
   Column,
   Button,
   StatusPill,
   Switch,
-  Modal,
-  TextField,
+  FormModal,
   Select,
-  SearchInput,
+  EmptyState,
+  ErrorState,
 } from '../../../components/ui';
-import { Plus, ArrowRightLeft, FolderTree } from 'lucide-react';
+import { Plus, ArrowRightLeft, Pencil, ImageOff, FolderTree } from 'lucide-react';
+import { formatNumber } from '../../../../core/utils/format';
+import { useSubcategoryActions } from '../hooks/useServiceMutations';
+import { SubcategoryFormModal } from './SubcategoryFormModal';
+import { localName } from './localName';
+import '../service_management.css';
 
 export interface SubcategoriesSectionProps {
+  category: Category;
   categories: Category[];
-  selectedCategoryId: string;
-  onSelectCategory: (id: string) => void;
   subcategories: Subcategory[];
-  onCreateSubcategory: (categoryId: string, name: string) => Promise<void>;
-  onToggleVisibility: (id: string, categoryId: string, visible: boolean) => void;
-  onMoveSubcategory: (subcatId: string, targetCatId: string) => Promise<void>;
+  loading: boolean;
+  error: Error | null;
 }
 
 export const SubcategoriesSection: React.FC<SubcategoriesSectionProps> = ({
+  category,
   categories,
-  selectedCategoryId,
-  onSelectCategory,
   subcategories,
-  onCreateSubcategory,
-  onToggleVisibility,
-  onMoveSubcategory,
+  loading,
+  error,
 }) => {
-  const { isRtl } = useLanguage();
-  const [categorySearch, setCategorySearch] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
-  const [newSubcatName, setNewSubcatName] = useState('');
-  const [submittingAdd, setSubmittingAdd] = useState(false);
+  const { t, language } = useLanguage();
+  const { setVisible, move, canEdit } = useSubcategoryActions();
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Subcategory | null>(null);
+  const [moving, setMoving] = useState<Subcategory | null>(null);
+  const [targetId, setTargetId] = useState('');
 
-  const [movingSubcat, setMovingSubcat] = useState<Subcategory | null>(null);
-  const [targetCatId, setTargetCatId] = useState<string>('');
-  const [submittingMove, setSubmittingMove] = useState(false);
+  const targets = categories.filter((c) => c.id !== category.id);
 
-  const selectedCategory =
-    categories.find((c) => c.id === selectedCategoryId) || categories[0];
+  const openMove = (sub: Subcategory) => {
+    setMoving(sub);
+    setTargetId(targets[0]?.id ?? '');
+  };
 
-  const filteredCategories = useMemo(() => {
-    if (!categorySearch.trim()) return categories;
-    const q = categorySearch.toLowerCase().trim();
-    return categories.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        (c.nameAr && c.nameAr.includes(q))
+  const submitMove = () => {
+    if (!moving || !targetId) return;
+    move.mutate({ id: moving.id, targetCategoryId: targetId }, { onSuccess: () => setMoving(null) });
+  };
+
+  const actions = (row: Subcategory) => (
+    <div className="ui-row ui-row--end">
+      {canEdit && (
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<Pencil size={13} />}
+          onClick={() => setEditing(row)}
+          aria-label={t('subcats_edit')}
+        >
+          {t('subcats_edit')}
+        </Button>
+      )}
+      {targets.length > 0 && (
+        <Button variant="outline" size="sm" icon={<ArrowRightLeft size={13} />} onClick={() => openMove(row)}>
+          {t('subcats_move')}
+        </Button>
+      )}
+    </div>
+  );
+
+  const thumb = (row: Subcategory) =>
+    row.imageUrl ? (
+      <img className="svc-thumb" src={row.imageUrl} alt="" loading="lazy" />
+    ) : (
+      <span className="svc-thumb svc-thumb--empty">
+        <ImageOff size={14} />
+      </span>
     );
-  }, [categories, categorySearch]);
-
-  const handleAddSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubcatName.trim() || !selectedCategoryId) return;
-
-    setSubmittingAdd(true);
-    try {
-      await onCreateSubcategory(selectedCategoryId, newSubcatName.trim());
-      setNewSubcatName('');
-      setIsAddModalOpen(false);
-    } finally {
-      setSubmittingAdd(false);
-    }
-  };
-
-  const handleMoveSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!movingSubcat || !targetCatId) return;
-
-    setSubmittingMove(true);
-    try {
-      await onMoveSubcategory(movingSubcat.id, targetCatId);
-      setIsMoveModalOpen(false);
-      setMovingSubcat(null);
-    } finally {
-      setSubmittingMove(false);
-    }
-  };
-
-  const openMoveModal = (subcat: Subcategory) => {
-    setMovingSubcat(subcat);
-    const otherCat = categories.find((c) => c.id !== selectedCategoryId);
-    setTargetCatId(otherCat ? otherCat.id : '');
-    setIsMoveModalOpen(true);
-  };
 
   const columns: Column<Subcategory>[] = [
     {
       key: 'name',
-      header: isRtl ? 'اسم الفئة الفرعية' : 'Subcategory Name',
+      header: t('subcats_col_name'),
       render: (row) => (
-        <span style={{ fontWeight: 600, color: 'var(--on-surface)' }}>
-          {isRtl ? row.nameAr || row.name : row.name}
-        </span>
+        <div className="svc-cell">
+          {thumb(row)}
+          <span className="ui-text-strong">{localName(row, language)}</span>
+        </div>
       ),
     },
     {
       key: 'status',
-      header: isRtl ? 'الحالة' : 'Status',
-      width: 110,
+      header: t('subcats_col_status'),
+      width: 120,
       render: (row) => (
         <StatusPill
-          variant={row.status === 'Active' ? 'success' : 'neutral'}
+          variant={row.visible ? 'success' : 'neutral'}
           dot
-          label={row.status}
+          label={t(row.visible ? 'status_active' : 'categories_status_hidden')}
         />
       ),
     },
     {
       key: 'requestCount',
-      header: isRtl ? 'عدد الطلبات' : 'Requests',
-      width: 120,
-      render: (row) => (
-        <span style={{ color: 'var(--on-surface-subtle)', fontSize: 'var(--font-xs)' }}>
-          {row.requestCount || 0} {isRtl ? 'طلب' : 'orders'}
-        </span>
-      ),
+      header: t('subcats_col_tasks'),
+      width: 100,
+      render: (row) => <span className="ui-num">{formatNumber(Number(row.requestCount) || 0, language)}</span>,
     },
     {
       key: 'visible',
-      header: isRtl ? 'مرئي' : 'Visible',
+      header: t('subcats_col_visible'),
       align: 'center',
       width: 90,
       render: (row) => (
-        <Switch
-          checked={Boolean(row.visible)}
-          onChange={(checked) =>
-            onToggleVisibility(row.id, selectedCategoryId, checked)
-          }
-        />
+        <Switch checked={row.visible} onChange={(visible) => setVisible.mutate({ id: row.id, visible })} />
       ),
     },
-    {
-      key: 'actions',
-      header: isRtl ? 'إجراءات' : 'Actions',
-      align: 'end',
-      width: 100,
-      render: (row) => (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => openMoveModal(row)}
-          icon={<ArrowRightLeft size={13} />}
-        >
-          {isRtl ? 'نقل' : 'Move'}
-        </Button>
-      ),
-    },
+    { key: 'actions', header: t('subcats_col_actions'), align: 'end', render: actions },
   ];
 
-  const targetCategoryOptions = categories
-    .filter((c) => c.id !== selectedCategoryId)
-    .map((c) => ({
-      value: c.id,
-      label: isRtl ? c.nameAr || c.name : c.name,
-    }));
+  if (error) return <ErrorState title={t('status_error')} message={error.message} />;
 
   return (
-    <Card>
-      <div style={{ marginBottom: 'var(--sp-4)' }}>
-        <h3 style={{ margin: 0, fontSize: 'var(--font-md)', fontWeight: 600, color: 'var(--on-surface)' }}>
-          {isRtl ? 'الفئات الفرعية المتخصصة' : 'Specialized Subcategories'}
-        </h3>
-        <p style={{ margin: '4px 0 0', fontSize: 'var(--font-xs)', color: 'var(--on-surface-subtle)' }}>
-          {isRtl
-            ? 'تحديد الخدمات الفرعية الدقيقة المتاحة للحجز تحت كل تصنيف رئيسي'
-            : 'Granular service specialties and task scopes mapped under each primary category.'}
-        </p>
+    <div className="ui-stack">
+      <div className="ui-row ui-row--between">
+        <span className="ui-caption">{t('subcats_hint')}</span>
+        <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setAdding(true)}>
+          {t('subcats_add')}
+        </Button>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(220px, 280px) 1fr',
-          gap: 'var(--sp-4)',
-          alignItems: 'start',
-        }}
-      >
-        {/* Left Side: Categories List Selector */}
-        <div
-          style={{
-            background: 'var(--surface-sunken)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-subtle)',
-            padding: 'var(--sp-3)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--sp-2)',
-          }}
-        >
-          <SearchInput
-            value={categorySearch}
-            onChange={setCategorySearch}
-            placeholder={isRtl ? 'تصفية الفئات...' : 'Filter category...'}
+      <DataTable
+        columns={columns}
+        rows={subcategories}
+        rowKey={(row) => row.id}
+        loading={loading}
+        empty={
+          <EmptyState
+            icon={<FolderTree size={20} />}
+            title={t('subcats_empty_title')}
+            body={t('subcats_empty_desc')}
           />
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-              maxHeight: 380,
-              overflowY: 'auto',
-            }}
-          >
-            {filteredCategories.map((c) => {
-              const isSelected = c.id === selectedCategoryId;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => onSelectCategory(c.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: 'var(--sp-2) var(--sp-3)',
-                    borderRadius: 'var(--radius-sm)',
-                    border: 'none',
-                    background: isSelected ? 'var(--surface-base)' : 'transparent',
-                    color: isSelected ? 'var(--primary)' : 'var(--on-surface)',
-                    fontWeight: isSelected ? 600 : 400,
-                    fontSize: 'var(--font-xs)',
-                    cursor: 'pointer',
-                    boxShadow: isSelected ? 'var(--shadow-xs)' : 'none',
-                    textAlign: 'start',
-                    transition: 'all var(--transition-fast)',
-                  }}
-                >
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {isRtl ? c.nameAr || c.name : c.name}
-                  </span>
-                  <span
-                    style={{
-                      background: isSelected ? 'var(--primary)' : 'var(--border-subtle)',
-                      color: isSelected ? 'var(--on-primary)' : 'var(--on-surface-subtle)',
-                      padding: '1px 6px',
-                      borderRadius: 'var(--radius-pill)',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {c.subcategoriesCount || 0}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Right Side: Subcategories Table */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-              <FolderTree size={16} style={{ color: 'var(--primary)' }} />
-              <span style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--on-surface)' }}>
-                {isRtl
-                  ? `فئات ${selectedCategory ? selectedCategory.nameAr || selectedCategory.name : ''}`
-                  : `${selectedCategory ? selectedCategory.name : ''} Services`}
-              </span>
+        }
+        mobile={(row) => (
+          <div className="svc-card">
+            <div className="svc-cell">
+              {thumb(row)}
+              <span className="ui-text-strong">{localName(row, language)}</span>
             </div>
-
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setIsAddModalOpen(true)}
-              icon={<Plus size={14} />}
-            >
-              {isRtl ? 'إضافة فئة فرعية' : 'Add Subcategory'}
-            </Button>
+            <div className="ui-row ui-row--between">
+              <Switch checked={row.visible} onChange={(visible) => setVisible.mutate({ id: row.id, visible })} />
+              {actions(row)}
+            </div>
           </div>
+        )}
+      />
 
-          <DataTable
-            columns={columns}
-            rows={subcategories}
-            rowKey={(row) => row.id}
-          />
-        </div>
-      </div>
+      <SubcategoryFormModal isOpen={adding} onClose={() => setAdding(false)} categoryId={category.id} />
+      <SubcategoryFormModal
+        key={editing?.id}
+        isOpen={!!editing}
+        onClose={() => setEditing(null)}
+        categoryId={category.id}
+        subcategory={editing ?? undefined}
+      />
 
-      {/* Add Subcategory Modal */}
-      <Modal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title={
-          isRtl
-            ? `إضافة فئة فرعية تحت ${selectedCategory?.nameAr || selectedCategory?.name}`
-            : `Add Subcategory under ${selectedCategory?.name}`
-        }
-        size="md"
+      <FormModal
+        isOpen={!!moving}
+        onClose={() => setMoving(null)}
+        title={t('subcats_move_title')}
+        onSubmit={submitMove}
+        pending={move.isPending}
+        submitLabel={t('subcats_move_confirm')}
+        submitDisabled={!targetId}
       >
-        <form onSubmit={handleAddSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
-          <TextField
-            label={isRtl ? 'اسم الفئة الفرعية' : 'Subcategory Name'}
-            placeholder="e.g. Copper Pipe Repair"
-            value={newSubcatName}
-            onChange={(e) => setNewSubcatName(e.target.value)}
-            required
-            autoFocus
-          />
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-2)', marginTop: 'var(--sp-3)' }}>
-            <Button variant="outline" size="md" type="button" onClick={() => setIsAddModalOpen(false)} disabled={submittingAdd}>
-              {isRtl ? 'إلغاء' : 'Cancel'}
-            </Button>
-            <Button variant="primary" size="md" type="submit" loading={submittingAdd}>
-              {isRtl ? 'إضافة الخدمة' : 'Add Service'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Move Subcategory Modal */}
-      <Modal
-        isOpen={isMoveModalOpen}
-        onClose={() => setIsMoveModalOpen(false)}
-        title={
-          isRtl
-            ? `نقل الفئة الفرعية (${movingSubcat?.nameAr || movingSubcat?.name})`
-            : `Move Subcategory (${movingSubcat?.name})`
-        }
-        size="md"
-      >
-        <form onSubmit={handleMoveSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
-          <p style={{ margin: 0, fontSize: 'var(--font-xs)', color: 'var(--on-surface-subtle)' }}>
-            {isRtl
-              ? 'اختر الفئة الرئيسية الجديدة التي تريد نقل هذه الخدمة الفرعية إليها:'
-              : 'Select the new primary service category to reassign this subcategory to:'}
-          </p>
-
-          <Select
-            label={isRtl ? 'الفئة المستهدفة' : 'Target Primary Category'}
-            options={targetCategoryOptions}
-            value={targetCatId}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTargetCatId(e.target.value)}
-          />
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-2)', marginTop: 'var(--sp-3)' }}>
-            <Button variant="outline" size="md" type="button" onClick={() => setIsMoveModalOpen(false)} disabled={submittingMove}>
-              {isRtl ? 'إلغاء' : 'Cancel'}
-            </Button>
-            <Button variant="primary" size="md" type="submit" loading={submittingMove}>
-              {isRtl ? 'تأكيد النقل' : 'Confirm Move'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-    </Card>
+        <Select
+          id="subcats-move-target"
+          label={t('subcats_move_target')}
+          options={targets.map((c) => ({ value: c.id, label: localName(c, language) }))}
+          value={targetId}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTargetId(e.target.value)}
+        />
+      </FormModal>
+    </div>
   );
 };

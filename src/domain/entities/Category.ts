@@ -10,6 +10,12 @@ export interface Category {
   iconName: string;
   visible: boolean;
   hasStar?: boolean;
+  /** Backend key (immutable, set on create). */
+  key?: string;
+  nameHe?: string;
+  /** Real task count from the backend. */
+  taskVolume?: number;
+  isActive?: boolean;
 }
 
 export interface Subcategory {
@@ -20,6 +26,8 @@ export interface Subcategory {
   status: 'Active' | 'Hidden';
   requestCount: string;
   visible: boolean;
+  nameHe?: string;
+  imageUrl?: string;
 }
 
 export interface FormField {
@@ -29,6 +37,7 @@ export interface FormField {
   nameAr: string;
   type: string;
   required: boolean;
+  fieldKey?: string;
   options?: string[];
   placeholder?: string;
   min?: number;

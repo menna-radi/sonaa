@@ -1,7 +1,35 @@
 import { Category, Subcategory, FormField } from '../entities/Category';
 import { Result } from '../../core/result/Result';
 
+export interface CategoryInput {
+  key: string;
+  nameEn: string;
+  nameAr: string;
+  nameHe?: string;
+}
+
+export interface SubcategoryInput {
+  nameEn: string;
+  nameAr: string;
+  nameHe?: string;
+  imageUrl?: string;
+}
+
+export interface FieldInput {
+  label: string;
+  fieldKey: string;
+  fieldType: 'text' | 'number' | 'select' | 'textarea' | 'image';
+  options?: string[];
+  isRequired: boolean;
+}
+
 export interface CategoryRepository {
+  addCategory(input: CategoryInput): Promise<Result<Category>>;
+  updateCategory(id: string, input: Omit<CategoryInput, 'key'>): Promise<Result<boolean>>;
+  addSubcategory(categoryId: string, input: SubcategoryInput): Promise<Result<Subcategory>>;
+  /** Optional on the backend: a NotFoundError means the server does not support it. */
+  updateSubcategory(id: string, input: SubcategoryInput): Promise<Result<boolean>>;
+  addField(categoryId: string, input: FieldInput): Promise<Result<FormField>>;
   getCategories(): Promise<Result<Category[]>>;
   createCategory(name: string, description: string): Promise<Result<Category>>;
   updateCategoryVisibility(id: string, visible: boolean): Promise<Result<Category>>;
