@@ -23,7 +23,7 @@ export function useSidebarCounts() {
           dependencies.notificationRepository.getNotifications(),
           dependencies.billingRepository.getRequests({ status: 'PENDING_VERIFICATION', page: 1, limit: 1 }),
           dependencies.billingRepository.getCommissionPayments({ status: 'PENDING', page: 1, limit: 1 }),
-          dependencies.paymentRepository.getWithdrawalRequests(),
+          dependencies.paymentRepository.getWithdrawals({ status: 'PENDING', page: 1, limit: 1 }),
         ]);
 
       let verification = 0;
@@ -54,7 +54,7 @@ export function useSidebarCounts() {
 
       let payments = 0;
       if (withdrawalsRes.status === 'fulfilled' && withdrawalsRes.value.success) {
-        payments = withdrawalsRes.value.data.filter((w) => w.status === 'pending').length || 0;
+        payments = withdrawalsRes.value.data.total || 0;
       }
 
       return {

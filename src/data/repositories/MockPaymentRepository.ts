@@ -1,12 +1,15 @@
-import { PaymentRepository } from '../../domain/repositories/PaymentRepository';
+import { PaymentRepository, type Subscriber, type SubscriptionRequestItem } from '../../domain/repositories/PaymentRepository';
 import {
   PaymentSummary,
   SubscriptionPlan,
   FailedTransaction,
-  WithdrawalRequest
+  WithdrawalRequest,
+  WithdrawalQuery,
+  LegacyWithdrawalRequest,
 } from '../../domain/entities/Payment';
 import { Result, ok, fail } from '../../core/result/Result';
 import { NotFoundError } from '../../core/errors/AppError';
+import type { Page } from '../mappers/pageMapper';
 
 export class MockPaymentRepository implements PaymentRepository {
   private summary: PaymentSummary = {
@@ -27,9 +30,21 @@ export class MockPaymentRepository implements PaymentRepository {
     { id: 'p3', name: 'Pro+', price: 249, subscribersCount: 112 }
   ];
 
-  private subscribers: any[] = [
-    { id: 'sub-1', customerProfileId: 'cust-1', user: { firstName: 'Tariq', lastName: 'Mansoor', email: 'tariq@sonaa.ps', phoneNumber: '+972541112233', role: 'CUSTOMER' }, plan: 'PRO', billingCycle: 'MONTHLY', amount: 49, currency: 'ILS', status: 'ACTIVE', autoRenew: true, startDate: '2026-07-01' },
-    { id: 'sub-2', customerProfileId: 'cust-2', user: { firstName: 'Omar', lastName: 'Farooq', email: 'omar@sonaa.ps', phoneNumber: '+972542223344', role: 'CRAFTSMAN' }, plan: 'PRO', billingCycle: 'YEARLY', amount: 490, currency: 'ILS', status: 'ACTIVE', autoRenew: true, startDate: '2026-06-15' },
+  private subscribers: Subscriber[] = [
+    {
+      id: 'sub-1',
+      craftsmanName: 'Tariq Mansoor',
+      user: { id: 'user-sub-1', firstName: 'Tariq', lastName: 'Mansoor', email: 'tariq@sonaa.ps', phoneNumber: '+972541112233', role: 'CUSTOMER' },
+      subscriptionStatus: 'ACTIVE',
+      startDate: '2026-07-01',
+    },
+    {
+      id: 'sub-2',
+      craftsmanName: 'Omar Farooq',
+      user: { id: 'user-sub-2', firstName: 'Omar', lastName: 'Farooq', email: 'omar@sonaa.ps', phoneNumber: '+972542223344', role: 'CRAFTSMAN' },
+      subscriptionStatus: 'ACTIVE',
+      startDate: '2026-06-15',
+    },
   ];
 
   private failedTransactions: FailedTransaction[] = [
@@ -39,7 +54,7 @@ export class MockPaymentRepository implements PaymentRepository {
     { id: 't4', name: 'Saif Al-Ghamdi', txId: '#TX-8415', bank: 'Alinma', timeAgo: '2h ago', amount: 2480, reasonKey: 'reason_bank_declined', retries: 1 }
   ];
 
-  private withdrawalRequests: WithdrawalRequest[] = [
+  private withdrawalRequests: LegacyWithdrawalRequest[] = [
     { id: 'w1', name: 'Ahmad Al-Otaibi', bank: 'Al Rajhi', timeAgo: '8m ago', amount: 4200, status: 'pending' },
     { id: 'w2', name: 'Mohammed Al-Zahrani', bank: 'SNB', timeAgo: '22m ago', amount: 1840, status: 'approved' },
     { id: 'w3', name: 'Khalid Al-Qahtani', bank: 'Riyad Bank', timeAgo: '34m ago', amount: 8920, status: 'pending' },
@@ -57,45 +72,47 @@ export class MockPaymentRepository implements PaymentRepository {
     return ok([...this.plans]);
   }
 
-  public async createSubscriptionPlan(data: Partial<SubscriptionPlan>): Promise<Result<SubscriptionPlan>> {
+  public async createSubscriptionPlan(data: Record<string, unknown>): Promise<Result<SubscriptionPlan>> {
     await new Promise(resolve => setTimeout(resolve, 250));
+    const name = typeof data.name === 'string' && data.name ? data.name : 'New Plan';
+    const price = typeof data.price === 'number' ? data.price : 99;
     const newPlan: SubscriptionPlan = {
       id: `p-${Date.now()}`,
-      name: data.name || 'New Plan',
-      price: data.price || 99,
+      name,
+      price,
       subscribersCount: 0,
     };
     this.plans.push(newPlan);
     return ok(newPlan);
   }
 
-  public async updateSubscriptionPlan(id: string, data: any): Promise<Result<SubscriptionPlan>> {
+  public async updateSubscriptionPlan(id: string, data: Record<string, unknown>): Promise<Result<SubscriptionPlan>> {
     await new Promise(resolve => setTimeout(resolve, 200));
     const idx = this.plans.findIndex(p => p.id === id);
     if (idx !== -1) {
-      this.plans[idx] = { ...this.plans[idx], ...data };
+      this.plans[idx] = { ...this.plans[idx], ...(data as Partial<SubscriptionPlan>) };
       return ok(this.plans[idx]);
     }
-    return fail({ message: 'Plan not found' } as any);
+    return fail(new NotFoundError('Plan not found'));
   }
 
-  public async getSubscribers(): Promise<Result<any[]>> {
+  public async getSubscribers(): Promise<Result<Subscriber[]>> {
     return ok([...this.subscribers]);
   }
 
   public async cancelSubscriber(id: string): Promise<Result<boolean>> {
     const sub = this.subscribers.find(s => s.id === id);
     if (sub) {
-      sub.status = 'CANCELLED';
-      sub.autoRenew = false;
+      sub.subscriptionStatus = 'CANCELLED';
     }
     return ok(true);
   }
 
-  public async extendSubscriber(id: string, days: number = 30): Promise<Result<boolean>> {
+  public async extendSubscriber(id: string, days = 30): Promise<Result<boolean>> {
     const sub = this.subscribers.find(s => s.id === id);
     if (sub) {
-      sub.status = 'ACTIVE';
+      sub.subscriptionStatus = 'ACTIVE';
+      sub.expiryDate = new Date(Date.now() + days * 86400000).toISOString();
     }
     return ok(true);
   }
@@ -118,12 +135,12 @@ export class MockPaymentRepository implements PaymentRepository {
     return ok(true);
   }
 
-  public async getWithdrawalRequests(): Promise<Result<WithdrawalRequest[]>> {
+  public async getWithdrawalRequests(): Promise<Result<LegacyWithdrawalRequest[]>> {
     await new Promise(resolve => setTimeout(resolve, 200));
     return ok([...this.withdrawalRequests]);
   }
 
-  public async updateWithdrawalStatus(id: string, status: 'approved' | 'rejected'): Promise<Result<WithdrawalRequest>> {
+  public async updateWithdrawalStatus(id: string, status: 'approved' | 'rejected'): Promise<Result<LegacyWithdrawalRequest>> {
     await new Promise(resolve => setTimeout(resolve, 300));
     const req = this.withdrawalRequests.find(w => w.id === id);
     if (!req) {
@@ -134,12 +151,48 @@ export class MockPaymentRepository implements PaymentRepository {
     return ok({ ...req });
   }
 
+  public async getWithdrawals(q: WithdrawalQuery): Promise<Result<Page<WithdrawalRequest>>> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const toStatus = (s: LegacyWithdrawalRequest['status']): WithdrawalRequest['status'] =>
+      s === 'approved' ? 'COMPLETED' : s === 'rejected' ? 'FAILED' : 'PENDING';
+    const rows: WithdrawalRequest[] = this.withdrawalRequests
+      .filter((w) => q.status === 'ALL' || toStatus(w.status) === q.status)
+      .map((w, i) => ({
+        id: w.id,
+        craftsmanName: w.name,
+        craftsmanProfileId: `craft-mock-${i}`,
+        method: w.bank,
+        amount: w.amount,
+        status: toStatus(w.status),
+        createdAt: new Date(Date.now() - i * 3600000).toISOString(),
+        referenceId: `#TX-${w.id}`,
+      }));
+    return ok({ items: rows.slice((q.page - 1) * q.limit, q.page * q.limit), total: rows.length, page: q.page, limit: q.limit });
+  }
+
+  public async approveWithdrawal(id: string): Promise<Result<boolean>> {
+    const res = await this.updateWithdrawalStatus(id, 'approved');
+    return res.success ? ok(true) : fail(res.error);
+  }
+
+  public async rejectWithdrawal(id: string): Promise<Result<boolean>> {
+    const res = await this.updateWithdrawalStatus(id, 'rejected');
+    return res.success ? ok(true) : fail(res.error);
+  }
+
+  public async retryWithdrawal(id: string): Promise<Result<boolean>> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const req = this.withdrawalRequests.find(w => w.id === id);
+    if (req) req.status = 'pending';
+    return ok(true);
+  }
+
   public async deleteSubscriptionPlan(id: string): Promise<Result<boolean>> {
     this.plans = this.plans.filter(p => p.id !== id);
     return ok(true);
   }
 
-  public async getSubscriptionRequests(): Promise<Result<any[]>> {
+  public async getSubscriptionRequests(): Promise<Result<SubscriptionRequestItem[]>> {
     return ok([]);
   }
 

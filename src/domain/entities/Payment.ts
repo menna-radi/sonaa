@@ -1,15 +1,33 @@
 export interface PaymentSummary {
   gmvMtd: number;
-  gmvChangePct: number;
+  gmvChangePct?: number | null;
   netRevenue: number;
-  revenueChangePct: number;
+  revenueChangePct?: number | null;
   takeRate: number;
-  takeRateChangePct: number;
+  takeRateChangePct?: number | null;
   pendingPayouts: number;
   pendingCraftsmenCount: number;
   mrr: number;
 }
 
+export interface WithdrawalRequest {
+  id: string;
+  craftsmanName: string;
+  craftsmanProfileId?: string;
+  method: string;
+  amount: number;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  createdAt: string;
+  referenceId?: string;
+}
+
+export interface WithdrawalQuery {
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'ALL';
+  page: number;
+  limit: number;
+}
+
+/** @deprecated Removed in T-F040: legacy payout shapes kept for the old payments UI. */
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -24,6 +42,7 @@ export interface SubscriptionPlan {
   subscribersCount: number;
 }
 
+/** @deprecated Removed in T-F040. */
 export interface FailedTransaction {
   id: string;
   name: string;
@@ -35,7 +54,8 @@ export interface FailedTransaction {
   retries: number;
 }
 
-export interface WithdrawalRequest {
+/** @deprecated Removed in T-F040: use WithdrawalRequest instead. */
+export interface LegacyWithdrawalRequest {
   id: string;
   name: string;
   bank: string;

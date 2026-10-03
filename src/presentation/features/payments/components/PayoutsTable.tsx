@@ -5,7 +5,7 @@ import { Button } from '../../../components/ui/Button';
 import { StatusPill } from '../../../components/ui/StatusPill';
 import { useConfirm } from '../../../components/ui/ConfirmDialog';
 import { formatMoney } from '../../../../core/utils/format';
-import { FailedTransaction, WithdrawalRequest } from '../../../../domain/entities/Payment';
+import { FailedTransaction, LegacyWithdrawalRequest as WithdrawalRequest } from '../../../../domain/entities/Payment';
 import { useLanguage } from '../../../context/LanguageContext';
 
 interface PayoutsTableProps {

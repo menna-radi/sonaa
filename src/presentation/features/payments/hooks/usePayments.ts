@@ -1,10 +1,11 @@
+/* eslint-disable react-hooks/set-state-in-effect -- pre-existing fetch loop, replaced by TanStack Query in T-F039 */
 import { useState, useEffect, useCallback } from 'react';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
 import type {
   PaymentSummary,
   SubscriptionPlan,
   FailedTransaction,
-  WithdrawalRequest
+  LegacyWithdrawalRequest as WithdrawalRequest,
 } from '../../../../domain/repositories/PaymentRepository';
 
 export const usePayments = () => {
@@ -75,6 +76,7 @@ export const usePayments = () => {
     }
   }, [paymentRepository]);
 
+  // Pre-existing fetch loop: fully replaced by TanStack Query in T-F039.
   useEffect(() => {
     loadPaymentsData(true);
     const interval = setInterval(() => {
