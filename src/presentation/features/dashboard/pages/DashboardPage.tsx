@@ -18,10 +18,10 @@ import { NotificationsPage } from '../../notifications/pages/NotificationsPage';
 const CampaignsPage = React.lazy(() => import('../../ads/pages/CampaignsPage'));
 const CreateAdPage = React.lazy(() => import('../../ads/pages/CreateAdPage'));
 const PromotionsPage = React.lazy(() => import('../../ads/pages/PromotionsPage'));
-const AdAnalyticsPage = React.lazy(() => import('../../ads/pages/AdAnalyticsPage'));
 import { SettingsPage } from '../../settings/pages/SettingsPage';
 import { ServiceManagementPage } from '../../service_management/pages/ServiceManagementPage';
 import { BillingPage } from '../../billing/pages/BillingPage';
+import { UsersPage } from '../../users/pages/UsersPage';
 import { AlertTriangle } from 'lucide-react';
 
 class PageErrorBoundary extends React.Component<
@@ -92,10 +92,10 @@ export const DashboardPage: React.FC = () => {
       }
       case 'create_ad': return <CreateAdPage />;
       case 'promotions': return <PromotionsPage />;
-      case 'ad_analytics': return <AdAnalyticsPage />;
       case 'settings': return <SettingsPage />;
       case 'service_management': return <ServiceManagementPage />;
       case 'billing': return <BillingPage />;
+      case 'users': return <UsersPage />;
       default: return <OverviewPage />;
     }
   };

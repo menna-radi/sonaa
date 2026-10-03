@@ -28,6 +28,7 @@ import {
   LogOut,
   MessageSquare,
   ChevronsLeft,
+  UserCog,
   ChevronsRight,
   Receipt,
 } from 'lucide-react';
@@ -129,6 +130,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           pageKey: 'craftsmen',
           label: t('nav_craftsmen') || 'Craftsmen',
           icon: <Users size={16} />,
+        },
+        {
+          key: 'nav_users',
+          pageKey: 'users',
+          label: t('nav_users') || 'Users',
+          icon: <UserCog size={16} />,
         },
         {
           key: 'nav_tasks',

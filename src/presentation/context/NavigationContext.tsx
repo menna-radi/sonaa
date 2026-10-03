@@ -22,13 +22,15 @@ export type PageKey =
   | 'settings'
   | 'create_ad'
   | 'service_management'
-  | 'billing';
+  | 'billing'
+  | 'users';
 
 const VALID_PAGES: PageKey[] = [
   'overview', 'live_activity', 'craftsmen', 'tasks', 'chat', 'verification',
   'reports', 'payments', 'analytics', 'broadcast', 'notifications',
   'ads', 'campaigns', 'scheduled', 'expired', 'promotions',
   'ad_analytics', 'settings', 'create_ad', 'service_management', 'billing',
+  'users',
 ];
 
 const getInitialPage = (): PageKey => {

@@ -1,0 +1,6 @@
+/* Users feature styles */
+.users-cell { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+.users-cell__text { display: flex; flex-direction: column; min-width: 0; }
+.users-card { display: flex; flex-direction: column; gap: var(--sp-2); }
+.users-card__top { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); }
+.users-card__bottom { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); }
