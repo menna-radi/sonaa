@@ -16,6 +16,7 @@ import type { SafetyReportRepository } from '../../domain/repositories/SafetyRep
 import type { BroadcastRepository } from '../../domain/repositories/BroadcastRepository';
 import type { AdRepository } from '../../domain/repositories/AdRepository';
 import type { DisputeRepository } from '../../domain/repositories/DisputeRepository';
+import type { BillingRepository } from '../../domain/repositories/BillingRepository';
 import type { ChatRepository } from '../../domain/repositories/ChatRepository';
 
 // Mock Repositories
@@ -33,6 +34,7 @@ import { MockBroadcastRepository } from '../../data/repositories/MockBroadcastRe
 import { MockAdRepository } from '../../data/repositories/MockAdRepository';
 import { MockDisputeRepository } from '../../data/repositories/MockDisputeRepository';
 import { MockChatRepository } from '../../data/repositories/MockChatRepository';
+import { MockBillingRepository } from '../../data/repositories/MockBillingRepository';
 
 // Api Repositories
 import { ApiMetricRepository } from '../../data/repositories/ApiMetricRepository';
@@ -49,6 +51,7 @@ import { ApiBroadcastRepository } from '../../data/repositories/ApiBroadcastRepo
 import { ApiAdRepository } from '../../data/repositories/ApiAdRepository';
 import { ApiDisputeRepository } from '../../data/repositories/ApiDisputeRepository';
 import { ApiChatRepository } from '../../data/repositories/ApiChatRepository';
+import { ApiBillingRepository } from '../../data/repositories/ApiBillingRepository';
 
 // Use Cases
 import { LoginUseCase } from '../../domain/use_cases/auth/LoginUseCase';
@@ -85,6 +88,7 @@ interface Repositories {
   adRepository: AdRepository;
   disputeRepository: DisputeRepository;
   chatRepository: ChatRepository;
+  billingRepository: BillingRepository;
 }
 
 interface UseCases {
@@ -159,6 +163,9 @@ const apiDisputeRepository = new ApiDisputeRepository();
 const mockChatRepository = new MockChatRepository();
 const apiChatRepository = new ApiChatRepository();
 
+const mockBillingRepository = new MockBillingRepository();
+const apiBillingRepository = new ApiBillingRepository();
+
 export const DependencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isApiMode = !ENV.USE_MOCK;
 
@@ -177,6 +184,7 @@ export const DependencyProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     adRepository: isApiMode ? apiAdRepository : mockAdRepository,
     disputeRepository: isApiMode ? apiDisputeRepository : mockDisputeRepository,
     chatRepository: isApiMode ? apiChatRepository : mockChatRepository,
+    billingRepository: isApiMode ? apiBillingRepository : mockBillingRepository,
   };
 
   // Bind Use Cases with appropriate repository dependencies
