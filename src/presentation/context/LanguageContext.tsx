@@ -140,9 +140,9 @@ export const translations: TranslationDict = {
     he: 'דוחות'
   },
   nav_payments: {
-    en: 'Payments',
-    ar: 'المدفوعات',
-    he: 'תשלומים'
+    en: 'Payouts & Revenue',
+    ar: 'العوائد والإيرادات',
+    he: 'תשלומים והכנסות'
   },
   nav_analytics: {
     en: 'Analytics',
@@ -2375,6 +2375,61 @@ export const translations: TranslationDict = {
     en: 'Pending withdrawals',
     ar: 'سحوبات معلقة',
     he: 'משיכות ממתינות'
+  },
+  nav_billing: {
+    en: 'Billing',
+    ar: 'الفوترة',
+    he: 'חיוב'
+  },
+  sec_money: {
+    en: 'Money',
+    ar: 'الأموال',
+    he: 'כספים'
+  },
+  billing_title: {
+    en: 'Billing',
+    ar: 'الفوترة',
+    he: 'חיוב'
+  },
+  billing_subtitle: {
+    en: 'Craftsman receipts, commission, subscribers and plans',
+    ar: 'إيصالات الحرفيين والعمولة والمشتركين والباقات',
+    he: 'קבלות, עמלות, מנויים וחבילות של בעלי מקצוע'
+  },
+  billing_tab_receipts: {
+    en: 'Receipts',
+    ar: 'الإيصالات',
+    he: 'קבלות'
+  },
+  billing_tab_commission: {
+    en: 'Commission',
+    ar: 'العمولة',
+    he: 'עמלה'
+  },
+  billing_tab_subscribers: {
+    en: 'Subscribers',
+    ar: 'المشتركون',
+    he: 'מנויים'
+  },
+  billing_tab_plans: {
+    en: 'Plans',
+    ar: 'الباقات',
+    he: 'חבילות'
+  },
+  billing_tab_settings: {
+    en: 'Settings',
+    ar: 'الإعدادات',
+    he: 'הגדרות'
+  },
+  billing_kpi_pending_commission: {
+    en: 'Pending commission',
+    ar: 'عمولة معلقة',
+    he: 'עמלה ממתינה'
+  },
+  coming_soon: {
+    en: 'Coming soon',
+    ar: 'قريبًا',
+    he: 'בקרוב'
   }
 };
 

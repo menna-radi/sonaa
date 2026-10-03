@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage, type Language } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme, type Theme } from '../context/ThemeContext';
 import { useNavigation, PageKey } from '../context/NavigationContext';
 import { useSidebarCounts } from '../hooks/useSidebarCounts';
 import {
@@ -32,6 +32,7 @@ import {
   MessageSquare,
   ChevronsLeft,
   ChevronsRight,
+  Receipt,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -161,16 +162,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       ],
     },
     {
-      titleKey: 'sec_insights',
-      titleDefault: 'Insights',
+      titleKey: 'sec_money',
+      titleDefault: 'Money',
       items: [
+        {
+          key: 'nav_billing',
+          pageKey: 'billing',
+          label: t('nav_billing'),
+          icon: <Receipt size={16} />,
+          badge: counts && counts.billing > 0 ? String(counts.billing) : undefined,
+        },
         {
           key: 'nav_payments',
           pageKey: 'payments',
-          label: t('nav_payments') || 'Payments',
+          label: t('nav_payments'),
           icon: <DollarSign size={16} />,
           badge: counts && counts.payments > 0 ? String(counts.payments) : undefined,
         },
+      ],
+    },
+    {
+      titleKey: 'sec_insights',
+      titleDefault: 'Insights',
+      items: [
         {
           key: 'nav_analytics',
           pageKey: 'analytics',
@@ -637,7 +651,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             role="option"
                             aria-selected={isActive}
                             onClick={() => {
-                              setLanguage(opt.key as any);
+                              setLanguage(opt.key as Language);
                               setLangMenuOpen(false);
                             }}
                             style={{
@@ -745,7 +759,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             role="option"
                             aria-selected={isActive}
                             onClick={() => {
-                              setTheme(tOption.key as any);
+                              setTheme(tOption.key as Theme);
                               setThemeMenuOpen(false);
                             }}
                             style={{

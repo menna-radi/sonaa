@@ -1,0 +1,2 @@
+/* Billing center feature styles (no inline layouts; runtime values stay inline). */
+.billing-tabs { margin-bottom: var(--sp-1); }

@@ -4,8 +4,10 @@ import { useDependencies } from '../../core/di/DependencyProvider';
 export interface SidebarCounts {
   verification: number;
   reports: number;
-  notifications: number;
+  disputes: number;
+  billing: number;
   payments: number;
+  notifications: number;
 }
 
 export function useSidebarCounts() {
@@ -14,12 +16,15 @@ export function useSidebarCounts() {
   return useQuery<SidebarCounts>({
     queryKey: ['sidebarCounts'],
     queryFn: async () => {
-      const [metricsRes, reportsRes, notifsRes, paymentsRes] = await Promise.allSettled([
-        dependencies.metricRepository.getMetrics(),
-        dependencies.metricRepository.getPendingReports(),
-        dependencies.notificationRepository.getNotifications(),
-        dependencies.paymentRepository.getSubscriptionRequests('PENDING_VERIFICATION'),
-      ]);
+      const [metricsRes, reportsRes, notifsRes, receiptsRes, commissionRes, withdrawalsRes] =
+        await Promise.allSettled([
+          dependencies.metricRepository.getMetrics(),
+          dependencies.metricRepository.getPendingReports(),
+          dependencies.notificationRepository.getNotifications(),
+          dependencies.billingRepository.getRequests({ status: 'PENDING_VERIFICATION', page: 1, limit: 1 }),
+          dependencies.billingRepository.getCommissionPayments({ status: 'PENDING', page: 1, limit: 1 }),
+          dependencies.paymentRepository.getWithdrawalRequests(),
+        ]);
 
       let verification = 0;
       if (metricsRes.status === 'fulfilled' && metricsRes.value.success) {
@@ -37,14 +42,26 @@ export function useSidebarCounts() {
         notifications = notifsRes.value.data.filter((n) => n.unread).length || 0;
       }
 
+      // NOTE (T-F030): PaymentRepository is not refactored yet (T-F038), so the
+      // payments badge counts locally-filtered pending withdrawals.
+      let billing = 0;
+      if (receiptsRes.status === 'fulfilled' && receiptsRes.value.success) {
+        billing += receiptsRes.value.data.total || 0;
+      }
+      if (commissionRes.status === 'fulfilled' && commissionRes.value.success) {
+        billing += commissionRes.value.data.total || 0;
+      }
+
       let payments = 0;
-      if (paymentsRes.status === 'fulfilled' && paymentsRes.value.success) {
-        payments = paymentsRes.value.data.length || 0;
+      if (withdrawalsRes.status === 'fulfilled' && withdrawalsRes.value.success) {
+        payments = withdrawalsRes.value.data.filter((w) => w.status === 'pending').length || 0;
       }
 
       return {
         verification,
         reports,
+        disputes: 0,
+        billing,
         notifications,
         payments,
       };
