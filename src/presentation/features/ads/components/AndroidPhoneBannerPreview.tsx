@@ -1,3 +1,4 @@
+import './androidPhonePreview.css';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Smartphone,
@@ -7,12 +8,10 @@ import {
   Layers,
   Sun,
   Moon,
-  Eye,
-  FileImage,
+FileImage,
   Search,
   Bell,
-  Check,
-  Maximize2
+Maximize2
 } from 'lucide-react';
 
 export interface AndroidPhoneBannerPreviewProps {
@@ -32,7 +31,6 @@ export const AndroidPhoneBannerPreview: React.FC<AndroidPhoneBannerPreviewProps>
   description = 'Get 20% off on all AC maintenance and repair services this summer.',
   ctaText = 'Book Now',
   selectedCity = 'Jerusalem (القدس)',
-  placement = 'Home Banner',
   badgeText = 'PROMO',
   isRtl = false,
 }) => {
@@ -48,26 +46,30 @@ export const AndroidPhoneBannerPreview: React.FC<AndroidPhoneBannerPreviewProps>
   const [imgLoadError, setImgLoadError] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!imageUrl) {
-      setImgNaturalWidth(null);
-      setImgNaturalHeight(null);
-      setImgLoadError(false);
-      return;
-    }
-
-    setImgLoadError(false);
+    if (!imageUrl) return;
+    let active = true;
     const img = new Image();
     img.onload = () => {
+      if (!active) return;
       setImgNaturalWidth(img.naturalWidth);
       setImgNaturalHeight(img.naturalHeight);
+      setImgLoadError(false);
     };
     img.onerror = () => {
+      if (!active) return;
       setImgLoadError(true);
       setImgNaturalWidth(null);
       setImgNaturalHeight(null);
     };
     img.src = imageUrl;
+    return () => {
+      active = false;
+    };
   }, [imageUrl]);
+
+  const effectiveNaturalWidth = imageUrl ? imgNaturalWidth : null;
+  const effectiveNaturalHeight = imageUrl ? imgNaturalHeight : null;
+  const effectiveLoadError = imageUrl ? imgLoadError : false;
 
   // Dimension & Ratio Metrics (Android Truth)
   // Android ScreenUtilInit: 375x812 dp
@@ -77,7 +79,7 @@ export const AndroidPhoneBannerPreview: React.FC<AndroidPhoneBannerPreviewProps>
   // Single-item Carousel Card Width: 327 - 10 = 317.w (dp) -> Aspect Ratio 2.06:1
   // OfferPreviewDialog Card: AspectRatio 16:9 (1.78:1)
   const fitAnalysis = useMemo(() => {
-    if (!imgNaturalWidth || !imgNaturalHeight) {
+    if (!effectiveNaturalWidth || !effectiveNaturalHeight) {
       return {
         hasImage: false,
         ratio: 0,
@@ -92,7 +94,7 @@ export const AndroidPhoneBannerPreview: React.FC<AndroidPhoneBannerPreviewProps>
       };
     }
 
-    const ratio = imgNaturalWidth / imgNaturalHeight;
+    const ratio = effectiveNaturalWidth / effectiveNaturalHeight;
     const ratioStr = `${ratio.toFixed(2)} : 1`;
 
     // Target is 1.91 (Carousel) and 1.78 (Dialog)
@@ -144,7 +146,7 @@ export const AndroidPhoneBannerPreview: React.FC<AndroidPhoneBannerPreviewProps>
         cropWarning: isVeryTall ? 'heavy-vertical' : 'heavy-horizontal',
       };
     }
-  }, [imgNaturalWidth, imgNaturalHeight, languageMode]);
+  }, [effectiveNaturalWidth, effectiveNaturalHeight, languageMode]);
 
   // Clean City Display
   const cleanCity = useMemo(() => {
@@ -234,7 +236,7 @@ export const AndroidPhoneBannerPreview: React.FC<AndroidPhoneBannerPreviewProps>
               <strong>{fitAnalysis.title}</strong>
               {fitAnalysis.hasImage && (
                 <span className="fit-ratio-pill">
-                  {fitAnalysis.ratioStr} ({imgNaturalWidth}×{imgNaturalHeight}px)
+                  {fitAnalysis.ratioStr} ({effectiveNaturalWidth}×{effectiveNaturalHeight}px)
                 </span>
               )}
             </div>
@@ -334,7 +336,7 @@ export const AndroidPhoneBannerPreview: React.FC<AndroidPhoneBannerPreviewProps>
 
                   {/* Main Active Banner Card */}
                   <div className="carousel-active-card">
-                    {imageUrl && !imgLoadError ? (
+                    {imageUrl && !effectiveLoadError ? (
                       <div className="banner-image-wrapper">
                         <img
                           src={imageUrl}
@@ -447,7 +449,7 @@ export const AndroidPhoneBannerPreview: React.FC<AndroidPhoneBannerPreviewProps>
                   <div className="dialog-modal-card">
                     {/* 16:9 Banner Image */}
                     <div className="dialog-banner-aspect-box">
-                      {imageUrl && !imgLoadError ? (
+                      {imageUrl && !effectiveLoadError ? (
                         <img
                           src={imageUrl}
                           alt="Offer Dialog Preview"
@@ -500,845 +502,7 @@ export const AndroidPhoneBannerPreview: React.FC<AndroidPhoneBannerPreviewProps>
         </span>
       </div>
 
-      <style>{`
-        .android-phone-preview-container {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          width: 100%;
-          font-family: inherit;
-        }
-
-        .preview-control-bar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          background: var(--bg-surface-hover, #F4F4F5);
-          border: 1px solid var(--border-color, #E4E4E7);
-          border-radius: 12px;
-          padding: 6px 8px;
-          gap: 8px;
-        }
-
-        .control-tabs {
-          display: flex;
-          gap: 4px;
-          background: rgba(0,0,0,0.04);
-          padding: 3px;
-          border-radius: 8px;
-        }
-
-        .control-tab-btn {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          padding: 5px 10px;
-          border: none;
-          background: transparent;
-          color: var(--text-secondary, #71717A);
-          font-size: 11.5px;
-          font-weight: 600;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .control-tab-btn.active {
-          background: var(--bg-surface, #FFFFFF);
-          color: var(--text-primary, #09090B);
-          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-
-        .control-actions {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .tool-icon-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          padding: 5px 8px;
-          border: 1px solid var(--border-color, #E4E4E7);
-          background: var(--bg-surface, #FFFFFF);
-          color: var(--text-secondary, #71717A);
-          border-radius: 6px;
-          font-size: 11px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-
-        .tool-icon-btn:hover {
-          background: var(--bg-surface-hover, #F4F4F5);
-          color: var(--text-primary, #09090B);
-        }
-
-        .tool-icon-btn.active {
-          background: #3B82F6;
-          border-color: #2563EB;
-          color: #FFFFFF;
-        }
-
-        .tool-icon-btn.lang-btn {
-          font-weight: 700;
-          min-width: 32px;
-          justify-content: center;
-        }
-
-        /* Fit Status Card */
-        .fit-status-card {
-          padding: 12px 14px;
-          border-radius: 12px;
-          border: 1px solid;
-          transition: all 0.2s ease;
-        }
-
-        .fit-status-card.status-perfect {
-          background: rgba(16, 185, 129, 0.08);
-          border-color: rgba(16, 185, 129, 0.35);
-        }
-
-        .fit-status-card.status-acceptable {
-          background: rgba(245, 158, 11, 0.08);
-          border-color: rgba(245, 158, 11, 0.35);
-        }
-
-        .fit-status-card.status-poor {
-          background: rgba(239, 68, 68, 0.08);
-          border-color: rgba(239, 68, 68, 0.35);
-        }
-
-        .fit-status-card.status-none {
-          background: var(--bg-surface-hover, #F4F4F5);
-          border-color: var(--border-color, #E4E4E7);
-        }
-
-        .fit-status-header {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-        }
-
-        .fit-status-icon-wrap {
-          margin-top: 2px;
-        }
-
-        .text-success { color: #10B981; }
-        .text-warning { color: #F59E0B; }
-        .text-danger { color: #EF4444; }
-        .text-muted { color: #9CA3AF; }
-
-        .fit-status-text-block {
-          flex: 1;
-        }
-
-        .fit-status-headline {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text-primary, #09090B);
-        }
-
-        .fit-ratio-pill {
-          display: inline-block;
-          font-size: 11px;
-          font-weight: 700;
-          padding: 2px 7px;
-          background: rgba(0,0,0,0.08);
-          border-radius: 12px;
-          color: var(--text-primary, #09090B);
-        }
-
-        .fit-status-desc {
-          margin: 4px 0 0 0;
-          font-size: 11.5px;
-          line-height: 1.45;
-          color: var(--text-secondary, #52525B);
-        }
-
-        .android-spec-chips {
-          display: flex;
-          gap: 8px;
-          margin-top: 10px;
-          padding-top: 8px;
-          border-top: 1px dashed rgba(0,0,0,0.1);
-          flex-wrap: wrap;
-        }
-
-        .spec-chip {
-          display: flex;
-          flex-direction: column;
-          background: rgba(255,255,255,0.6);
-          padding: 4px 8px;
-          border-radius: 6px;
-          font-size: 10px;
-          border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .chip-label {
-          color: var(--text-muted, #71717A);
-          font-size: 9.5px;
-          font-weight: 500;
-        }
-
-        .chip-val {
-          color: var(--text-primary, #09090B);
-          font-weight: 700;
-          font-size: 11px;
-        }
-
-        /* Phone Device Mockup Container */
-        .phone-device-wrapper {
-          display: flex;
-          justify-content: center;
-          padding: 10px 0;
-        }
-
-        .phone-chassis {
-          position: relative;
-          width: 320px;
-          border-radius: 38px;
-          padding: 8px;
-          box-shadow: 
-            0 20px 40px -15px rgba(0, 0, 0, 0.3),
-            0 0 0 1px rgba(0, 0, 0, 0.1),
-            inset 0 0 0 2px rgba(255, 255, 255, 0.2);
-          transition: all 0.3s ease;
-        }
-
-        .chassis-light {
-          background: linear-gradient(145deg, #2D3748, #1A202C);
-        }
-
-        .chassis-dark {
-          background: linear-gradient(145deg, #0F172A, #020617);
-        }
-
-        .phone-hardware-volume {
-          position: absolute;
-          left: -3px;
-          top: 90px;
-          width: 3px;
-          height: 48px;
-          background: #4A5568;
-          border-radius: 2px 0 0 2px;
-        }
-
-        .phone-hardware-power {
-          position: absolute;
-          right: -3px;
-          top: 105px;
-          width: 3px;
-          height: 32px;
-          background: #4A5568;
-          border-radius: 0 2px 2px 0;
-        }
-
-        .phone-screen {
-          width: 100%;
-          min-height: 540px;
-          border-radius: 30px;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          position: relative;
-          transition: background 0.3s ease, color 0.3s ease;
-          user-select: none;
-        }
-
-        .screen-light {
-          background: #FFFFFF;
-          color: #0F172A;
-        }
-
-        .screen-dark {
-          background: #0B0F19;
-          color: #F8FAFC;
-        }
-
-        /* Status Bar */
-        .android-status-bar {
-          height: 28px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 16px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: -0.2px;
-        }
-
-        .camera-cutout {
-          width: 10px;
-          height: 10px;
-          background: #000000;
-          border-radius: 50%;
-          box-shadow: inset 0 0 2px rgba(255,255,255,0.2);
-        }
-
-        .status-icons {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        }
-
-        .status-text-5g {
-          font-size: 9.5px;
-          font-weight: 800;
-        }
-
-        .battery-icon {
-          width: 17px;
-          height: 9px;
-          border: 1.5px solid currentColor;
-          border-radius: 2.5px;
-          padding: 1px;
-          position: relative;
-        }
-
-        .battery-icon::after {
-          content: '';
-          position: absolute;
-          right: -3px;
-          top: 2px;
-          width: 2px;
-          height: 3px;
-          background: currentColor;
-          border-radius: 0 1px 1px 0;
-        }
-
-        .battery-level {
-          width: 80%;
-          height: 100%;
-          background: currentColor;
-          border-radius: 1px;
-        }
-
-        /* Mobile Home Content */
-        .mobile-home-content {
-          padding: 4px 14px 14px 14px;
-          display: flex;
-          flex-direction: column;
-          flex: 1;
-        }
-
-        .mobile-home-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 10px;
-        }
-
-        .header-greeting-title {
-          font-size: 14.5px;
-          font-weight: 800;
-          display: block;
-          line-height: 1.2;
-        }
-
-        .header-location-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 3px;
-          font-size: 10.5px;
-          font-weight: 600;
-          color: #2563EB;
-          margin-top: 2px;
-          cursor: pointer;
-        }
-
-        .header-action-icons {
-          display: flex;
-          gap: 6px;
-        }
-
-        .header-action-btn {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(125, 125, 125, 0.1);
-        }
-
-        .badge-container {
-          position: relative;
-        }
-
-        .action-badge-dot {
-          position: absolute;
-          top: 5px;
-          right: 5px;
-          width: 6px;
-          height: 6px;
-          background: #EF4444;
-          border-radius: 50%;
-          border: 1.5px solid #FFFFFF;
-        }
-
-        /* Search Pill */
-        .mobile-search-pill {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(125, 125, 125, 0.08);
-          padding: 7px 12px;
-          border-radius: 20px;
-          margin-bottom: 12px;
-        }
-
-        .search-placeholder-icon {
-          color: #94A3B8;
-        }
-
-        .search-placeholder-text {
-          font-size: 11px;
-          color: #94A3B8;
-        }
-
-        /* Section Titles */
-        .section-title-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
-        }
-
-        .section-title-text {
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: -0.2px;
-        }
-
-        .section-badge-count {
-          font-size: 10px;
-          color: #94A3B8;
-          font-weight: 600;
-        }
-
-        .section-see-all {
-          font-size: 10.5px;
-          color: #2563EB;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        /* Offers Carousel Viewport (Proportional to 154dp height) */
-        .mobile-offers-carousel-viewport {
-          position: relative;
-          height: 128px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          margin-bottom: 8px;
-          overflow: hidden;
-        }
-
-        .carousel-peek-card {
-          width: 14px;
-          height: 116px;
-          border-radius: 14px;
-          background: rgba(125, 125, 125, 0.12);
-          opacity: 0.6;
-          flex-shrink: 0;
-        }
-
-        .carousel-active-card {
-          flex: 1;
-          height: 128px;
-          border-radius: 17px;
-          overflow: hidden;
-          position: relative;
-          background: #1E293B;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        }
-
-        .banner-image-wrapper {
-          width: 100%;
-          height: 100%;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .banner-image-element {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-        }
-
-        .banner-badge-tag {
-          position: absolute;
-          top: 8px;
-          left: 8px;
-          background: rgba(0, 0, 0, 0.7);
-          color: #FFFFFF;
-          backdrop-filter: blur(4px);
-          font-size: 9px;
-          font-weight: 800;
-          padding: 3px 7px;
-          border-radius: 10px;
-          letter-spacing: 0.3px;
-        }
-
-        /* Safe Zone Overlay */
-        .safe-zone-overlay {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-        }
-
-        .safe-content-box {
-          position: absolute;
-          inset: 10% 8%;
-          border: 1.5px dashed #10B981;
-          border-radius: 10px;
-          display: flex;
-          align-items: flex-end;
-          justify-content: flex-end;
-          padding: 4px;
-          background: rgba(16, 185, 129, 0.05);
-        }
-
-        .safe-box-label {
-          background: #10B981;
-          color: #FFFFFF;
-          font-size: 8px;
-          font-weight: 700;
-          padding: 1px 4px;
-          border-radius: 3px;
-        }
-
-        .crop-indicator-stripe {
-          position: absolute;
-          background: repeating-linear-gradient(
-            45deg,
-            rgba(239, 68, 68, 0.25),
-            rgba(239, 68, 68, 0.25) 6px,
-            rgba(239, 68, 68, 0.4) 6px,
-            rgba(239, 68, 68, 0.4) 12px
-          );
-          border: 1px dashed #EF4444;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .crop-indicator-stripe.vertical,
-        .crop-indicator-stripe.heavy-vertical {
-          inset: 0 0 auto 0;
-          height: 22px;
-        }
-
-        .crop-indicator-stripe.horizontal,
-        .crop-indicator-stripe.heavy-horizontal {
-          inset: 0 auto 0 0;
-          width: 26px;
-        }
-
-        .crop-tag {
-          background: #EF4444;
-          color: #FFFFFF;
-          font-size: 7.5px;
-          font-weight: 800;
-          padding: 1px 4px;
-          border-radius: 3px;
-        }
-
-        /* Placeholder Fallback */
-        .banner-placeholder-fallback {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #1E293B, #0F172A);
-          color: #94A3B8;
-          gap: 6px;
-          padding: 12px;
-          text-align: center;
-        }
-
-        .fallback-art-icon {
-          color: #64748B;
-        }
-
-        .fallback-primary {
-          font-size: 11px;
-          font-weight: 700;
-          color: #E2E8F0;
-        }
-
-        .fallback-secondary {
-          font-size: 9.5px;
-          color: #64748B;
-        }
-
-        /* Carousel Dots */
-        .carousel-dots-row {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 4px;
-          margin-bottom: 12px;
-        }
-
-        .dot-pill {
-          height: 4.5px;
-          border-radius: 3px;
-          background: #2563EB;
-          transition: all 0.2s ease;
-        }
-
-        .dot-pill.active {
-          width: 15px;
-        }
-
-        .dot-circle {
-          width: 4.5px;
-          height: 4.5px;
-          border-radius: 50%;
-          background: rgba(125, 125, 125, 0.3);
-        }
-
-        /* Quick Services Grid */
-        .quick-services-mock-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 8px;
-          margin-bottom: 12px;
-        }
-
-        .service-icon-tile {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .service-icon-circle {
-          width: 36px;
-          height: 36px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 16px;
-        }
-
-        .service-tile-label {
-          font-size: 9.5px;
-          font-weight: 600;
-        }
-
-        /* Craftsman Mini Card */
-        .craftsman-mini-card {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(125, 125, 125, 0.08);
-          padding: 8px 10px;
-          border-radius: 12px;
-        }
-
-        .craftsman-avatar-mock {
-          width: 30px;
-          height: 30px;
-          border-radius: 50%;
-          background: #2563EB;
-          color: #FFFFFF;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 800;
-          font-size: 13px;
-          position: relative;
-        }
-
-        .verified-badge-mini {
-          position: absolute;
-          bottom: -2px;
-          right: -2px;
-          width: 12px;
-          height: 12px;
-          background: #10B981;
-          color: #FFFFFF;
-          font-size: 8px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid #FFFFFF;
-        }
-
-        .craftsman-info-mock {
-          flex: 1;
-        }
-
-        .craftsman-name-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .craftsman-name {
-          font-size: 11px;
-          font-weight: 700;
-        }
-
-        .craftsman-rate {
-          font-size: 10px;
-          font-weight: 700;
-          color: #F59E0B;
-        }
-
-        .craftsman-trade {
-          font-size: 9.5px;
-          color: #94A3B8;
-          display: block;
-        }
-
-        /* VIEW MODE B: DIALOG PREVIEW */
-        .mobile-dialog-view-wrapper {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 16px 12px;
-          position: relative;
-        }
-
-        .dialog-backdrop-tint {
-          position: absolute;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.65);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 12px;
-          backdrop-filter: blur(2px);
-        }
-
-        .dialog-modal-card {
-          width: 100%;
-          border-radius: 19px;
-          overflow: hidden;
-          background: ${isDark ? '#1E293B' : '#FFFFFF'};
-          color: ${isDark ? '#F8FAFC' : '#0F172A'};
-          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
-        }
-
-        .dialog-banner-aspect-box {
-          width: 100%;
-          aspect-ratio: 16 / 9;
-          position: relative;
-          background: #0F172A;
-          overflow: hidden;
-        }
-
-        .dialog-banner-img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-        }
-
-        .dialog-placeholder-fallback {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          color: #64748B;
-          font-size: 10px;
-          text-align: center;
-          padding: 12px;
-        }
-
-        .dialog-badge-tag {
-          position: absolute;
-          top: 8px;
-          left: 8px;
-          background: #EF4444;
-          color: #FFFFFF;
-          font-size: 8.5px;
-          font-weight: 800;
-          padding: 2px 6px;
-          border-radius: 6px;
-        }
-
-        .dialog-modal-details {
-          padding: 12px;
-        }
-
-        .dialog-title-text {
-          margin: 0 0 4px 0;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .dialog-desc-text {
-          margin: 0 0 12px 0;
-          font-size: 10.5px;
-          color: ${isDark ? '#94A3B8' : '#64748B'};
-          line-height: 1.4;
-        }
-
-        .dialog-cta-primary-btn {
-          width: 100%;
-          padding: 8px 12px;
-          background: #2563EB;
-          color: #FFFFFF;
-          border: none;
-          border-radius: 10px;
-          font-size: 11px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-
-        /* Android Gesture Bar */
-        .android-gesture-bar-container {
-          height: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .gesture-pill {
-          width: 72px;
-          height: 3.5px;
-          background: ${isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'};
-          border-radius: 2px;
-        }
-
-        /* Footer Tips */
-        .preview-footer-tips {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 11px;
-          color: var(--text-muted, #71717A);
-          padding: 0 4px;
-        }
-
-        .tip-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #3B82F6;
-          flex-shrink: 0;
-        }
-      `}</style>
+      
     </div>
   );
 };

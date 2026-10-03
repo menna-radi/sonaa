@@ -107,8 +107,8 @@ button {
   bottom: 0;
   inset-inline-start: 0;
   width: var(--sidebar-w);
-  background: var(--sidebar-bg, #000000);
-  border-inline-end: 1px solid var(--sidebar-border, #1f1f23);
+  background: var(--sidebar-bg, var(--n-950));
+  border-inline-end: 1px solid var(--sidebar-border, var(--border-strong));
   display: flex;
   flex-direction: column;
   z-index: 100;
@@ -158,44 +158,6 @@ button {
 
 /* Desktop collapsible rail (toggled via .is-collapsed + body.has-collapsed-sidebar) */
 @media (min-width: 1280px) {
-  /* Arrow handle riding the sidebar border edge */
-  .sidebar-collapse-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    inset-inline-end: -12px;
-    width: 24px;
-    height: 52px;
-    margin: 0;
-    padding: 0;
-    border-radius: 999px;
-    background: linear-gradient(180deg, #6D6DFB 0%, #8B5CF6 100%);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    box-shadow: 0 0 18px rgba(99, 102, 241, 0.5), 0 4px 14px rgba(0, 0, 0, 0.45);
-    color: #FFFFFF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 6;
-    transition: box-shadow var(--dur-fast) var(--ease), filter var(--dur-fast) var(--ease);
-  }
-  .sidebar-collapse-btn svg {
-    transition: transform var(--dur-fast) var(--ease);
-  }
-  .sidebar-collapse-btn:hover {
-    filter: brightness(1.12);
-    box-shadow: 0 0 26px rgba(99, 102, 241, 0.7), 0 4px 14px rgba(0, 0, 0, 0.45);
-  }
-  .sidebar-collapse-btn:hover svg {
-    transform: translateX(2px);
-  }
-  [dir="rtl"] .sidebar-collapse-btn:hover svg {
-    transform: translateX(-2px);
-  }
-  .sidebar-collapse-btn:active svg {
-    transform: scale(0.88);
-  }
 
   .sidebar.is-collapsed {
     width: var(--sidebar-rail-w) !important;
@@ -237,8 +199,8 @@ button {
     inset-inline-start: calc(100% + 12px);
     top: 50%;
     transform: translateY(-50%);
-    background: var(--sidebar-bg, #000000);
-    color: #FFFFFF;
+    background: var(--sidebar-bg, var(--n-950));
+    color: var(--n-0);
     border: 1px solid rgba(255, 255, 255, 0.12);
     font-size: 12px;
     font-weight: 600;
@@ -265,11 +227,7 @@ button {
   }
 }
 
-@media (max-width: 1279.98px) {
-  .sidebar-collapse-btn {
-    display: none !important;
-  }
-}
+
 
 /* Mobile bottom tabs hidden on desktop by default */
 .mobile-bottom-tabs {
@@ -278,12 +236,12 @@ button {
 
 /* Sidebar inner elements */
 .sidebar-brand {
-  border-bottom: 1px solid #1f1f23 !important;
+  border-bottom: 1px solid var(--border-strong) !important;
 }
 
 .sidebar-footer {
-  border-top: 1px solid #1f1f23 !important;
-  background: #000000 !important; /* Force same dark background in footer */
+  border-top: 1px solid var(--border-strong) !important;
+  background: var(--n-950) !important; /* Force same dark background in footer */
 }
 
 .sidebar-footer-actions-row {
@@ -296,38 +254,38 @@ button {
 
 /* Nav Item States */
 .sidebar-nav-item {
-  color: #a3a3a3 !important; /* Muted silver text for inactive */
+  color: var(--text-muted) !important; /* Muted silver text for inactive */
   background: transparent !important;
   transition: var(--transition-fast);
 }
 
 .sidebar-nav-item:hover {
   background: rgba(255, 255, 255, 0.08) !important;
-  color: #ffffff !important;
+  color: var(--n-0) !important;
 }
 
 .sidebar-nav-item.active {
-  background: #ffffff !important;
-  color: #000000 !important;
+  background: var(--n-0) !important;
+  color: var(--n-950) !important;
 }
 
 .sidebar-nav-item.active:hover {
-  background: #ffffff !important;
-  color: #000000 !important;
+  background: var(--n-0) !important;
+  color: var(--n-950) !important;
 }
 
 .sidebar-nav-item.active .sidebar-item-label,
 .sidebar-nav-item.active svg {
-  color: #000000 !important;
+  color: var(--n-950) !important;
 }
 
 .sidebar-nav-item svg {
-  color: #a3a3a3;
+  color: var(--text-muted);
   transition: var(--transition-fast);
 }
 
 .sidebar-nav-item:hover svg {
-  color: #ffffff;
+  color: var(--n-0);
 }
 
 
@@ -600,7 +558,7 @@ button {
   .sidebar {
     width: 280px !important;
     transform: translateX(-100%); /* LTR hide */
-    background: #09090b !important;
+    background: var(--n-950) !important;
   }
 
   [dir="rtl"] .sidebar {
@@ -796,8 +754,8 @@ button {
   .mobile-logo {
     width: 28px !important;
     height: 28px !important;
-    background: #0A0A0A !important;
-    color: #FFFFFF !important;
+    background: var(--n-950) !important;
+    color: var(--n-0) !important;
     border-radius: 8px !important;
     display: flex !important;
     align-items: center !important;
@@ -813,13 +771,13 @@ button {
     line-height: 1.1 !important;
   }
   .mobile-logo-text strong {
-    color: #737373 !important;
+    color: var(--text-muted) !important;
     font-weight: 700 !important;
     letter-spacing: 1px !important;
     text-transform: uppercase !important;
   }
   .mobile-logo-text span {
-    color: #A3A3A3 !important;
+    color: var(--text-muted) !important;
   }
   .mobile-header-right {
     display: flex !important;
@@ -832,13 +790,13 @@ button {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #171717 !important;
+    color: var(--text-strong) !important;
     background: transparent !important;
     cursor: pointer !important;
     border: none !important;
   }
   .mobile-action-btn:hover {
-    background: #F5F5F5 !important;
+    background: var(--surface-sunken) !important;
   }
   .mobile-badge {
     position: absolute !important;
@@ -846,7 +804,7 @@ button {
     right: 8px !important;
     width: 6px !important;
     height: 6px !important;
-    background: #EF4444 !important;
+    background: var(--danger) !important;
     border-radius: 50% !important;
   }
 
@@ -857,8 +815,8 @@ button {
     justify-content: center !important;
     align-items: flex-start !important;
     height: 63.5px !important;
-    background: #FFFFFF !important;
-    border-bottom: 1px solid #F5F5F5 !important;
+    background: var(--n-0) !important;
+    border-bottom: 1px solid var(--surface-sunken) !important;
     padding: 0 20px !important;
     text-align: start !important;
     box-sizing: border-box !important;
@@ -872,7 +830,7 @@ button {
   .mobile-subheader h2 {
     font-size: 20px !important;
     font-weight: 700 !important;
-    color: #171717 !important;
+    color: var(--text-strong) !important;
     margin: 0 !important;
     line-height: 1.2 !important;
     letter-spacing: -0.4px !important;
@@ -880,7 +838,7 @@ button {
   }
   .mobile-subheader span {
     font-size: 11px !important;
-    color: #737373 !important;
+    color: var(--text-muted) !important;
     margin-top: 4px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -898,7 +856,7 @@ button {
 
 .sidebar-scrollable-body {
   scrollbar-width: thin;
-  scrollbar-color: #2e2e32 #0a0a0a;
+  scrollbar-color: var(--border-strong) var(--n-950);
 }
 
 .sidebar-scrollable-body::-webkit-scrollbar {
@@ -906,17 +864,17 @@ button {
 }
 
 .sidebar-scrollable-body::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: var(--n-950);
   border-radius: 9999px;
 }
 
 .sidebar-scrollable-body::-webkit-scrollbar-thumb {
-  background: #2e2e32;
+  background: var(--border-strong);
   border-radius: 9999px;
 }
 
 .sidebar-scrollable-body::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: var(--text-muted);
 }
 
 /* Page Title Styling overrides */
@@ -944,7 +902,7 @@ button {
 select.select-filter-btn,
 .sm-split-body select,
 .desktop-tablet-page-header select {
-  color: #171717 !important;
+  color: var(--text-strong) !important;
   font-feature-settings: 'dlig' on !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 14px !important;

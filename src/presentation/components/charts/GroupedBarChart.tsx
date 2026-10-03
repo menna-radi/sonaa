@@ -1,4 +1,5 @@
 import React from 'react';
+import './charts.css';
 
 export interface GroupedBarSeries {
   name: string;
@@ -27,18 +28,14 @@ export const GroupedBarChart: React.FC<GroupedBarChartProps> = ({
   return (
     <div className={`ui-chart-grouped-bar ${className}`} role="img" aria-label={ariaLabel}>
       {/* Legend */}
-      <div style={{ display: 'flex', gap: 16, justifyContent: 'flex-end', marginBottom: 12 }}>
+      <div className="ui-chart-legend">
         {series.map((s, idx) => (
-          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div key={idx} className="ui-chart-legend-item">
             <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 2,
-                backgroundColor: s.color,
-              }}
+              className="ui-chart-legend-dot"
+              style={{ backgroundColor: s.color }}
             />
-            <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)' }}>
+            <span className="ui-chart-legend-label">
               {s.name}
             </span>
           </div>
@@ -47,30 +44,15 @@ export const GroupedBarChart: React.FC<GroupedBarChartProps> = ({
 
       {/* Bars container */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
-          height,
-          borderBottom: '1px solid var(--border)',
-          paddingBottom: 4,
-          gap: 8,
-        }}
+        className="ui-chart-bars-wrap"
+        style={{ height }}
       >
         {categories.map((cat, cIdx) => (
           <div
             key={cIdx}
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              height: '100%',
-              justifyContent: 'flex-end',
-              gap: 4,
-            }}
+            className="ui-chart-col"
           >
-            <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: '100%', width: '100%', justifyContent: 'center' }}>
+            <div className="ui-chart-col-bars">
               {series.map((s, sIdx) => {
                 const val = s.values[cIdx] || 0;
                 const pct = (val / max) * 100;
@@ -78,26 +60,16 @@ export const GroupedBarChart: React.FC<GroupedBarChartProps> = ({
                   <div
                     key={sIdx}
                     title={`${s.name}: ${val}`}
+                    className="ui-chart-bar"
                     style={{
-                      width: '28%',
-                      maxWidth: 14,
                       height: `${Math.max(4, pct)}%`,
                       backgroundColor: s.color,
-                      borderRadius: '2px 2px 0 0',
-                      transition: 'height var(--dur-base) var(--ease)',
                     }}
                   />
                 );
               })}
             </div>
-            <span
-              style={{
-                fontSize: 11,
-                color: 'var(--text-faint)',
-                whiteSpace: 'nowrap',
-                marginTop: 4,
-              }}
-            >
+            <span className="ui-chart-col-label">
               {cat}
             </span>
           </div>

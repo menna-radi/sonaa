@@ -23,7 +23,7 @@ const opt = (name, def = '') => {
 const dirs = opt('dirs').split(',').map((s) => s.trim()).filter(Boolean);
 const maxInline = Number(opt('max-inline', '6'));
 const allowInterval = new Set(opt('allow-interval').split(',').filter(Boolean).map((s) => path.basename(s)));
-const allowHex = new Set(['AndroidPhoneBannerPreview.tsx', 'tokens.css', ...opt('allow-hex').split(',').filter(Boolean).map((s) => path.basename(s))]);
+const allowHex = new Set(['AndroidPhoneBannerPreview.tsx', 'androidPhonePreview.css', 'tokens.css', ...opt('allow-hex').split(',').filter(Boolean).map((s) => path.basename(s))]);
 const root = process.cwd();
 const LANG_FILE = 'src/presentation/context/LanguageContext.tsx';
 const problems = [];
