@@ -1,10 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../../../core/network/apiClient';
+import { queryKeys } from '../../../../core/query/queryKeys';
+
+export const ANALYTICS_FABRICATED_IDS = ['eta_accuracy', 'refund_rate'];
+
+export type AnalyticsTimeframe = '7d' | '30d' | '90d' | 'ytd';
 
 export interface MetricCardState {
   value: string;
-  change: string;
-  isPositive: boolean;
+  change?: string;
+  isPositive?: boolean;
   rawVal: number;
 }
 
@@ -34,103 +39,108 @@ export interface KpiData {
   targetWidth?: number;
 }
 
-export const useAnalytics = (timeframe: '7d' | '30d' | '90d' | 'ytd' = '30d') => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+export interface AnalyticsResponse {
+  timeframe?: string;
+  userGrowth: MetricCardState;
+  activeCraftsmen: MetricCardState;
+  marketplaceActivity: MetricCardState;
+  conversionRate: MetricCardState;
+  cohorts: CohortWeekData[];
+  zones?: ZoneData[];
+  kpis: KpiData[];
+}
 
-  // Real Database Metric Cards
-  const [userGrowth, setUserGrowth] = useState<MetricCardState>({ value: '0', change: '0 Users', isPositive: true, rawVal: 0 });
-  const [activeCraftsmen, setActiveCraftsmen] = useState<MetricCardState>({ value: '0', change: '0 Online', isPositive: true, rawVal: 0 });
-  const [marketplaceActivity, setMarketplaceActivity] = useState<MetricCardState>({ value: '0', change: '0 Tasks', isPositive: true, rawVal: 0 });
-  const [conversionRate, setConversionRate] = useState<MetricCardState>({ value: '0%', change: '0/0 Tasks', isPositive: true, rawVal: 0 });
+interface OverviewStatsResponse {
+  metrics?: {
+    totalUsers?: number;
+    activeCraftsmen?: number;
+    onlineCraftsmenCount?: number;
+    activeTasks?: number;
+    completedTasks?: number;
+  };
+}
 
-  // Real Cohort Data
-  const [cohorts, setCohorts] = useState<CohortWeekData[]>([]);
-
-  // Real Palestinian Zone Demand
-  const [zones, setZones] = useState<ZoneData[]>([]);
-
-  // Real Platform Health KPIs
-  const [kpis, setKpis] = useState<KpiData[]>([]);
-
-  const loadData = useCallback(async (showLoader = true) => {
-    if (showLoader) {
-      setLoading(true);
+async function fetchAnalytics(timeframe: AnalyticsTimeframe): Promise<AnalyticsResponse> {
+  try {
+    const res = await apiClient.get<AnalyticsResponse | { data: AnalyticsResponse }>(`/admin/analytics?timeframe=${timeframe}`);
+    const data = (res as { data?: AnalyticsResponse }).data || (res as AnalyticsResponse);
+    if (data && (data.userGrowth || data.kpis)) {
+      return {
+        ...data,
+        kpis: (data.kpis || []).filter((k) => !ANALYTICS_FABRICATED_IDS.includes(k.id)),
+      };
     }
-    setError(null);
+  } catch (err: unknown) {
+    // Fallback to overview-stats if /admin/analytics fails or is unavailable
     try {
-      const res = await apiClient.get<any>(`/admin/analytics?timeframe=${timeframe}`);
-      const data = res?.data || res;
-      if (data) {
-        if (data.userGrowth) setUserGrowth(data.userGrowth);
-        if (data.activeCraftsmen) setActiveCraftsmen(data.activeCraftsmen);
-        if (data.marketplaceActivity) setMarketplaceActivity(data.marketplaceActivity);
-        if (data.conversionRate) setConversionRate(data.conversionRate);
-        if (Array.isArray(data.cohorts)) setCohorts(data.cohorts);
-        if (Array.isArray(data.zones)) setZones(data.zones);
-        if (Array.isArray(data.kpis)) setKpis(data.kpis);
-      }
-    } catch (err: unknown) {
-      console.error('Failed to load real analytics from database:', err);
-      // Seamless fallback to overview-stats
-      try {
-        const statsRes = await apiClient.get<any>('/admin/overview-stats');
-        const stats = statsRes?.data || statsRes;
-        if (stats?.metrics) {
-          const totalU = stats.metrics.totalUsers || 0;
-          const actC = stats.metrics.activeCraftsmen || 0;
-          const onlC = stats.metrics.onlineCraftsmenCount || 0;
-          const actT = stats.metrics.activeTasks || 0;
-          setUserGrowth({
-            value: `${totalU}`,
-            change: `+${totalU} Registered`,
-            isPositive: true,
-            rawVal: totalU
-          });
-          setActiveCraftsmen({
-            value: `${actC}`,
-            change: `${onlC} Online`,
-            isPositive: true,
-            rawVal: actC
-          });
-          setMarketplaceActivity({
-            value: `${actT}`,
-            change: 'Active Jobs',
-            isPositive: true,
-            rawVal: actT
-          });
-          setConversionRate({
-            value: '100%',
-            change: 'Live Jobs',
-            isPositive: true,
-            rawVal: 100
-          });
-        }
-      } catch (fallbackErr) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch analytics.');
-      }
-    } finally {
-      if (showLoader) {
-        setLoading(false);
-      }
+      const statsRes = await apiClient.get<OverviewStatsResponse | { data: OverviewStatsResponse }>('/admin/overview-stats');
+      const stats = (statsRes as { data?: OverviewStatsResponse }).data || (statsRes as OverviewStatsResponse);
+      const m = stats?.metrics;
+      const totalUsers = m?.totalUsers || 0;
+      const activeCraftsmen = m?.activeCraftsmen || 0;
+      const activeTasks = m?.activeTasks || 0;
+      return {
+        userGrowth: {
+          value: `${totalUsers}`,
+          rawVal: totalUsers,
+          isPositive: true,
+        },
+        activeCraftsmen: {
+          value: `${activeCraftsmen}`,
+          rawVal: activeCraftsmen,
+          isPositive: true,
+        },
+        marketplaceActivity: {
+          value: `${activeTasks}`,
+          rawVal: activeTasks,
+          isPositive: true,
+        },
+        conversionRate: {
+          value: '100%',
+          rawVal: 100,
+          isPositive: true,
+        },
+        cohorts: [],
+        zones: [],
+        kpis: [],
+      };
+    } catch {
+      throw err instanceof Error ? err : new Error('Failed to fetch analytics');
     }
-  }, [timeframe]);
-
-  useEffect(() => {
-    loadData(true);
-  }, [loadData]);
+  }
 
   return {
-    loading,
-    error,
-    userGrowth,
-    activeCraftsmen,
-    marketplaceActivity,
-    conversionRate,
-    cohorts,
-    zones,
-    kpis,
-    refresh: () => loadData(true)
+    userGrowth: { value: '0', rawVal: 0, isPositive: true },
+    activeCraftsmen: { value: '0', rawVal: 0, isPositive: true },
+    marketplaceActivity: { value: '0', rawVal: 0, isPositive: true },
+    conversionRate: { value: '0%', rawVal: 0, isPositive: true },
+    cohorts: [],
+    zones: [],
+    kpis: [],
+  };
+}
+
+export const useAnalytics = (timeframe: AnalyticsTimeframe = '30d') => {
+  const query = useQuery({
+    queryKey: queryKeys.analytics(timeframe),
+    queryFn: () => fetchAnalytics(timeframe),
+  });
+
+  const rawData = query.data;
+
+  return {
+    data: rawData,
+    loading: query.isLoading,
+    error: query.error instanceof Error ? query.error.message : (query.error ? String(query.error) : null),
+    userGrowth: rawData?.userGrowth ?? { value: '0', rawVal: 0, isPositive: true },
+    activeCraftsmen: rawData?.activeCraftsmen ?? { value: '0', rawVal: 0, isPositive: true },
+    marketplaceActivity: rawData?.marketplaceActivity ?? { value: '0', rawVal: 0, isPositive: true },
+    conversionRate: rawData?.conversionRate ?? { value: '0%', rawVal: 0, isPositive: true },
+    cohorts: rawData?.cohorts ?? [],
+    zones: rawData?.zones ?? [],
+    kpis: (rawData?.kpis ?? []).filter((k) => !ANALYTICS_FABRICATED_IDS.includes(k.id)),
+    hasTimeframeSupport: Boolean(rawData?.timeframe),
+    refresh: () => query.refetch(),
   };
 };
 
