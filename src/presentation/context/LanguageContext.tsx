@@ -2555,6 +2555,101 @@ export const translations: TranslationDict = {
     en: 'Receipt rejected.',
     ar: 'تم رفض الإيصال.',
     he: 'הקבלה נדחתה.'
+  },
+  commission_approve_body: {
+    en: 'Confirms the Bit transfer of {amount}. The linked commission is marked paid. The craftsman is unlocked only if nothing else is due.',
+    ar: 'يؤكد تحويل Bit بمبلغ {amount}. تُسجَّل العمولة المرتبطة مدفوعة. يُفتح حساب الحرفي فقط إذا لم يتبقَّ شيء مستحق.',
+    he: 'מאשר את העברת Bit בסך {amount}. העמלה המקושרת תסומן כמשולמת. החשבון ייפתח רק אם לא נותר חוב.'
+  },
+  commission_reject_body: {
+    en: 'The commission stays due and the craftsman stays locked.',
+    ar: 'تبقى العمولة مستحقة ويبقى حساب الحرفي مقفلًا.',
+    he: 'העמלה נשארת לתשלום והחשבון נשאר נעול.'
+  },
+  commission_ledger_unavailable: {
+    en: 'Ledger entries are unavailable.',
+    ar: 'قيود الدفتر غير متوفرة.',
+    he: 'רשומות הספר אינן זמינות.'
+  },
+  commission_filter_pending: {
+    en: 'Pending',
+    ar: 'معلقة',
+    he: 'ממתין'
+  },
+  commission_filter_approved: {
+    en: 'Approved',
+    ar: 'معتمدة',
+    he: 'מאושר'
+  },
+  commission_filter_rejected: {
+    en: 'Rejected',
+    ar: 'مرفوضة',
+    he: 'נדחה'
+  },
+  commission_seg_receipts: {
+    en: 'Receipts',
+    ar: 'الإيصالات',
+    he: 'קבלות'
+  },
+  commission_seg_ledger: {
+    en: 'Ledger',
+    ar: 'الدفتر',
+    he: 'ספר'
+  },
+  commission_lock_state: {
+    en: 'Lock state',
+    ar: 'حالة القفل',
+    he: 'מצב נעילה'
+  },
+  commission_unlocked: {
+    en: 'Unlocked',
+    ar: 'مفتوح',
+    he: 'פתוח'
+  },
+  commission_linked_entries: {
+    en: 'Linked entries',
+    ar: 'القيود المرتبطة',
+    he: 'רשומות מקושרות'
+  },
+  billing_commission_search_ph: {
+    en: 'Search craftsman…',
+    ar: 'ابحث عن حرفي…',
+    he: 'חפש בעל מקצוע…'
+  },
+  billing_details: {
+    en: 'Details',
+    ar: 'التفاصيل',
+    he: 'פרטים'
+  },
+  billing_col_phone: {
+    en: 'Phone',
+    ar: 'الهاتف',
+    he: 'טלפון'
+  },
+  billing_col_notes: {
+    en: 'Notes',
+    ar: 'ملاحظات',
+    he: 'הערות'
+  },
+  empty_commission: {
+    en: 'No commission receipts',
+    ar: 'لا توجد إيصالات عمولة',
+    he: 'אין קבלות עמלה'
+  },
+  toast_commission_approved: {
+    en: 'Commission payment approved.',
+    ar: 'تمت الموافقة على دفعة العمولة.',
+    he: 'תשלום העמלה אושר.'
+  },
+  toast_commission_unlocked: {
+    en: 'Commission settled. The craftsman is unlocked.',
+    ar: 'تمت تسوية العمولة. تم فتح حساب الحرفي.',
+    he: 'העמלה סולקה. החשבון נפתח.'
+  },
+  toast_commission_rejected: {
+    en: 'Commission payment rejected.',
+    ar: 'تم رفض دفعة العمولة.',
+    he: 'תשלום העמלה נדחה.'
   }
 };
 

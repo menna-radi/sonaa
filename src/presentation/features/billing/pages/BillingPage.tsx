@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../../../core/query/queryKeys';
 import { BillingKpis } from '../components/BillingKpis';
 import { ReceiptsTab } from '../components/ReceiptsTab';
+import { CommissionTab } from '../components/CommissionTab';
 import { RefreshCw } from 'lucide-react';
 import '../billing.css';
 
@@ -78,6 +79,8 @@ export const BillingPage: React.FC = () => {
       </div>
       {tab === 'receipts' ? (
         <ReceiptsTab onOpenCommission={openCommission} />
+      ) : tab === 'commission' ? (
+        <CommissionTab />
       ) : (
         <EmptyState title={t('coming_soon')} />
       )}

@@ -24,6 +24,7 @@ export const STATUS_KEYS: Record<string, string> = {
   FORBIDDEN_ERROR: 'err_forbidden',
   UNAUTHORIZED_ERROR: 'err_session_expired',
   NOT_FOUND_ERROR: 'err_not_found',
+  CONFLICT_ERROR: 'err_conflict',
 };
 
 /** Returns a translated, user-safe message. Falls back to the server message, then a generic key. */
