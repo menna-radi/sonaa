@@ -2430,6 +2430,131 @@ export const translations: TranslationDict = {
     en: 'Coming soon',
     ar: 'قريبًا',
     he: 'בקרוב'
+  },
+  billing_approve_title: {
+    en: 'Approve this receipt?',
+    ar: 'الموافقة على هذا الإيصال؟',
+    he: 'לאשר קבלה זו?'
+  },
+  billing_approve_body: {
+    en: 'Confirm the Bit transfer for',
+    ar: 'تأكيد تحويل Bit لـ',
+    he: 'אשר את העברת Bit עבור'
+  },
+  billing_reject_title: {
+    en: 'Reject this receipt?',
+    ar: 'رفض هذا الإيصال؟',
+    he: 'לדחות קבלה זו?'
+  },
+  billing_reject_body: {
+    en: 'The craftsman will need to submit a valid receipt.',
+    ar: 'سيحتاج الحرفي إلى تقديم إيصال صالح.',
+    he: 'בעל המקצוע יצטרך להגיש קבלה תקינה.'
+  },
+  billing_reject_reason_ph: {
+    en: 'Tell the craftsman why (shown in the app)',
+    ar: 'أخبر الحرفي بالسبب (يظهر في التطبيق)',
+    he: 'הסבר לבעל המקצוע מדוע (מוצג באפליקציה)'
+  },
+  billing_approve: {
+    en: 'Approve',
+    ar: 'موافقة',
+    he: 'אישור'
+  },
+  billing_reject: {
+    en: 'Reject',
+    ar: 'رفض',
+    he: 'דחייה'
+  },
+  billing_chat: {
+    en: 'Chat',
+    ar: 'محادثة',
+    he: "צ'אט"
+  },
+  billing_open_commission: {
+    en: 'Open commission',
+    ar: 'فتح العمولة',
+    he: 'פתח עמלה'
+  },
+  billing_receipts_search_ph: {
+    en: 'Search name, phone or plan…',
+    ar: 'ابحث بالاسم أو الهاتف أو الباقة…',
+    he: 'חפש שם, טלפון או חבילה…'
+  },
+  billing_plan_months: {
+    en: 'mo',
+    ar: 'شهر',
+    he: "חוד'"
+  },
+  billing_col_craftsman: {
+    en: 'Craftsman',
+    ar: 'الحرفي',
+    he: 'בעל מקצוע'
+  },
+  billing_col_plan: {
+    en: 'Plan',
+    ar: 'الباقة',
+    he: 'חבילה'
+  },
+  billing_col_amount: {
+    en: 'Amount',
+    ar: 'المبلغ',
+    he: 'סכום'
+  },
+  billing_col_submitted: {
+    en: 'Submitted',
+    ar: 'تاريخ التقديم',
+    he: 'הוגש'
+  },
+  billing_col_receipt: {
+    en: 'Receipt',
+    ar: 'الإيصال',
+    he: 'קבלה'
+  },
+  billing_col_status: {
+    en: 'Status',
+    ar: 'الحالة',
+    he: 'סטטוס'
+  },
+  billing_col_actions: {
+    en: 'Actions',
+    ar: 'إجراءات',
+    he: 'פעולות'
+  },
+  billing_filter_pending_verification: {
+    en: 'Pending',
+    ar: 'معلقة',
+    he: 'ממתין'
+  },
+  billing_filter_approved: {
+    en: 'Approved',
+    ar: 'معتمدة',
+    he: 'מאושר'
+  },
+  billing_filter_rejected: {
+    en: 'Rejected',
+    ar: 'مرفوضة',
+    he: 'נדחה'
+  },
+  billing_filter_all: {
+    en: 'All',
+    ar: 'الكل',
+    he: 'הכל'
+  },
+  empty_receipts_pending: {
+    en: 'No receipts waiting for review',
+    ar: 'لا توجد إيصالات بانتظار المراجعة',
+    he: 'אין קבלות הממתינות לבדיקה'
+  },
+  toast_receipt_approved: {
+    en: 'Receipt approved.',
+    ar: 'تمت الموافقة على الإيصال.',
+    he: 'הקבלה אושרה.'
+  },
+  toast_receipt_rejected: {
+    en: 'Receipt rejected.',
+    ar: 'تم رفض الإيصال.',
+    he: 'הקבלה נדחתה.'
   }
 };
 

@@ -5,6 +5,7 @@ import { formatRelativeTime } from '../../../../core/utils/format';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../../../core/query/queryKeys';
 import { BillingKpis } from '../components/BillingKpis';
+import { ReceiptsTab } from '../components/ReceiptsTab';
 import { RefreshCw } from 'lucide-react';
 import '../billing.css';
 
@@ -45,6 +46,16 @@ export const BillingPage: React.FC = () => {
     void qc.invalidateQueries({ queryKey: queryKeys.billing.all });
   };
 
+  const openCommission = (craftsmanName: string) => {
+    try {
+      sessionStorage.setItem('billing_tab', 'commission');
+      sessionStorage.setItem('billing_search', craftsmanName);
+    } catch {
+      // storage unavailable — tab switch still works
+    }
+    changeTab('commission');
+  };
+
   return (
     <div className="ui-page">
       <PageHeader
@@ -65,7 +76,11 @@ export const BillingPage: React.FC = () => {
           items={TABS.map((id) => ({ value: id, label: t(`billing_tab_${id}`) }))}
         />
       </div>
-      <EmptyState title={t('coming_soon')} />
+      {tab === 'receipts' ? (
+        <ReceiptsTab onOpenCommission={openCommission} />
+      ) : (
+        <EmptyState title={t('coming_soon')} />
+      )}
     </div>
   );
 };

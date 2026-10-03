@@ -1,2 +1,11 @@
 /* Billing center feature styles (no inline layouts; runtime values stay inline). */
 .billing-tabs { margin-bottom: var(--sp-1); }
+
+/* Receipts */
+.billing-receipt-card { display: flex; flex-direction: column; gap: var(--sp-2); }
+.billing-receipt-card__top { display: flex; align-items: flex-start; gap: var(--sp-3); }
+.billing-receipt-card__identity { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.billing-receipt-card__name { font-weight: 600; color: var(--text-strong); }
+.billing-receipt-card__amount { font-weight: 700; color: var(--text-strong); }
+.billing-receipt-card__actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.billing-receipt-card__actions > * { min-height: 44px; }
