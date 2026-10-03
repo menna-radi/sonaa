@@ -1,251 +1,117 @@
 import React, { useState } from 'react';
 import type { Craftsman } from '../hooks/useCraftsmen';
-import {
-  Avatar,
-  VerifiedMark,
-  StatusPill,
-  StatTile,
-  ChecklistChip,
-  Card,
-  ConfirmDialog,
-  useToast,
-} from '../../../components/ui';
+import { useLanguage } from '../../../context/LanguageContext';
+import { Avatar, VerifiedMark, StatusPill, KeyValueList } from '../../../components/ui';
+import { pillVariantFor, statusLabelKey } from '../../../components/ui/status';
+import { useConfirm } from '../../../components/ui/ConfirmDialog';
+import { useToast } from '../../../components/ui/Toast';
+import { errorMessage } from '../../../../core/errors/errorMessage';
+import { formatDate } from '../../../../core/utils/format';
+import { useCraftsmen } from '../hooks/useCraftsmen';
 import { CraftsmanActions } from './CraftsmanActions';
-import { Copy } from 'lucide-react';
+import { CraftsmanBillingSection } from './CraftsmanBillingSection';
 
 interface CraftsmanDetailPanelProps {
   craftsman: Craftsman | null;
-  onSuspend: (id: string, reason?: string) => Promise<void>;
-  onUnsuspend: (id: string) => Promise<void>;
-  onBan: (id: string) => Promise<void>;
-  onToggleVerification: (id: string, key: keyof Craftsman['verifications'], approved: boolean) => Promise<void>;
-  onViewProfile?: (craftsman: Craftsman) => void;
-  className?: string;
 }
 
-export const CraftsmanDetailPanel: React.FC<CraftsmanDetailPanelProps> = ({
-  craftsman,
-  onSuspend,
-  onUnsuspend,
-  onBan,
-  onToggleVerification,
-  onViewProfile,
-  className = '',
-}) => {
-  const { success, error } = useToast();
-  const [confirmKey, setConfirmKey] = useState<keyof Craftsman['verifications'] | null>(null);
-  const [toggleLoading, setToggleLoading] = useState(false);
+const VERIFY_ITEMS = [
+  'nationalId',
+  'selfieMatch',
+  'tradeLicense',
+  'bankIban',
+  'backgroundCheck',
+  'insurance',
+] as const;
 
-  if (!craftsman) {
-    return (
-      <Card className={`craftsman-detail-panel ${className}`} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-caption)' }}>
-          Select a craftsman to inspect details
-        </span>
-      </Card>
-    );
-  }
+export const CraftsmanDetailPanel: React.FC<CraftsmanDetailPanelProps> = ({ craftsman }) => {
+  const { t, language } = useLanguage();
+  const confirm = useConfirm();
+  const toast = useToast();
+  const { mutations } = useCraftsmen();
+  const [toggling, setToggling] = useState<string | null>(null);
 
-  const isVerified =
-    craftsman.verifications?.nationalId ||
-    (craftsman.verifications?.selfieMatch && craftsman.verifications?.bankIban);
+  if (!craftsman) return null;
 
-  const verificationItems: { key: keyof Craftsman['verifications']; label: string }[] = [
-    { key: 'nationalId', label: 'National ID' },
-    { key: 'selfieMatch', label: 'Selfie Match' },
-    { key: 'tradeLicense', label: 'Trade License' },
-    { key: 'bankIban', label: 'Bank IBAN' },
-    { key: 'backgroundCheck', label: 'Background Check' },
-    { key: 'insurance', label: 'Insurance' },
-  ];
-
-  const handleToggleClick = (key: keyof Craftsman['verifications']) => {
-    setConfirmKey(key);
-  };
-
-  const handleConfirmToggle = async () => {
-    if (!confirmKey) return;
-    setToggleLoading(true);
-    const current = Boolean(craftsman.verifications?.[confirmKey]);
+  const handleToggle = async (itemKey: string, approved: boolean) => {
+    const ok = await confirm({
+      title: t('craftsmen_verify_title'),
+      body: approved ? t('craftsmen_verify_grant_body') : t('craftsmen_verify_revoke_body'),
+      tone: approved ? 'default' : 'warning',
+    });
+    if (!ok) return;
+    setToggling(itemKey);
     try {
-      await onToggleVerification(craftsman.id, confirmKey, !current);
-      success(`${confirmKey} status updated for ${craftsman.name}.`);
-      setConfirmKey(null);
-    } catch (err: unknown) {
-      error(err instanceof Error ? err.message : 'Failed to update verification status.');
+      await mutations.toggleVerification.mutateAsync({ id: craftsman.id, itemKey, approved });
+    } catch (e) {
+      toast.error(errorMessage(e, t));
     } finally {
-      setToggleLoading(false);
+      setToggling(null);
     }
   };
 
-  const copyId = () => {
-    navigator.clipboard.writeText(craftsman.idNumber || craftsman.id);
-    success('Craftsman ID copied to clipboard');
-  };
-
   return (
-    <Card
-      className={`craftsman-detail-panel ${className}`}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--sp-4)',
-        height: '100%',
-        boxSizing: 'border-box',
-      }}
-    >
-      {/* 1. Header Profile block */}
-      <div style={{ display: 'flex', gap: 'var(--sp-3)', alignItems: 'flex-start' }}>
-        <Avatar
-          src={craftsman.avatarUrl}
-          name={craftsman.name}
-          size={64}
-          shape="square"
-          presence={craftsman.status === 'suspended' ? 'flagged' : craftsman.isAvailable ? 'online' : 'offline'}
-        />
-
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-              <h2
-                style={{
-                  fontSize: 'var(--fs-card-title)',
-                  fontWeight: 700,
-                  color: 'var(--text-primary)',
-                  margin: 0,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {craftsman.name}
-              </h2>
-              {isVerified && <VerifiedMark size={16} />}
+    <div className="craftsman-detail">
+      <div>
+        <div className="craftsman-detail__section-title">{t('craftsmen_detail_profile')}</div>
+        <div className="ui-row">
+          <Avatar src={craftsman.avatarUrl} name={craftsman.name} size={48} />
+          <div>
+            <div className="ui-text-strong">
+              {craftsman.name} {craftsman.isVerifiedId ? <VerifiedMark size={16} /> : ''}
             </div>
-
-            <button
-              type="button"
-              onClick={copyId}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 'var(--sp-1)',
-                cursor: 'pointer',
-                color: 'var(--text-muted)',
-              }}
-              title="Copy Craftsman ID"
-            >
-              <Copy size={14} />
-            </button>
+            <div className="ui-caption">{craftsman.trade}</div>
           </div>
-
-          <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)' }}>
-            {craftsman.trade} · Joined {craftsman.joinedDate || '2024'}
-          </span>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginTop: 4 }}>
-            <StatusPill
-              variant={craftsman.status === 'suspended' ? 'danger' : craftsman.isAvailable ? 'success' : 'neutral'}
-              label={craftsman.status === 'suspended' ? 'Suspended' : craftsman.isAvailable ? 'Online' : 'Offline'}
-              dot={craftsman.isAvailable && craftsman.status !== 'suspended'}
-            />
-            <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-faint)' }}>
-              #{craftsman.idNumber || craftsman.id.slice(0, 8)}
-            </span>
-          </div>
+          <StatusPill
+            variant={pillVariantFor('craftsman', craftsman.status)}
+            label={t(statusLabelKey('craftsman', craftsman.status))}
+          />
         </div>
-      </div>
-
-      {/* 2. Stat Tiles (4-grid) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--sp-2)' }}>
-        <StatTile
-          label="Rating"
-          value={
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              ★ {Number(craftsman.rating || 5.0).toFixed(1)}
-            </span>
-          }
-          caption={`${craftsman.reviewsCount || 0} reviews`}
-        />
-        <StatTile
-          label="Jobs"
-          value={craftsman.jobsCount || 0}
-          caption="completed"
-        />
-        <StatTile
-          label="Response"
-          value={craftsman.responseTimeMin ? `${craftsman.responseTimeMin}m` : '—'}
-          caption="avg time"
-        />
-        <StatTile
-          label="Trust Score"
-          value={`${Math.round(Number(craftsman.trustScore ?? 0.85) * 100)}%`}
-          caption="out of 100"
+        <KeyValueList
+          items={[
+            { label: t('billing_col_phone'), value: <bdi className="ui-num">{craftsman.idNumber || '—'}</bdi> },
+            {
+              label: t('craftsmen_col_joined'),
+              value: (
+                <bdi className="ui-num">
+                  {craftsman.joinedDate ? formatDate(craftsman.joinedDate, language) : '—'}
+                </bdi>
+              ),
+            },
+          ]}
         />
       </div>
-
-      {/* 3. Verification Checklist */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
-        <span
-          style={{
-            fontSize: 'var(--fs-micro)',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.6px',
-            color: 'var(--text-muted)',
-          }}
-        >
-          Verification Status
-        </span>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--sp-2)' }}>
-          {verificationItems.map((item) => {
-            const checked = Boolean(craftsman.verifications?.[item.key]);
-            return (
-              <ChecklistChip
-                key={item.key}
-                label={item.label}
-                checked={checked}
-                onClick={() => handleToggleClick(item.key)}
-              />
-            );
-          })}
-        </div>
+      <div>
+        <div className="craftsman-detail__section-title">{t('craftsmen_detail_verification')}</div>
+        {VERIFY_ITEMS.map((key) => {
+          const on = craftsman.verifications[key] === true;
+          return (
+            <div key={key} className="craftsman-verify-row">
+              <span>{t(`craftsmen_verify_${key}`)}</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={on}
+                aria-label={t(`craftsmen_verify_${key}`)}
+                disabled={toggling === key}
+                className={`billing-switch${on ? ' is-on' : ''}`}
+                onClick={() => void handleToggle(key, !on)}
+              >
+                <span className="billing-switch__track" aria-hidden="true" />
+              </button>
+            </div>
+          );
+        })}
       </div>
-
-      {/* 5. Actions Row */}
-      <div style={{ marginTop: 'auto', paddingTop: 'var(--sp-3)', borderTop: '1px solid var(--border-subtle)' }}>
-        <CraftsmanActions
-          craftsman={craftsman}
-          onSuspend={onSuspend}
-          onUnsuspend={onUnsuspend}
-          onBan={onBan}
-          onViewProfile={onViewProfile}
-        />
+      <div>
+        <div className="craftsman-detail__section-title">{t('craftsmen_detail_billing')}</div>
+        <CraftsmanBillingSection craftsman={craftsman} />
       </div>
-
-      {/* Toggle Verification ConfirmDialog */}
-      <ConfirmDialog
-        isOpen={Boolean(confirmKey)}
-        title={
-          confirmKey === 'nationalId' && craftsman.verifications?.nationalId
-            ? 'Revoke National ID Verification?'
-            : `Update ${confirmKey} Status?`
-        }
-        description={
-          confirmKey === 'nationalId' && craftsman.verifications?.nationalId
-            ? 'WARNING: Revoking National ID verification will flag this craftsman as unverified and notify the user.'
-            : `Are you sure you want to toggle the ${confirmKey} verification status for ${craftsman.name}?`
-        }
-        confirmLabel="Confirm Change"
-        confirmVariant={
-          confirmKey === 'nationalId' && craftsman.verifications?.nationalId ? 'danger' : 'primary'
-        }
-        isLoading={toggleLoading}
-        onConfirm={handleConfirmToggle}
-        onCancel={() => setConfirmKey(null)}
-      />
-    </Card>
+      <div>
+        <div className="craftsman-detail__section-title">{t('craftsmen_detail_actions')}</div>
+        <CraftsmanActions craftsman={craftsman} />
+      </div>
+    </div>
   );
 };
 

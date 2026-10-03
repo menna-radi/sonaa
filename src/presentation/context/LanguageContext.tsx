@@ -3745,6 +3745,261 @@ export const translations: TranslationDict = {
     en: 'Toggle navigation drawer',
     ar: 'تبديل درج التنقل',
     he: 'החלף מגירת ניווט'
+  },
+  status_online: {
+    en: 'Online',
+    ar: 'متصل',
+    he: 'מחובר'
+  },
+  status_offline: {
+    en: 'Offline',
+    ar: 'غير متصل',
+    he: 'מנותק'
+  },
+  status_busy: {
+    en: 'Busy',
+    ar: 'مشغول',
+    he: 'עסוק'
+  },
+  status_flagged: {
+    en: 'Flagged',
+    ar: 'مُبلغ عنه',
+    he: 'מסומן'
+  },
+  craftsmen_title: {
+    en: 'Craftsmen',
+    ar: 'الحرفيون',
+    he: 'בעלי מקצוע'
+  },
+  craftsmen_registered: {
+    en: 'craftsmen registered',
+    ar: 'حرفي مسجل',
+    he: 'בעלי מקצוע רשומים'
+  },
+  craftsmen_filter_all: {
+    en: 'All',
+    ar: 'الكل',
+    he: 'הכל'
+  },
+  craftsmen_filter_verified: {
+    en: 'Verified',
+    ar: 'موثقون',
+    he: 'מאומתים'
+  },
+  craftsmen_filter_pending: {
+    en: 'Pending',
+    ar: 'معلقون',
+    he: 'ממתין'
+  },
+  craftsmen_filter_suspended: {
+    en: 'Suspended',
+    ar: 'موقوفون',
+    he: 'מושהים'
+  },
+  craftsmen_search_ph: {
+    en: 'Search name, trade or phone…',
+    ar: 'ابحث بالاسم أو المهنة أو الهاتف…',
+    he: 'חפש שם, מקצוע או טלפון…'
+  },
+  craftsmen_col_craftsman: {
+    en: 'Craftsman',
+    ar: 'الحرفي',
+    he: 'בעל מקצוע'
+  },
+  craftsmen_col_rating: {
+    en: 'Rating',
+    ar: 'التقييم',
+    he: 'דירוג'
+  },
+  craftsmen_col_jobs: {
+    en: 'Jobs',
+    ar: 'المهام',
+    he: 'משימות'
+  },
+  craftsmen_col_billing: {
+    en: 'Billing',
+    ar: 'الفوترة',
+    he: 'חיוב'
+  },
+  craftsmen_col_status: {
+    en: 'Status',
+    ar: 'الحالة',
+    he: 'סטטוס'
+  },
+  craftsmen_col_joined: {
+    en: 'Joined',
+    ar: 'تاريخ الانضمام',
+    he: 'הצטרף'
+  },
+  craftsmen_jobs_done: {
+    en: 'jobs done',
+    ar: 'مهمة منجزة',
+    he: 'משימות בוצעו'
+  },
+  craftsmen_free_short: {
+    en: 'Free',
+    ar: 'مجاني',
+    he: 'חינם'
+  },
+  empty_craftsmen: {
+    en: 'No craftsmen found',
+    ar: 'لا يوجد حرفيون',
+    he: 'לא נמצאו בעלי מקצוע'
+  },
+  craftsmen_suspended_notice: {
+    en: 'Server counts differ — suspended rows are filtered locally.',
+    ar: 'تختلف أعداد الخادم — تتم تصفية الصفوف الموقوفة محليًا.',
+    he: 'ספירות השרת שונות — שורות מושהות מסוננות מקומית.'
+  },
+  craftsmen_detail_profile: {
+    en: 'Profile',
+    ar: 'الملف',
+    he: 'פרופיל'
+  },
+  craftsmen_detail_verification: {
+    en: 'Verification',
+    ar: 'التحقق',
+    he: 'אימות'
+  },
+  craftsmen_detail_billing: {
+    en: 'Billing',
+    ar: 'الفوترة',
+    he: 'חיוב'
+  },
+  craftsmen_detail_actions: {
+    en: 'Account actions',
+    ar: 'إجراءات الحساب',
+    he: 'פעולות חשבון'
+  },
+  craftsmen_verify_nationalId: {
+    en: 'National ID',
+    ar: 'الهوية الوطنية',
+    he: 'תעודת זהות'
+  },
+  craftsmen_verify_selfieMatch: {
+    en: 'Selfie match',
+    ar: 'مطابقة السيلفي',
+    he: 'התאמת סלפי'
+  },
+  craftsmen_verify_tradeLicense: {
+    en: 'Trade license',
+    ar: 'الرخصة المهنية',
+    he: 'רישיון מקצוע'
+  },
+  craftsmen_verify_bankIban: {
+    en: 'Bank IBAN',
+    ar: 'الآيبان البنكي',
+    he: 'IBAN בנק'
+  },
+  craftsmen_verify_backgroundCheck: {
+    en: 'Background check',
+    ar: 'الفحص الأمني',
+    he: 'בדיקת רקע'
+  },
+  craftsmen_verify_insurance: {
+    en: 'Insurance',
+    ar: 'التأمين',
+    he: 'ביטוח'
+  },
+  craftsmen_verify_title: {
+    en: 'Change verification?',
+    ar: 'تغيير التحقق؟',
+    he: 'לשנות אימות?'
+  },
+  craftsmen_verify_grant_body: {
+    en: 'This grants the verification badge.',
+    ar: 'سيمنح هذا شارة التحقق.',
+    he: 'זה יעניק תג אימות.'
+  },
+  craftsmen_verify_revoke_body: {
+    en: 'This revokes the verification badge.',
+    ar: 'سيسحب هذا شارة التحقق.',
+    he: 'זה ישלול תג אימות.'
+  },
+  craftsmen_billing_free: {
+    en: 'Free tasks',
+    ar: 'المهام المجانية',
+    he: 'משימות חינם'
+  },
+  craftsmen_billing_model: {
+    en: 'Billing model',
+    ar: 'نموذج الفوترة',
+    he: 'מודל חיוב'
+  },
+  craftsmen_billing_expiry: {
+    en: 'Subscription expires',
+    ar: 'انتهاء الاشتراك',
+    he: 'המנוי פג'
+  },
+  craftsmen_billing_lock: {
+    en: 'Commission lock',
+    ar: 'قفل العمولة',
+    he: 'נעילת עמלה'
+  },
+  craftsmen_grant_free: {
+    en: 'Grant free tasks',
+    ar: 'منح مهام مجانية',
+    he: 'הענק משימות חינם'
+  },
+  craftsmen_extend: {
+    en: 'Extend subscription',
+    ar: 'تمديد الاشتراك',
+    he: 'הארך מנוי'
+  },
+  craftsmen_open_billing: {
+    en: 'Open in Billing',
+    ar: 'فتح في الفوترة',
+    he: 'פתח בחיוב'
+  },
+  craftsmen_suspend: {
+    en: 'Suspend',
+    ar: 'إيقاف',
+    he: 'השהה'
+  },
+  craftsmen_unsuspend: {
+    en: 'Unsuspend',
+    ar: 'إلغاء الإيقاف',
+    he: 'בטל השהיה'
+  },
+  craftsmen_ban: {
+    en: 'Ban',
+    ar: 'حظر',
+    he: 'חסום'
+  },
+  craftsmen_suspend_title: {
+    en: 'Suspend this craftsman?',
+    ar: 'إيقاف هذا الحرفي؟',
+    he: 'להשהות בעל מקצוע זה?'
+  },
+  craftsmen_suspend_body: {
+    en: 'The craftsman cannot accept new tasks until reactivated.',
+    ar: 'لن يتمكن الحرفي من قبول مهام جديدة حتى إعادة التفعيل.',
+    he: 'בעל המקצוע לא יוכל לקבל משימות חדשות עד להפעלה מחדש.'
+  },
+  craftsmen_unsuspend_title: {
+    en: 'Reactivate this craftsman?',
+    ar: 'إعادة تفعيل هذا الحرفي؟',
+    he: 'להפעיל מחדש בעל מקצוע זה?'
+  },
+  craftsmen_unsuspend_body: {
+    en: 'The craftsman can accept new tasks again.',
+    ar: 'يمكن للحرفي قبول مهام جديدة مرة أخرى.',
+    he: 'בעל המקצוע יוכל לקבל משימות חדשות שוב.'
+  },
+  craftsmen_ban_title: {
+    en: 'Ban this craftsman?',
+    ar: 'حظر هذا الحرفي؟',
+    he: 'לחסום בעל מקצוע זה?'
+  },
+  craftsmen_ban_body: {
+    en: 'Banning blocks the account permanently. Type BAN to confirm.',
+    ar: 'الحظر يمنع الحساب نهائيًا. اكتب BAN للتأكيد.',
+    he: 'חסימה חוסמת את החשבון לצמיתות. הקלד BAN לאישור.'
+  },
+  craftsmen_ban_confirm_ph: {
+    en: 'Type BAN to confirm',
+    ar: 'اكتب BAN للتأكيد',
+    he: 'הקלד BAN לאישור'
   }
 };
 

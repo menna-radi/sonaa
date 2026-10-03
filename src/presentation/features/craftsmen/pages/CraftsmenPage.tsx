@@ -1,161 +1,90 @@
 import React, { useState } from 'react';
-import { useCraftsmen, type Craftsman } from '../hooks/useCraftsmen';
-import { PageHeader, Button, Drawer, AlertBanner, useBreakpoint } from '../../../components/ui';
+import { useCraftsmen } from '../hooks/useCraftsmen';
+import type { CraftsmanStatusFilter } from '../../../../domain/repositories/CraftsmanRepository';
+import { useLanguage } from '../../../context/LanguageContext';
+import { useBreakpoint } from '../../../components/ui/useBreakpoint';
+import { PageHeader, Button, AlertBanner, Drawer, SearchInput, Segmented, Skeleton } from '../../../components/ui';
+import { formatNumber, formatRelativeTime } from '../../../../core/utils/format';
 import { CraftsmenTable } from '../components/CraftsmenTable';
 import { CraftsmanDetailPanel } from '../components/CraftsmanDetailPanel';
-import { Download, SlidersHorizontal, AlertTriangle } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import '../craftsmen.css';
+
+const FILTERS: CraftsmanStatusFilter[] = ['all', 'verified', 'pending', 'suspended'];
 
 export const CraftsmenPage: React.FC = () => {
-  const {
-    craftsmen,
-    loading,
-    error,
-    searchQuery,
-    setSearchQuery,
-    activeTab,
-    setActiveTab,
-    selectedId,
-    setSelectedId,
-    selectedCraftsman,
-    tabCounts,
-    suspendCraftsman,
-    unsuspendCraftsman,
-    banCraftsman,
-    approveVerification,
-  } = useCraftsmen();
-
-  const { isMobile, isTablet } = useBreakpoint();
+  const { t, language } = useLanguage();
+  const { isMobile } = useBreakpoint();
+  const q = useCraftsmen();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleSelect = (c: Craftsman) => {
-    setSelectedId(c.id);
-    if (isMobile || isTablet) {
-      setDrawerOpen(true);
-    }
+  const handleSelect = (c: { id: string }) => {
+    q.setSelectedId(c.id);
+    setDrawerOpen(true);
   };
 
-  const handleExport = () => {
-    let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
-    csvContent += 'Name,Trade,Rating,Jobs,TrustScore,Status\n';
-    craftsmen.forEach((c) => {
-      csvContent += `"${c.name}","${c.trade}","${c.rating}","${c.jobsCount}","${c.trustScore}","${c.status}"\n`;
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `sonaa_craftsmen_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const selected = q.rows.find((c) => c.id === q.selectedId) ?? null;
 
   return (
-    <div
-      className="craftsmen-page"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--sp-4)',
-        width: '100%',
-        minHeight: '100%',
-      }}
-    >
+    <div className="ui-page">
       <PageHeader
-        title="Craftsmen Management"
-        subtitle={`${tabCounts.all} craftsmen registered`}
+        title={t('craftsmen_title')}
+        subtitle={`${formatNumber(q.total, language)} ${t('craftsmen_registered')}`}
+        meta={q.dataUpdatedAt ? `${t('updated')} ${formatRelativeTime(q.dataUpdatedAt, language)}` : undefined}
         actions={
-          <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
-            <Button
-              variant="outline"
-              size="sm"
-              iconLeading={<SlidersHorizontal size={14} />}
-              onClick={() => {}}
-            >
-              Filters
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              iconLeading={<Download size={14} />}
-              onClick={handleExport}
-            >
-              Export
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<RefreshCw size={14} />}
+            loading={q.isFetching}
+            onClick={() => q.refetch()}
+          >
+            {t('btn_refresh')}
+          </Button>
         }
       />
-
-      {error && (
-        <AlertBanner
-          title="Craftsmen Data Error"
-          body={error.message}
-          icon={<AlertTriangle size={18} />}
+      {q.suspendedMismatch && (
+        <AlertBanner tone="info" title={t('craftsmen_suspended_notice')} />
+      )}
+      <div className="ui-toolbar">
+        <Segmented
+          value={q.tab}
+          onChange={(v) => q.setTab(v as CraftsmanStatusFilter)}
+          items={FILTERS.map((f) => ({
+            value: f,
+            label: t(`craftsmen_filter_${f}`),
+            count: q.counts[f],
+            tone: f === 'suspended' ? ('danger' as const) : undefined,
+          }))}
+        />
+        <div className="ui-toolbar__grow">
+          <SearchInput value={q.search} onChange={q.setSearch} placeholder={t('craftsmen_search_ph')} />
+        </div>
+      </div>
+      {q.loading ? (
+        <Skeleton variant="card" height={320} />
+      ) : (
+        <CraftsmenTable
+          rows={q.rows}
+          total={q.total}
+          loading={false}
+          error={q.error}
+          onRetry={() => q.refetch()}
+          page={q.page}
+          onPageChange={q.setPage}
+          selectedId={q.selectedId}
+          onSelect={handleSelect}
         />
       )}
-
-      {/* Main 2-Column Responsive Layout */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile || isTablet ? '1fr' : '1fr 400px',
-          gap: 'var(--sp-4)',
-          alignItems: 'start',
-          flex: 1,
-        }}
+      <Drawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={selected?.name ?? t('craftsmen_title')}
+        subtitle={selected?.trade}
+        size={isMobile ? 'lg' : 'md'}
       >
-        <div style={{ minWidth: 0, height: isMobile || isTablet ? 'auto' : 'calc(100vh - 180px)' }}>
-          <CraftsmenTable
-            craftsmen={craftsmen}
-            loading={loading}
-            selectedId={selectedId}
-            onSelect={handleSelect}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            tabCounts={tabCounts}
-          />
-        </div>
-
-        {/* Desktop Sticky Detail Panel */}
-        {!isMobile && !isTablet && (
-          <div
-            style={{
-              position: 'sticky',
-              top: 'var(--sp-4)',
-              maxHeight: 'calc(100vh - 180px)',
-              overflowY: 'auto',
-            }}
-          >
-            <CraftsmanDetailPanel
-              craftsman={selectedCraftsman}
-              onSuspend={suspendCraftsman}
-              onUnsuspend={unsuspendCraftsman}
-              onBan={banCraftsman}
-              onToggleVerification={approveVerification}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Tablet & Mobile Detail Drawer */}
-      {(isMobile || isTablet) && (
-        <Drawer
-          isOpen={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          title={selectedCraftsman ? selectedCraftsman.name : 'Craftsman Details'}
-          showBackOnMobile
-          width={isMobile ? '100%' : 440}
-        >
-          <CraftsmanDetailPanel
-            craftsman={selectedCraftsman}
-            onSuspend={suspendCraftsman}
-            onUnsuspend={unsuspendCraftsman}
-            onBan={banCraftsman}
-            onToggleVerification={approveVerification}
-          />
-        </Drawer>
-      )}
+        <CraftsmanDetailPanel craftsman={selected} />
+      </Drawer>
     </div>
   );
 };

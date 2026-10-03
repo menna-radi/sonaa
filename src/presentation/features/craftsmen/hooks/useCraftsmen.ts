@@ -9,6 +9,8 @@ import { unwrap } from '../../../../core/query/unwrap';
 import { useAdminMutation } from '../../../../core/query/useAdminMutation';
 
 const LIMIT = 20;
+/** Server page size, shared with the table pagination math. */
+export const CRAFTSMEN_PAGE_SIZE = LIMIT;
 
 function readInitialSearch(): string {
   try {

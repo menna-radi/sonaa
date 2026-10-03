@@ -1,7 +1,8 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useRef } from 'react';
 import { Modal } from './Modal';
 import { Button, ButtonVariant } from './Button';
-import { TextArea } from './FormFields';
+import { TextArea, TextField } from './FormFields';
 
 export interface ConfirmOptions {
   title: string;
@@ -11,6 +12,9 @@ export interface ConfirmOptions {
   cancelLabel?: string;
   requireReason?: boolean;
   reasonPlaceholder?: string;
+  /** When set, the confirm button stays disabled until this exact text is typed. */
+  confirmText?: string;
+  confirmTextPlaceholder?: string;
 }
 
 export interface ConfirmResult {
@@ -30,6 +34,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [options, setOptions] = useState<ConfirmOptions>({ title: '', body: '' });
   const [reason, setReason] = useState('');
   const [reasonError, setReasonError] = useState('');
+  const [typedText, setTypedText] = useState('');
 
   const resolverRef = useRef<((value: ConfirmResult) => void) | null>(null);
 
@@ -37,6 +42,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setOptions(opts);
     setReason('');
     setReasonError('');
+    setTypedText('');
     setIsOpen(true);
 
     return new Promise<ConfirmResult>((resolve) => {
@@ -49,11 +55,14 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return result.confirmed;
   };
 
+  const confirmBlocked = !!options.confirmText && typedText !== options.confirmText;
+
   const handleConfirm = () => {
     if (options.requireReason && !reason.trim()) {
       setReasonError('Please provide a reason before proceeding.');
       return;
     }
+    if (confirmBlocked) return;
     setIsOpen(false);
     resolverRef.current?.({ confirmed: true, reason: reason.trim() });
   };
@@ -82,7 +91,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
             <Button variant="outline" onClick={handleCancel}>
               {options.cancelLabel || 'Cancel'}
             </Button>
-            <Button variant={getConfirmButtonVariant()} onClick={handleConfirm}>
+            <Button variant={getConfirmButtonVariant()} onClick={handleConfirm} disabled={confirmBlocked}>
               {options.confirmLabel || 'Confirm'}
             </Button>
           </>
@@ -92,6 +101,15 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
           <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-body)', lineHeight: 1.5 }}>
             {options.body}
           </div>
+
+          {options.confirmText && (
+            <TextField
+              label={options.confirmTextPlaceholder || `Type ${options.confirmText} to confirm`}
+              value={typedText}
+              onChange={(e) => setTypedText(e.target.value)}
+              dir="ltr"
+            />
+          )}
 
           {options.requireReason && (
             <TextArea
