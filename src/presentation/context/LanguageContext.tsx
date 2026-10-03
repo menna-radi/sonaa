@@ -1746,10 +1746,115 @@ export const translations: TranslationDict = {
     ar: 'الوثائق',
     he: 'מסמכים'
   },
+  btn_close: {
+    en: 'Close',
+    ar: 'إغلاق',
+    he: 'סגור'
+  },
+  tasks_title_label: {
+    en: 'Task',
+    ar: 'المهمة',
+    he: 'משימה'
+  },
+  common_anonymous: {
+    en: 'Anonymous',
+    ar: 'مجهول',
+    he: 'אנונימי'
+  },
   reports_title: {
-    en: 'Reports & Moderation',
-    ar: 'التقارير والإشراف',
-    he: 'דוחות ופיקוח'
+    en: 'Reports & Safety',
+    ar: 'البلاغات والسلامة',
+    he: 'דיווחים ובטיחות'
+  },
+  report_cat_inappropriate_conduct: {
+    en: 'Inappropriate conduct',
+    ar: 'سلوك غير لائق',
+    he: 'התנהגות בלתי הולמת'
+  },
+  report_cat_vehicle_safety: {
+    en: 'Vehicle safety',
+    ar: 'سلامة المركبة',
+    he: 'בטיחות רכב'
+  },
+  report_cat_verbal_abuse: {
+    en: 'Verbal abuse',
+    ar: 'إساءة لفظية',
+    he: 'התעללות מילולית'
+  },
+  report_cat_theft: {
+    en: 'Theft',
+    ar: 'سرقة',
+    he: 'גניבה'
+  },
+  report_cat_property_damage: {
+    en: 'Property damage',
+    ar: 'أضرار في الممتلكات',
+    he: 'נזק לרכוש'
+  },
+  report_cat_other: {
+    en: 'Other',
+    ar: 'أخرى',
+    he: 'אחר'
+  },
+  reports_kpi_pending: {
+    en: 'Pending',
+    ar: 'قيد الانتظار',
+    he: 'ממתין'
+  },
+  reports_kpi_investigating: {
+    en: 'Investigating',
+    ar: 'قيد التحقيق',
+    he: 'בחקירה'
+  },
+  reports_kpi_resolved: {
+    en: 'Resolved',
+    ar: 'تم الحل',
+    he: 'נפתר'
+  },
+  reports_kpi_dismissed: {
+    en: 'Dismissed',
+    ar: 'تم الإغلاق',
+    he: 'נדחה'
+  },
+  reports_linked_order: {
+    en: 'Linked Task',
+    ar: 'المهمة المرتبطة',
+    he: 'משימה מקושרת'
+  },
+  reports_open_task: {
+    en: 'Open Task',
+    ar: 'فتح المهمة',
+    he: 'פתח משימה'
+  },
+  reports_no_task: {
+    en: 'No task linked',
+    ar: 'لا توجد مهمة مرتبطة',
+    he: 'אין משימה מקושרת'
+  },
+  reports_empty_title: {
+    en: 'No reports found',
+    ar: 'لا توجد بلاغات',
+    he: 'לא נמצאו דיווחים'
+  },
+  reports_empty_desc: {
+    en: 'Everything looks safe and sound.',
+    ar: 'لا توجد بلاغات في هذه الفئة.',
+    he: 'הכל נראה תקין ומוגן.'
+  },
+  reports_confirm_ban_title: {
+    en: 'Ban suspect?',
+    ar: 'حظر المشتبه به؟',
+    he: 'לחסום חשוד?'
+  },
+  reports_confirm_ban_body: {
+    en: 'Are you sure you want to permanently ban this suspect from the platform?',
+    ar: 'هل أنت متأكد من رغبتك في حظر هذا المشتبه به نهائياً من المنصة؟',
+    he: 'האם אתה בטוח שברצונך לחסום חשוד זה לצמיתות מהפלטפורמה?'
+  },
+  toast_report_moderated: {
+    en: 'Report updated successfully',
+    ar: 'تم تحديث البلاغ بنجاح',
+    he: 'הדיווח עודכן בהצלחה'
   },
   reports_subtitle: {
     en: 'AI-flagged risk · user reports · safety management',
