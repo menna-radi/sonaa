@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, X } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface SearchInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -15,10 +16,11 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   onChange,
   onClear,
   kbdShortcut,
-  placeholder = 'Search...',
+  placeholder,
   className = '',
   ...props
 }) => {
+  const { t } = useLanguage();
   return (
     <div className={`ui-search-input ${className}`}>
       <Search size={16} color="var(--text-muted)" />
@@ -26,7 +28,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder || t('search_ph_default') || 'Search...'}
         {...props}
       />
       {value ? (
@@ -36,7 +38,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
             onChange('');
             onClear?.();
           }}
-          aria-label="Clear search"
+          aria-label={t('header_aria_clear') || 'Clear search'}
           style={{
             background: 'none',
             border: 'none',

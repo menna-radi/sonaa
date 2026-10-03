@@ -49,15 +49,17 @@ const StatusPill: React.FC = () => {
 };
 
 /** Logo lockup (tile + wordmark). */
-const BrandLockup: React.FC<{ compact?: boolean }> = ({ compact = false }) => (
-  <div className={`login-brand-lockup ${compact ? 'login-brand-lockup--compact' : ''}`}>
-    <div className={`login-brand-lockup__icon-box ${compact ? 'login-brand-lockup__icon-box--compact' : ''}`}>
-      <img
-        src="/arox-icon.svg"
-        alt="Arox Logo"
-        className={`login-brand-lockup__img ${compact ? 'login-brand-lockup__img--compact' : ''}`}
-      />
-    </div>
+const BrandLockup: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
+  const { t } = useLanguage();
+  return (
+    <div className={`login-brand-lockup ${compact ? 'login-brand-lockup--compact' : ''}`}>
+      <div className={`login-brand-lockup__icon-box ${compact ? 'login-brand-lockup__icon-box--compact' : ''}`}>
+        <img
+          src="/arox-icon.svg"
+          alt={t('brand_logo') || 'Arox Logo'}
+          className={`login-brand-lockup__img ${compact ? 'login-brand-lockup__img--compact' : ''}`}
+        />
+      </div>
     <div>
       <span className={`login-brand-lockup__title ${compact ? 'login-brand-lockup__title--compact' : ''}`}>
         AROX
@@ -67,7 +69,8 @@ const BrandLockup: React.FC<{ compact?: boolean }> = ({ compact = false }) => (
       </span>
     </div>
   </div>
-);
+  );
+};
 
 /** Capability checklist under the headline. */
 const FeatureList: React.FC = () => {

@@ -92,7 +92,7 @@ export const Composer: React.FC<ComposerProps> = ({
         <div className="ui-row" style={{ width: 'fit-content', padding: 'var(--sp-2)', background: 'var(--surface-sunken)', borderRadius: 'var(--radius-md)' }}>
           <img
             src={selectedImage}
-            alt="Preview"
+            alt={t('preview_image') || 'Preview'}
             style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 'var(--radius-sm)' }}
           />
           <IconButton

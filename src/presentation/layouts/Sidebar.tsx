@@ -13,7 +13,7 @@ export interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { isRtl } = useLanguage();
+  const { isRtl, t } = useLanguage();
   const { currentPage, navigate } = useNavigation();
   const { data: counts } = useSidebarCounts();
 
@@ -59,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       <aside
         className={`sidebar ${isOpen ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`}
-        aria-label="Sidebar navigation"
+        aria-label={t('nav_sidebar_aria') || 'Sidebar navigation'}
       >
         {/* Brand / Logo Header */}
         <div className="sidebar-header">
@@ -67,14 +67,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <div className="sidebar-brand__logo-box">
               <img
                 src="/arox-icon.svg"
-                alt="Arox Logo"
+                alt={t('brand_logo') || 'Arox Logo'}
                 className="sidebar-brand__logo"
               />
             </div>
             {!collapsed && (
               <div className="sidebar-brand__text">
                 <span className="sidebar-brand__title">AROX</span>
-                <span className="sidebar-brand__subtitle">Operations</span>
+                <span className="sidebar-brand__subtitle">{t('brand_operations') || 'Operations'}</span>
               </div>
             )}
           </div>

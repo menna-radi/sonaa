@@ -36,7 +36,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
   };
 
   return (
-    <nav className="ui-sidebar-nav" aria-label="Main Navigation">
+    <nav className="ui-sidebar-nav" aria-label={t('nav_main_aria') || 'Main Navigation'}>
       {NAV_SECTIONS.map((section) => (
         <div key={section.titleKey} className="ui-sidebar-section">
           {!collapsed && (
@@ -67,7 +67,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                   <Icon size={18} className="ui-sidebar-item__icon" />
                   {!collapsed && <span className="ui-sidebar-item__label">{label}</span>}
                   {item.live && (
-                    <span className="ui-sidebar-live" title="Live">
+                    <span className="ui-sidebar-live" title={t('badge_live') || 'Live'}>
                       <span className="ui-sidebar-live__dot" />
                     </span>
                   )}

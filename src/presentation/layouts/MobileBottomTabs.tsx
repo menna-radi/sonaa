@@ -40,7 +40,7 @@ export const MobileBottomTabs: React.FC<MobileBottomTabsProps> = ({ onOpenSideba
   ];
 
   return (
-    <nav className="mobile-bottom-tabs mtabs" aria-label="Mobile Navigation">
+    <nav className="mobile-bottom-tabs mtabs" aria-label={t('nav_mobile_aria') || 'Mobile Navigation'}>
       {tabItems.map((tab) => {
         const isActive = currentPage === tab.pageKey;
         return (

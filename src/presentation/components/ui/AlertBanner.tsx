@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { resolveMediaUrl } from '../../../core/utils/mediaUrl';
 import { IconButton } from './Button';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface ImageLightboxProps {
   isOpen: boolean;
@@ -15,8 +16,9 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
   isOpen,
   onClose,
   src,
-  alt = 'Preview image',
+  alt,
 }) => {
+  const { t } = useLanguage();
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -49,7 +51,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
         }}
       >
         <IconButton
-          aria-label="Close image lightbox"
+          aria-label={t('btn_close_lightbox')}
           icon={<X size={24} color="var(--n-0)" />}
           size="lg"
           onClick={onClose}
@@ -58,7 +60,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
 
       <img
         src={resolved}
-        alt={alt}
+        alt={alt || t('preview_image')}
         onClick={(e) => e.stopPropagation()}
         style={{
           maxWidth: '90vw',

@@ -16,18 +16,19 @@ import '../auth.css';
 
 /** Compact logo + wordmark used in the top bar (mobile/tablet). */
 const BrandMark: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'sm' }) => {
+  const { t } = useLanguage();
   const icon = size === 'sm' ? 20 : 24;
   return (
     <div className="login-brand-mark">
       <div className={`login-brand-mark__box login-brand-mark__box--${size}`}>
-        <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: `${icon}px`, height: `${icon}px` }} />
+        <img src="/arox-icon.svg" alt={t('brand_logo') || 'Arox Logo'} style={{ width: `${icon}px`, height: `${icon}px` }} />
       </div>
       <div style={{ minWidth: 0 }}>
         <span className="login-brand-mark__title">
-          AROX Admin
+          {t('brand_admin_title') || 'AROX Admin'}
         </span>
         <span className="login-brand-mark__subtitle">
-          Operations Portal
+          {t('brand_operations_portal') || 'Operations Portal'}
         </span>
       </div>
     </div>

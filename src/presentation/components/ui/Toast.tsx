@@ -1,6 +1,8 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -20,6 +22,7 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { t: translate } = useLanguage();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const removeToast = useCallback((id: string) => {
@@ -74,7 +77,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     alignItems: 'center',
                     padding: 0,
                   }}
-                  aria-label="Dismiss toast"
+                  aria-label={translate('toast_dismiss') || 'Dismiss toast'}
                 >
                   <X size={14} />
                 </button>

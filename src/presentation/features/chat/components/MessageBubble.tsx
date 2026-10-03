@@ -59,7 +59,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div className="chat-bubble__media" onClick={() => onImageClick?.(message.imageUrl!)}>
           <img
             src={message.imageUrl}
-            alt="Attachment"
+            alt={t('chat_attachment') || 'Attachment'}
             className="chat-bubble__img"
           />
           <div className="chat-bubble__zoom">

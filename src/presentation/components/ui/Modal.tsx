@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { IconButton } from './Button';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export const Modal: React.FC<ModalProps> = ({
   preventClose = false,
   className = '',
 }) => {
+  const { t } = useLanguage();
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export const Modal: React.FC<ModalProps> = ({
             <div className="ui-modal__title">{title}</div>
             {!preventClose && (
               <IconButton
-                aria-label="Close dialog"
+                aria-label={t('btn_close')}
                 icon={<X size={18} />}
                 size="sm"
                 onClick={onClose}

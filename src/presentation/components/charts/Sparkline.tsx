@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface SparklineProps {
   data: number[];
@@ -17,6 +18,7 @@ export const Sparkline: React.FC<SparklineProps> = ({
   strokeWidth = 1.5,
   className = '',
 }) => {
+  const { t } = useLanguage();
   if (!data || data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -38,7 +40,7 @@ export const Sparkline: React.FC<SparklineProps> = ({
   return (
     <svg
       role="img"
-      aria-label="Sparkline trend"
+      aria-label={t('chart_sparkline_trend')}
       width={width}
       height={height}
       className={className}

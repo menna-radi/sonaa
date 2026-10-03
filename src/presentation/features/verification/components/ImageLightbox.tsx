@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { IconButton } from '../../../components/ui';
+import { useLanguage } from '../../../context/LanguageContext';
 
 interface ImageLightboxProps {
   url: string | null;
@@ -8,7 +9,8 @@ interface ImageLightboxProps {
   title?: string;
 }
 
-export const ImageLightbox: React.FC<ImageLightboxProps> = ({ url, onClose, title = 'Document Preview' }) => {
+export const ImageLightbox: React.FC<ImageLightboxProps> = ({ url, onClose, title }) => {
+  const { t } = useLanguage();
   useEffect(() => {
     if (!url) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -63,7 +65,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ url, onClose, titl
         >
           <IconButton
             icon={<X size={18} />}
-            aria-label="Close image preview"
+            aria-label={t('btn_close_lightbox') || 'Close image preview'}
             onClick={onClose}
             variant="ghost"
             style={{

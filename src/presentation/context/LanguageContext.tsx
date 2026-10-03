@@ -5160,7 +5160,23 @@ export const translations: TranslationDict = {
   search_ph_create_ad: { en: 'Search templates or assets...', ar: 'بحث في القوالب أو الأصول...', he: 'חיפוש תבניות או נכסים...' },
   search_ph_service_management: { en: 'Search categories and services...', ar: 'بحث في التصنيفات والخدمات...', he: 'חיפוש קטגוריות ושירותים...' },
   search_ph_billing: { en: 'Search subscribers or receipts...', ar: 'بحث في المشتركين أو الإيصالات...', he: 'חיפוש מנויים או קבלות...' },
-  search_ph_users: { en: 'Search users by name, phone or email...', ar: 'بحث عن مستخدم بالاسم أو الهاتف أو البريد...', he: 'חיפוש משתמשים לפי שם, טלפון או דוא״ל...' }
+  search_ph_users: { en: 'Search users by name, phone or email...', ar: 'بحث عن مستخدم بالاسم أو الهاتف أو البريد...', he: 'חיפוש משתמשים לפי שם, טלפון או דוא״ל...' },
+
+  chart_sparkline_trend: { en: 'Sparkline trend', ar: 'اتجاه الخط البياني', he: 'מגמת תרשים קווי' },
+  preview_image: { en: 'Preview image', ar: 'معاينة الصورة', he: 'תצוגה מקדימה של תמונה' },
+  btn_close_lightbox: { en: 'Close image preview', ar: 'إغلاق معاينة الصورة', he: 'סגור תצוגה מקדימה של תמונה' },
+  btn_close_drawer: { en: 'Close drawer', ar: 'إغلاق اللوحة الجانبية', he: 'סגור חלונית' },
+  toast_dismiss: { en: 'Dismiss toast', ar: 'إغلاق الإشعار', he: 'סגור הודעה' },
+  verified_provider: { en: 'Verified Provider', ar: 'مزود خدمة موثق', he: 'נותן שירות מאומת' },
+  brand_logo: { en: 'Arox Logo', ar: 'شعار أروكس', he: 'לוגו Arox' },
+  brand_admin_title: { en: 'AROX Admin', ar: 'أروكس المشرف', he: 'ניהול AROX' },
+  brand_operations_portal: { en: 'Operations Portal', ar: 'بوابة العمليات', he: 'פורטל תפעול' },
+  chat_attachment: { en: 'Attachment', ar: 'مرفق', he: 'קובץ מצורף' },
+  nav_mobile_aria: { en: 'Mobile Navigation', ar: 'التنقل في الهاتف', he: 'ניווט נייד' },
+  nav_sidebar_aria: { en: 'Sidebar navigation', ar: 'التنقل في الشريط الجانبي', he: 'ניווט סרגל צד' },
+  brand_operations: { en: 'Operations', ar: 'العمليات', he: 'תפעול' },
+  nav_main_aria: { en: 'Main Navigation', ar: 'التنقل الرئيسي', he: 'ניווט ראשי' },
+  badge_live: { en: 'Live', ar: 'مباشر', he: 'חי' }
 };
 
 

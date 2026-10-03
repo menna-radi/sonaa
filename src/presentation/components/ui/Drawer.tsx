@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ArrowLeft } from 'lucide-react';
 import { IconButton, Button } from './Button';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface DrawerProps {
   isOpen: boolean;
@@ -26,10 +27,10 @@ export const Drawer: React.FC<DrawerProps> = ({
   footer,
   width,
   size = 'md',
-  position = 'right',
   showBackOnMobile = false,
   className = '',
 }) => {
+  const { t } = useLanguage();
   const resolvedWidth = width ?? (size === 'sm' ? 320 : size === 'lg' ? 600 : 440);
   useEffect(() => {
     if (!isOpen) return;
@@ -63,7 +64,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                 icon={<ArrowLeft size={18} className="ui-icon--directional" />}
                 onClick={onClose}
               >
-                Back
+                {t('btn_back') || 'Back'}
               </Button>
             )}
             <div>
@@ -76,7 +77,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             </div>
           </div>
           <IconButton
-            aria-label="Close drawer"
+            aria-label={t('btn_close_drawer') || 'Close drawer'}
             icon={<X size={18} />}
             size="sm"
             onClick={onClose}
