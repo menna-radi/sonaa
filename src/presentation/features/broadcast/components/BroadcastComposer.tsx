@@ -1,267 +1,203 @@
-import React from 'react';
-import { Send, Eye, Calendar, Clock, Smartphone, MessageSquare, Mail, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Send } from 'lucide-react';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
-import { TextField, TextArea, Select, Checkbox } from '../../../components/ui/FormFields';
+import { TextField, TextArea, Select } from '../../../components/ui/FormFields';
 import { Segmented } from '../../../components/ui/Segmented';
 import { useConfirm } from '../../../components/ui/ConfirmDialog';
 import { useToast } from '../../../components/ui/Toast';
 import { useLanguage } from '../../../context/LanguageContext';
+import { formatNumber } from '../../../../core/utils/format';
+import { fieldErrorsFrom } from '../../../../core/errors/errorMessage';
+import { validate, tError, type FieldErrors } from '../../../../domain/validation';
+import { broadcastSchema } from '../../../../domain/validation/ops';
+import type { Audience } from '../../../../domain/repositories/BroadcastRepository';
+import { useRecipientsEstimate, useSendBroadcast, type BroadcastDraft } from '../hooks/useBroadcast';
+import '../broadcast.css';
+
+const BODY_MAX = 500;
+const AUDIENCES: Audience[] = ['ALL', 'CUSTOMERS', 'CRAFTSMEN'];
 
 interface BroadcastComposerProps {
-  title: string;
-  setTitle: (val: string) => void;
-  message: string;
-  setMessage: (val: string) => void;
-  imageUrl: string;
-  setImageUrl: (val: string) => void;
-  deepLink: string;
-  setDeepLink: (val: string) => void;
-  targetCity: string;
-  setTargetCity: (val: string) => void;
-  channels: string[];
-  setChannels: (channels: string[]) => void;
-  audience: string;
-  setAudience: (val: string) => void;
-  schedule: string;
-  setSchedule: (val: string) => void;
-  date: string;
-  setDate: (val: string) => void;
-  time: string;
-  setTime: (val: string) => void;
-  audienceInfo?: { count: string | number; label: string; name?: string };
-  estSmsCost?: string;
-  onSendNow: () => Promise<boolean>;
-  onSaveDraft: () => Promise<boolean>;
+  draft: BroadcastDraft;
+  onChange: (patch: Partial<BroadcastDraft>) => void;
+  onReset: () => void;
 }
 
-export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({
-  title,
-  setTitle,
-  message,
-  setMessage,
-  imageUrl,
-  setImageUrl,
-  deepLink,
-  setDeepLink,
-  targetCity,
-  setTargetCity,
-  channels,
-  setChannels,
-  audience,
-  setAudience,
-  schedule,
-  setSchedule,
-  date,
-  setDate,
-  time,
-  setTime,
-  audienceInfo,
-  estSmsCost,
-  onSendNow,
-  onSaveDraft,
-}) => {
-  const { t } = useLanguage();
+export const BroadcastComposer: React.FC<BroadcastComposerProps> = ({ draft, onChange, onReset }) => {
+  const { t, language } = useLanguage();
   const confirm = useConfirm();
   const toast = useToast();
+  const send = useSendBroadcast();
+  const estimate = useRecipientsEstimate(draft.audience);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
-  const handleToggleChannel = (channel: string) => {
-    if (channels.includes(channel)) {
-      setChannels(channels.filter((c) => c !== channel));
-    } else {
-      setChannels([...channels, channel]);
-    }
-  };
+  const later = draft.schedule === 'later';
+  const cityEnabled = draft.audience === 'CRAFTSMEN';
+  const estimateLabel =
+    estimate.data === undefined ? null : t('broadcast_recipients_estimate').replace('{n}', formatNumber(estimate.data, language));
 
-  const handleSend = async () => {
-    if (!title.trim() || !message.trim()) {
-      toast.error('Please enter both a campaign title and notification message.');
-      return;
-    }
-
-    const count = audienceInfo?.count || 12450;
-    const ok = await confirm({
-      title: 'Dispatch Broadcast Notification?',
-      body: (
-        <div>
-          <p style={{ margin: '0 0 8px 0' }}>
-            You are about to dispatch this broadcast to approximately{' '}
-            <strong>{count.toLocaleString()} recipients</strong> across active channels:
-          </p>
-          <ul style={{ margin: 0, paddingInlineStart: 18, fontSize: 'var(--text-sm)' }}>
-            {channels.map((c) => (
-              <li key={c} style={{ textTransform: 'capitalize' }}>
-                {c.replace('_', ' ')}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ),
-      confirmLabel: 'Send Broadcast Now',
+  const edit = (patch: Partial<BroadcastDraft>) => {
+    onChange(patch);
+    setErrors((prev) => {
+      const next = { ...prev };
+      Object.keys(patch).forEach((k) => delete next[k]);
+      return next;
     });
-
-    if (!ok) return;
-
-    const success = await onSendNow();
-    if (success) {
-      toast.success('Broadcast notification dispatched successfully!');
-    } else {
-      toast.error('Failed to send broadcast.');
-    }
   };
 
-  const handleDraft = async () => {
-    if (!title.trim()) {
-      toast.error('Please enter a campaign title before saving as draft.');
+  const text =
+    (key: 'title' | 'body' | 'targetCity' | 'imageUrl' | 'deepLink' | 'scheduledAt') =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      edit({ [key]: e.target.value });
+
+  const submit = async () => {
+    const scheduledIso = later && draft.scheduledAt ? new Date(draft.scheduledAt).toISOString() : undefined;
+    if (later && !draft.scheduledAt) {
+      setErrors({ scheduledAt: 'val_required' });
       return;
     }
-    const success = await onSaveDraft();
-    if (success) {
-      toast.success('Campaign saved as draft.');
+    const r = validate(broadcastSchema, {
+      title: draft.title,
+      body: draft.body,
+      audience: draft.audience,
+      targetCity: cityEnabled ? draft.targetCity : undefined,
+      imageUrl: draft.imageUrl,
+      deepLink: draft.deepLink,
+      scheduledAt: scheduledIso,
+    });
+    if (!r.ok) {
+      setErrors(r.errors);
+      return;
     }
+    setErrors({});
+
+    if (!later) {
+      const ok = await confirm({
+        title: t('broadcast_confirm_title'),
+        body: estimateLabel ? `${t('broadcast_confirm_body')} ${estimateLabel}` : t('broadcast_confirm_body'),
+        confirmLabel: t('broadcast_send_now'),
+      });
+      if (!ok) return;
+    }
+
+    const { targetCity, imageUrl, deepLink, scheduledAt, ...rest } = r.data;
+    send.mutate(
+      {
+        ...rest,
+        targetCity: targetCity || undefined,
+        imageUrl: imageUrl || undefined,
+        deepLink: deepLink || undefined,
+        scheduledAt: scheduledAt || undefined,
+      },
+      {
+        onSuccess: (record) => {
+          toast.success(t(record.status === 'SCHEDULED' ? 'broadcast_toast_scheduled' : 'broadcast_toast_sent'));
+          setErrors({});
+          onReset();
+        },
+        onError: (e) => setErrors(fieldErrorsFrom(e)),
+      }
+    );
   };
+
+  const err = (key: string) => tError(t, errors[key]);
 
   return (
-    <Card
-      title={t('tab_compose') || 'Compose Broadcast Campaign'}
-      subtitle="Craft multi-channel message and configure audience segments"
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+    <Card title={t('broadcast_new_broadcast')} subtitle={t('broadcast_compose_subtitle')}>
+      <div className="ui-stack">
         <TextField
-          label="Campaign Title"
-          placeholder="e.g. Urgent Marketplace Maintenance Notice"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          id="broadcast-title"
+          label={t('broadcast_field_title')}
+          placeholder={t('broadcast_field_title_ph')}
+          value={draft.title}
+          onChange={text('title')}
+          error={err('title')}
           required
         />
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div className="ui-stack ui-stack--tight">
           <TextArea
-            label="Message Content"
-            placeholder="Type your message text here..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            id="broadcast-body"
+            label={t('broadcast_field_body')}
+            placeholder={t('broadcast_field_body_ph')}
+            value={draft.body}
+            onChange={text('body')}
+            error={err('body')}
             rows={4}
             required
           />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '11px', color: 'var(--on-surface-subtle)' }}>
-            {message.length} / 500 characters
-          </div>
+          <span className="bc-counter ui-num">
+            {draft.body.length} / {BODY_MAX}
+          </span>
         </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--sp-3)' }}>
-          <TextField
-            label="Banner Image URL (Optional)"
-            placeholder="https://images.unsplash.com/..."
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-          />
-
-          <TextField
-            label="Deep Link / Action Route (Optional)"
-            placeholder="/tasks/explore or /profile/verify"
-            value={deepLink}
-            onChange={(e) => setDeepLink(e.target.value)}
-          />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--sp-3)' }}>
+        <div className="ui-form-grid ui-form-grid--2">
           <Select
-            label="Target Audience"
-            value={audience}
-            onChange={(e) => setAudience(e.target.value)}
-            options={[
-              { value: 'all', label: 'All Users (Customers & Craftsmen)' },
-              { value: 'customers', label: 'Customers Only' },
-              { value: 'craftsmen', label: 'All Craftsmen' },
-              { value: 'verified_craftsmen', label: 'Verified Craftsmen Only' },
-            ]}
+            id="broadcast-audience"
+            label={t('broadcast_field_audience')}
+            value={draft.audience}
+            onChange={(e) => {
+              const audience = e.target.value as Audience;
+              edit({ audience, ...(audience === 'CRAFTSMEN' ? {} : { targetCity: '' }) });
+            }}
+            options={AUDIENCES.map((a) => ({ value: a, label: t(`broadcast_audience_${a.toLowerCase()}`) }))}
           />
-
-          <Select
-            label="Target District / Region"
-            value={targetCity}
-            onChange={(e) => setTargetCity(e.target.value)}
-            options={[
-              { value: 'All Jerusalem', label: 'All Jerusalem (القدس كاملة)' },
-              { value: 'Beit Hanina', label: 'Beit Hanina (بيت حنينا)' },
-              { value: 'Shuafat', label: 'Shuafat (شعفاط)' },
-              { value: 'Old City', label: 'Old City (البلدة القديمة)' },
-              { value: 'Silwan', label: 'Silwan (سلوان)' },
-              { value: 'At-Tur', label: 'At-Tur (الطور)' },
-            ]}
+          <TextField
+            id="broadcast-city"
+            label={t('broadcast_field_city')}
+            placeholder={t('broadcast_field_city_ph')}
+            value={draft.targetCity}
+            onChange={text('targetCity')}
+            error={err('targetCity')}
+            helperText={cityEnabled ? undefined : t('broadcast_city_craftsmen_only')}
+            disabled={!cityEnabled}
           />
         </div>
-
-        {/* Delivery Channels */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
-          <label style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--on-surface-subtle)' }}>
-            Delivery Channels:
-          </label>
-          <div style={{ display: 'flex', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>
-            <Checkbox
-              label="Push Notification (FCM / APNs)"
-              checked={channels.includes('push')}
-              onChange={() => handleToggleChannel('push')}
-            />
-            <Checkbox
-              label="In-App Banner"
-              checked={channels.includes('in_app')}
-              onChange={() => handleToggleChannel('in_app')}
-            />
-            <Checkbox
-              label="SMS Gateway"
-              checked={channels.includes('sms')}
-              onChange={() => handleToggleChannel('sms')}
-            />
-          </div>
-          {channels.includes('sms') && estSmsCost && (
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <AlertTriangle size={12} />
-              <span>Estimated SMS Gateway Cost: {estSmsCost}</span>
-            </div>
-          )}
+        {estimateLabel && <span className="bc-estimate">{estimateLabel}</span>}
+        <div className="ui-form-grid ui-form-grid--2">
+          <TextField
+            id="broadcast-image"
+            label={t('broadcast_field_image')}
+            placeholder="https://"
+            value={draft.imageUrl}
+            onChange={text('imageUrl')}
+            error={err('imageUrl')}
+            inputMode="url"
+            dir="ltr"
+          />
+          <TextField
+            id="broadcast-deeplink"
+            label={t('broadcast_field_deeplink')}
+            placeholder="/tasks"
+            value={draft.deepLink}
+            onChange={text('deepLink')}
+            error={err('deepLink')}
+            dir="ltr"
+          />
         </div>
-
-        {/* Schedule */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
-          <label style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--on-surface-subtle)' }}>
-            Schedule:
-          </label>
+        <div className="ui-stack ui-stack--tight">
+          <span className="ui-eyebrow">{t('broadcast_field_schedule')}</span>
           <Segmented
-            value={schedule}
-            onChange={setSchedule}
+            value={draft.schedule}
+            onChange={(v) => edit({ schedule: v === 'later' ? 'later' : 'now' })}
             items={[
-              { value: 'now', label: 'Send Immediately' },
-              { value: 'later', label: 'Schedule for Later' },
+              { value: 'now', label: t('broadcast_schedule_now') },
+              { value: 'later', label: t('broadcast_schedule_later') },
             ]}
           />
-
-          {schedule === 'later' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-3)', marginTop: 'var(--sp-2)' }}>
-              <TextField
-                label="Date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-              <TextField
-                label="Time"
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-              />
-            </div>
+          {later && (
+            <TextField
+              id="broadcast-scheduled-at"
+              type="datetime-local"
+              label={t('broadcast_field_scheduled_at')}
+              value={draft.scheduledAt}
+              onChange={text('scheduledAt')}
+              error={err('scheduledAt')}
+            />
           )}
         </div>
-
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'flex-end', marginTop: 'var(--sp-2)' }}>
-          <Button variant="outline" icon={<Eye size={14} />} onClick={handleDraft}>
-            Save Draft
-          </Button>
-          <Button variant="primary" icon={<Send size={14} />} onClick={handleSend}>
-            {schedule === 'later' ? 'Schedule Broadcast' : 'Send Broadcast Now'}
+        <div className="ui-row ui-row--end">
+          <Button variant="primary" icon={<Send size={14} />} loading={send.isPending} onClick={submit}>
+            {t(later ? 'broadcast_schedule_btn' : 'broadcast_send_now')}
           </Button>
         </div>
       </div>

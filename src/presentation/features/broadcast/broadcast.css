@@ -1,0 +1,19 @@
+/* Broadcast feature styles */
+.bc-side { display: flex; flex-direction: column; gap: var(--gap-grid); min-width: 0; }
+.bc-counter { align-self: flex-end; font-size: var(--fs-caption); color: var(--text-muted); }
+.bc-estimate { font-size: var(--fs-caption); color: var(--text-muted); }
+.bc-preview { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); }
+.bc-phone { width: 100%; max-width: 320px; padding: var(--sp-4); background: var(--surface-sunken); border: 2px solid var(--border-subtle); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); }
+.bc-phone__notch { width: 60px; height: 4px; margin: 0 auto var(--sp-4); background: var(--border-strong); border-radius: var(--radius-full); }
+.bc-notif { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3); background: var(--surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.bc-notif__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.bc-notif__app { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-caption); font-weight: 600; color: var(--text-strong); }
+.bc-notif__logo { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: var(--radius-sm); background: var(--primary); color: var(--on-primary); font-size: var(--fs-micro); font-weight: 700; }
+.bc-notif__time { font-size: var(--fs-micro); color: var(--text-faint); }
+.bc-notif__title { font-size: var(--fs-body); font-weight: 700; color: var(--text-strong); overflow-wrap: anywhere; }
+.bc-notif__body { margin-top: var(--sp-1); font-size: var(--fs-caption); color: var(--text-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.bc-notif__image { width: 100%; height: 120px; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); background: var(--surface-sunken); }
+.bc-notif__link { display: flex; align-items: center; gap: var(--sp-1); font-size: var(--fs-micro); font-weight: 600; color: var(--primary); overflow-wrap: anywhere; }
+.bc-preview__meta { display: flex; flex-direction: column; gap: var(--sp-1); font-size: var(--fs-caption); color: var(--text-muted); text-align: center; }
+.bc-cell { display: flex; flex-direction: column; min-width: 0; }
+.bc-mobile { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-base); }

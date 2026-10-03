@@ -1,48 +1,36 @@
-import { BroadcastRepository, CampaignRecord } from '../../domain/repositories/BroadcastRepository';
+import { BroadcastInput, BroadcastRepository, CampaignRecord } from '../../domain/repositories/BroadcastRepository';
 import { Result, ok } from '../../core/result/Result';
 
 export class MockBroadcastRepository implements BroadcastRepository {
   private campaigns: CampaignRecord[] = [
-    { id: 1, title: 'May surge alert · Plumbing', audience: 'Craftsmen · Riyadh', status: 'Sent', sendDate: 'May 28, 9:00 AM', recipients: '1,842', openRate: '68%' },
-    { id: 2, title: 'Pro+ upgrade · 30% off this week', audience: 'Pro Craftsmen', status: 'Sent', sendDate: 'May 26, 10:15 AM', recipients: '2,104', openRate: '54%' },
-    { id: 3, title: 'Welcome offer · 20% off first task', audience: 'New customers', status: 'Scheduled', sendDate: 'Jun 4, 9:00 AM', recipients: '8,421', openRate: '—' },
-    { id: 4, title: 'Weekly digest · Top earners', audience: 'All craftsmen', status: 'Scheduled', sendDate: 'Every Mon · Recurring', recipients: '6,847', openRate: '—' },
-    { id: 5, title: 'Eid Al-Adha greeting', audience: 'All users', status: 'Draft', sendDate: '—', recipients: '15,280', openRate: '—' },
+    { id: '1', title: 'May surge alert · Plumbing', body: 'Plumbing demand is up this week.', audience: 'CRAFTSMEN', targetCity: 'Jerusalem', status: 'SENT', at: '2026-05-28T09:00:00.000Z', recipients: 1842 },
+    { id: '2', title: 'Welcome offer · 20% off first task', body: 'Get 20% off your first task.', audience: 'CUSTOMERS', status: 'SENT', at: '2026-05-26T10:15:00.000Z', recipients: 8421 },
+    { id: '3', title: 'Weekly digest', body: 'Your weekly summary is ready.', audience: 'ALL', status: 'SCHEDULED', at: '2099-01-01T09:00:00.000Z', recipients: 0 },
   ];
 
   public async getBroadcasts(): Promise<Result<CampaignRecord[]>> {
     return ok(this.campaigns);
   }
 
-  public async sendBroadcast(
-    title: string,
-    _body: string,
-    targetAudience: 'ALL' | 'CUSTOMER' | 'CRAFTSMAN',
-    options?: {
-      targetCity?: string;
-      imageUrl?: string;
-      deepLink?: string;
-      scheduleTime?: string;
-    }
-  ): Promise<Result<CampaignRecord>> {
+  public async sendBroadcast(input: BroadcastInput): Promise<Result<CampaignRecord>> {
     const record: CampaignRecord = {
-      id: Date.now(),
-      title,
-      audience: targetAudience,
-      targetCity: options?.targetCity,
-      imageUrl: options?.imageUrl,
-      deepLink: options?.deepLink,
-      status: options?.scheduleTime ? 'Scheduled' : 'Sent',
-      sendDate: options?.scheduleTime ? new Date(options.scheduleTime).toLocaleString() : 'Just now',
-      recipients: '—',
-      openRate: '—',
+      id: String(Date.now()),
+      title: input.title,
+      body: input.body,
+      audience: input.audience,
+      targetCity: input.targetCity,
+      imageUrl: input.imageUrl,
+      deepLink: input.deepLink,
+      status: input.scheduledAt ? 'SCHEDULED' : 'SENT',
+      at: input.scheduledAt ?? new Date().toISOString(),
+      recipients: 0,
     };
     this.campaigns = [record, ...this.campaigns];
     return ok(record);
   }
 
-  public async deleteBroadcast(id: string | number): Promise<Result<boolean>> {
-    this.campaigns = this.campaigns.filter(c => c.id !== id);
+  public async deleteBroadcast(id: string): Promise<Result<boolean>> {
+    this.campaigns = this.campaigns.filter((c) => c.id !== id);
     return ok(true);
   }
 }
