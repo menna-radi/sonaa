@@ -1,0 +1,4 @@
+/* Offers & Banners feature styles (no inline layouts; runtime values stay inline). */
+.offer-card { min-width: 0; }
+.offer-card__media { margin-bottom: var(--sp-2); }
+.offer-card__title { font-weight: 700; color: var(--text-strong); font-size: var(--fs-body); }

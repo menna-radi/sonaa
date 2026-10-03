@@ -3150,6 +3150,246 @@ export const translations: TranslationDict = {
     en: 'Settings saved.',
     ar: 'تم حفظ الإعدادات.',
     he: 'ההגדרות נשמרו.'
+  },
+  offers_title: {
+    en: 'Offers & Banners',
+    ar: 'العروض والبانرات',
+    he: 'מבצעים ובאנרים'
+  },
+  offers_subtitle: {
+    en: 'Banners shown on the mobile home screen',
+    ar: 'البانرات المعروضة على الشاشة الرئيسية للتطبيق',
+    he: 'באנרים המוצגים במסך הבית של האפליקציה'
+  },
+  offers_new: {
+    en: 'New offer',
+    ar: 'عرض جديد',
+    he: 'מבצע חדש'
+  },
+  offers_edit: {
+    en: 'Edit offer',
+    ar: 'تعديل العرض',
+    he: 'ערוך מבצע'
+  },
+  offers_empty: {
+    en: 'No offers yet',
+    ar: 'لا توجد عروض بعد',
+    he: 'אין עדיין מבצעים'
+  },
+  offers_search_ph: {
+    en: 'Search offers…',
+    ar: 'ابحث في العروض…',
+    he: 'חפש מבצעים…'
+  },
+  offers_kpi_total: {
+    en: 'Total offers',
+    ar: 'إجمالي العروض',
+    he: 'סך מבצעים'
+  },
+  offers_kpi_active: {
+    en: 'Active now',
+    ar: 'نشطة الآن',
+    he: 'פעילים כעת'
+  },
+  offers_kpi_scheduled: {
+    en: 'Scheduled',
+    ar: 'مجدولة',
+    he: 'מתוזמן'
+  },
+  offers_kpi_ended: {
+    en: 'Ended',
+    ar: 'منتهية',
+    he: 'הסתיים'
+  },
+  offers_placement_filter_all: {
+    en: 'All placements',
+    ar: 'كل المواضع',
+    he: 'כל המיקומים'
+  },
+  offers_placement_filter_top: {
+    en: 'Home carousel',
+    ar: 'الواجهة الرئيسية',
+    he: 'קרוסלת בית'
+  },
+  offers_placement_filter_featured: {
+    en: 'Featured',
+    ar: 'مميزة',
+    he: 'נבחרים'
+  },
+  offers_state_filter_all: {
+    en: 'All states',
+    ar: 'كل الحالات',
+    he: 'כל המצבים'
+  },
+  offers_state_filter_active: {
+    en: 'Active',
+    ar: 'نشطة',
+    he: 'פעיל'
+  },
+  offers_state_filter_paused: {
+    en: 'Paused',
+    ar: 'متوقفة',
+    he: 'מושהה'
+  },
+  offers_state_filter_scheduled: {
+    en: 'Scheduled',
+    ar: 'مجدولة',
+    he: 'מתוזמן'
+  },
+  offers_state_filter_ended: {
+    en: 'Ended',
+    ar: 'منتهية',
+    he: 'הסתיים'
+  },
+  offers_field_title_en: {
+    en: 'Title (English)',
+    ar: 'العنوان (الإنجليزية)',
+    he: 'כותרת (אנגלית)'
+  },
+  offers_field_title_ar: {
+    en: 'Title (Arabic)',
+    ar: 'العنوان (العربية)',
+    he: 'כותרת (ערבית)'
+  },
+  offers_field_subtitle_en: {
+    en: 'Subtitle (English)',
+    ar: 'الوصف (الإنجليزية)',
+    he: 'תיאור (אנגלית)'
+  },
+  offers_field_subtitle_ar: {
+    en: 'Subtitle (Arabic)',
+    ar: 'الوصف (العربية)',
+    he: 'תיאור (ערבית)'
+  },
+  offers_field_button_en: {
+    en: 'Button text (English)',
+    ar: 'نص الزر (الإنجليزية)',
+    he: 'טקסט כפתור (אנגלית)'
+  },
+  offers_field_button_ar: {
+    en: 'Button text (Arabic)',
+    ar: 'نص الزر (العربية)',
+    he: 'טקסט כפתור (ערבית)'
+  },
+  offers_field_image: {
+    en: 'Image',
+    ar: 'الصورة',
+    he: 'תמונה'
+  },
+  offers_field_banner_type: {
+    en: 'Banner type',
+    ar: 'نوع البانر',
+    he: 'סוג באנר'
+  },
+  offers_field_placement: {
+    en: 'Placement',
+    ar: 'الموضع',
+    he: 'מיקום'
+  },
+  offers_field_opens: {
+    en: 'Opens',
+    ar: 'يفتح',
+    he: 'פותח'
+  },
+  offers_field_link: {
+    en: 'Link',
+    ar: 'الرابط',
+    he: 'קישור'
+  },
+  offers_field_starts: {
+    en: 'Starts',
+    ar: 'يبدأ',
+    he: 'מתחיל'
+  },
+  offers_field_ends: {
+    en: 'Ends',
+    ar: 'ينتهي',
+    he: 'מסתיים'
+  },
+  offers_opens_none: {
+    en: 'Nothing',
+    ar: 'لا شيء',
+    he: 'כלום'
+  },
+  offers_opens_url: {
+    en: 'Web link',
+    ar: 'رابط ويب',
+    he: 'קישור אינטרנט'
+  },
+  offers_placement_top: {
+    en: 'Top',
+    ar: 'الأعلى',
+    he: 'עליון'
+  },
+  offers_placement_featured: {
+    en: 'Featured',
+    ar: 'مميز',
+    he: 'נבחר'
+  },
+  offers_type_promo: {
+    en: 'Promo',
+    ar: 'ترويجي',
+    he: 'מבצע'
+  },
+  offers_type_sos: {
+    en: 'Emergency SOS',
+    ar: 'طوارئ SOS',
+    he: 'SOS חירום'
+  },
+  offers_sos_helper: {
+    en: 'SOS banners use a red tone and stay visible in emergencies.',
+    ar: 'بانرات الطوارئ تستخدم لونًا أحمر وتبقى ظاهرة في حالات الطوارئ.',
+    he: 'באנרי SOS משתמשים בגוון אדום ונשארים גלויים בחירום.'
+  },
+  offers_delete_title: {
+    en: 'Delete this offer?',
+    ar: 'حذف هذا العرض؟',
+    he: 'למחוק מבצע זה?'
+  },
+  offers_delete_body: {
+    en: 'The banner is removed from the app and its campaign is deleted too.',
+    ar: 'يُزال البانر من التطبيق وتُحذف حملته أيضًا.',
+    he: 'הבאנר יוסר מהאפליקציה והקמפיין שלו יימחק גם כן.'
+  },
+  offers_preview: {
+    en: 'Preview',
+    ar: 'معاينة',
+    he: 'תצוגה מקדימה'
+  },
+  offers_pause: {
+    en: 'Pause',
+    ar: 'إيقاف مؤقت',
+    he: 'השהה'
+  },
+  offers_resume: {
+    en: 'Resume',
+    ar: 'استئناف',
+    he: 'המשך'
+  },
+  offers_image_type: {
+    en: 'Image must be PNG, JPG or WebP.',
+    ar: 'يجب أن تكون الصورة PNG أو JPG أو WebP.',
+    he: 'התמונה חייבת להיות PNG, JPG או WebP.'
+  },
+  offers_image_too_big: {
+    en: 'Image must be 5 MB or smaller.',
+    ar: 'يجب أن تكون الصورة 5 ميغابايت أو أصغر.',
+    he: 'התמונה חייבת להיות 5 מ״ב או פחות.'
+  },
+  toast_offer_saved: {
+    en: 'Offer saved.',
+    ar: 'تم حفظ العرض.',
+    he: 'המבצע נשמר.'
+  },
+  toast_offer_deleted: {
+    en: 'Offer deleted.',
+    ar: 'تم حذف العرض.',
+    he: 'המבצע נמחק.'
+  },
+  toast_offer_toggled: {
+    en: 'Offer status updated.',
+    ar: 'تم تحديث حالة العرض.',
+    he: 'סטטוס המבצע עודכן.'
   }
 };
 
