@@ -5,6 +5,7 @@ import type { CommissionPayment } from '../../../../domain/entities/Billing';
 import { useCommissionLedger } from '../hooks/useBilling';
 import { CommissionPaymentsTable } from './CommissionPaymentsTable';
 import { CommissionPaymentDrawer } from './CommissionPaymentDrawer';
+import { LedgerTable } from './LedgerTable';
 
 type InnerSegment = 'receipts' | 'ledger';
 
@@ -45,7 +46,9 @@ export const CommissionTab: React.FC = () => {
       </div>
       {segment === 'receipts' || !ledgerSupported ? (
         <CommissionPaymentsTable initialSearch={initialSearch} onDetails={setSelected} />
-      ) : null}
+      ) : (
+        <LedgerTable />
+      )}
       <CommissionPaymentDrawer
         payment={selected}
         ledgerSupported={ledgerSupported}

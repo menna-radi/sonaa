@@ -2236,6 +2236,16 @@ export const translations: TranslationDict = {
     ar: 'مغلق',
     he: 'סגור'
   },
+  status_due: {
+    en: 'Due',
+    ar: 'مستحق',
+    he: 'לתשלום'
+  },
+  status_paid: {
+    en: 'Paid',
+    ar: 'مدفوع',
+    he: 'שולם'
+  },
   status_error_title: {
     en: 'Could not load data',
     ar: 'تعذر تحميل البيانات',
@@ -2650,6 +2660,51 @@ export const translations: TranslationDict = {
     en: 'Commission payment rejected.',
     ar: 'تم رفض دفعة العمولة.',
     he: 'תשלום העמלה נדחה.'
+  },
+  billing_ledger_filter_due: {
+    en: 'Due',
+    ar: 'مستحقة',
+    he: 'לתשלום'
+  },
+  billing_ledger_filter_paid: {
+    en: 'Paid',
+    ar: 'مدفوعة',
+    he: 'שולם'
+  },
+  billing_ledger_filter_all: {
+    en: 'All',
+    ar: 'الكل',
+    he: 'הכל'
+  },
+  billing_ledger_totals: {
+    en: 'Due / Paid',
+    ar: 'المستحق / المدفوع',
+    he: 'לתשלום / שולם'
+  },
+  billing_ledger_col_task: {
+    en: 'Task',
+    ar: 'المهمة',
+    he: 'משימה'
+  },
+  billing_ledger_col_rate: {
+    en: 'Rate',
+    ar: 'النسبة',
+    he: 'שיעור'
+  },
+  billing_ledger_col_created: {
+    en: 'Created',
+    ar: 'أُنشئ',
+    he: 'נוצר'
+  },
+  billing_ledger_col_paid: {
+    en: 'Paid at',
+    ar: 'تاريخ الدفع',
+    he: 'שולם ב'
+  },
+  empty_ledger: {
+    en: 'No ledger entries',
+    ar: 'لا توجد قيود',
+    he: 'אין רשומות'
   }
 };
 
