@@ -2335,6 +2335,46 @@ export const translations: TranslationDict = {
     en: 'Customers',
     ar: 'العملاء',
     he: 'לקוחות'
+  },
+  range_7d: {
+    en: '7D',
+    ar: '7 أيام',
+    he: '7 ימים'
+  },
+  range_30d: {
+    en: '30D',
+    ar: '30 يومًا',
+    he: '30 ימים'
+  },
+  range_90d: {
+    en: '90D',
+    ar: '90 يومًا',
+    he: '90 ימים'
+  },
+  overview_billing_title: {
+    en: 'Billing snapshot',
+    ar: 'لمحة عن الفوترة',
+    he: 'מצב חיובים'
+  },
+  billing_kpi_pending_receipts: {
+    en: 'Pending receipts',
+    ar: 'إيصالات معلقة',
+    he: 'קבלות ממתינות'
+  },
+  billing_kpi_commission_due: {
+    en: 'Commission due',
+    ar: 'العمولة المستحقة',
+    he: 'עמלה לתשלום'
+  },
+  billing_kpi_locked: {
+    en: 'Locked craftsmen',
+    ar: 'حرفيون مقفلون',
+    he: 'בעלי מקצוע נעולים'
+  },
+  payments_kpi_pending_withdrawals: {
+    en: 'Pending withdrawals',
+    ar: 'سحوبات معلقة',
+    he: 'משיכות ממתינות'
   }
 };
 

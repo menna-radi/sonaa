@@ -40,3 +40,7 @@
 
 /* Cohort chart wrapper */
 .ov-chart-wrap { flex: 1; padding-top: var(--sp-2); min-width: 0; }
+
+/* Clickable KPI cards (BillingSnapshot) */
+.ui-kpi-card--clickable { cursor: pointer; }
+.ui-kpi-card--clickable:focus-visible { outline: 2px solid var(--border-strong); outline-offset: 2px; }

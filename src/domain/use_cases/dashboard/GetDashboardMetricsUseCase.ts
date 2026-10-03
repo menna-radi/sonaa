@@ -1,4 +1,4 @@
-import { MetricRepository, CategoryVolume, PendingReport, VerificationSubmission, CohortData, RevenueAnalytics } from '../../repositories/MetricRepository';
+import { MetricRepository, CategoryVolume, PendingReport, VerificationSubmission, CohortData, RevenueAnalytics, DashboardRange } from '../../repositories/MetricRepository';
 import { Metric } from '../../entities/Metric';
 import { Result, ok, fail } from '../../../core/result/Result';
 import { AppError } from '../../../core/errors/AppError';
@@ -17,7 +17,7 @@ export interface DashboardDataSnapshot {
 export class GetDashboardMetricsUseCase {
   constructor(private readonly metricRepository: MetricRepository) {}
 
-  public async execute(): Promise<Result<DashboardDataSnapshot>> {
+  public async execute(range?: DashboardRange): Promise<Result<DashboardDataSnapshot>> {
     try {
       // Parallel resilient loading of all statistics using repository contracts
       const [
@@ -33,7 +33,7 @@ export class GetDashboardMetricsUseCase {
         this.metricRepository.getPendingReports(),
         this.metricRepository.getVerificationSubmissions(),
         this.metricRepository.getCohortData(),
-        this.metricRepository.getRevenueAnalytics()
+        this.metricRepository.getRevenueAnalytics(range)
       ]);
 
       const metrics = (metricsRes.status === 'fulfilled' && metricsRes.value.success) ? metricsRes.value.data : [];

@@ -43,6 +43,23 @@ export interface RevenuePoint {
   revenue: number;
 }
 
+export type DashboardRange = '7d' | '30d' | '90d';
+
+export interface RangeDeltas {
+  users: number | null;
+  tasks: number | null;
+  revenue: number | null;
+}
+
+export interface OverviewBilling {
+  pendingReceipts: number;
+  pendingCommissionPayments: number;
+  commissionDueTotal: number;
+  lockedCraftsmen: number;
+  activeSubscribers: number;
+  pendingWithdrawals: number;
+}
+
 /** Real revenue analytics from GET /admin/overview-stats → analytics. */
 export interface RevenueAnalytics {
   gmv: number;
@@ -50,6 +67,13 @@ export interface RevenueAnalytics {
   avgOrderValue: number;
   disputeRate: number;
   series: RevenuePoint[];
+  /** Echoed range (present only when the backend supports ranges, B09). */
+  range?: string;
+  /** Range-over-range % changes (present only with range support). */
+  deltas?: RangeDeltas | null;
+  /** Billing snapshot block (present only with B09/B10 support). */
+  billing?: OverviewBilling | null;
+  pendingDisputesCount?: number;
 }
 
 export interface CohortData {
@@ -66,5 +90,5 @@ export interface MetricRepository {
   getPendingReports(): Promise<Result<PendingReport[]>>;
   getVerificationSubmissions(): Promise<Result<VerificationSubmissions>>;
   getCohortData(): Promise<Result<CohortData[]>>;
-  getRevenueAnalytics(): Promise<Result<RevenueAnalytics>>;
+  getRevenueAnalytics(range?: DashboardRange): Promise<Result<RevenueAnalytics>>;
 }

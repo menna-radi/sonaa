@@ -6,6 +6,8 @@ import {
   VerificationSubmissions,
   CohortData,
   RevenueAnalytics,
+  DashboardRange,
+  OverviewBilling,
 } from '../../domain/repositories/MetricRepository';
 import { Metric } from '../../domain/entities/Metric';
 import { Result, ok, fail } from '../../core/result/Result';
@@ -64,12 +66,23 @@ interface RawChartPoint {
   revenue?: number;
 }
 
+interface RawBilling {
+  pendingReceipts?: number;
+  pendingCommissionPayments?: number;
+  commissionDueTotal?: number;
+  lockedCraftsmen?: number;
+  activeSubscribers?: number;
+  pendingWithdrawals?: number;
+}
+
 interface RawAnalytics {
+  range?: string;
   gmv?: number;
   takeRate?: number;
   avgOrderValue?: number;
   disputeRate?: number;
   chartData?: RawChartPoint[];
+  deltas?: { users?: number | null; tasks?: number | null; revenue?: number | null } | null;
 }
 
 const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
@@ -182,19 +195,46 @@ export class ApiMetricRepository implements MetricRepository {
     }
   }
 
-  public async getRevenueAnalytics(): Promise<Result<RevenueAnalytics>> {
+  public async getRevenueAnalytics(range?: DashboardRange): Promise<Result<RevenueAnalytics>> {
     try {
-      const response = await apiClient.get<{ analytics?: RawAnalytics }>(API_ENDPOINTS.admin.overviewStats);
+      const url = range ? `${API_ENDPOINTS.admin.overviewStats}?range=${range}` : API_ENDPOINTS.admin.overviewStats;
+      const response = await apiClient.get<{ analytics?: RawAnalytics; billing?: RawBilling; pendingDisputesCount?: number }>(url);
       const a = response.analytics || {};
       const series = Array.isArray(a.chartData)
-        ? a.chartData.map((p) => ({ date: String(p.date || ''), revenue: num(p.revenue) }))
+        ? a.chartData.map((p) => {
+            const rawDate = String(p.date || '');
+            // ISO dates (B09) parse to Date; legacy labels print as-is.
+            const date = /^\d{4}-\d{2}-\d{2}/.test(rawDate) ? new Date(rawDate).toISOString().slice(0, 10) : rawDate;
+            return { date, revenue: num(p.revenue) };
+          })
         : [];
+      const b = response.billing;
+      const billing: OverviewBilling | null = b
+        ? {
+            pendingReceipts: num(b.pendingReceipts),
+            pendingCommissionPayments: num(b.pendingCommissionPayments),
+            commissionDueTotal: num(b.commissionDueTotal),
+            lockedCraftsmen: num(b.lockedCraftsmen),
+            activeSubscribers: num(b.activeSubscribers),
+            pendingWithdrawals: num(b.pendingWithdrawals),
+          }
+        : null;
       return ok({
         gmv: num(a.gmv),
         takeRate: num(a.takeRate),
         avgOrderValue: num(a.avgOrderValue),
         disputeRate: num(a.disputeRate),
         series,
+        range: typeof a.range === 'string' ? a.range : undefined,
+        deltas: a.deltas
+          ? {
+              users: a.deltas.users ?? null,
+              tasks: a.deltas.tasks ?? null,
+              revenue: a.deltas.revenue ?? null,
+            }
+          : undefined,
+        billing,
+        pendingDisputesCount: typeof response.pendingDisputesCount === 'number' ? response.pendingDisputesCount : undefined,
       });
     } catch (error) {
       return fail(error as AppError);

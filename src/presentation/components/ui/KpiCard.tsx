@@ -11,6 +11,7 @@ export interface KpiCardProps {
   tone?: 'default' | 'danger';
   loading?: boolean;
   className?: string;
+  onClick?: () => void;
 }
 
 export const KpiCard: React.FC<KpiCardProps> = ({
@@ -22,6 +23,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   tone = 'default',
   loading = false,
   className = '',
+  onClick,
 }) => {
   if (loading) {
     return (
@@ -45,7 +47,22 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   const deltaArrow = delta != null ? (delta > 0 ? '▲ ' : delta < 0 ? '▼ ' : '') : '';
 
   return (
-    <div className={`ui-kpi-card ui-kpi-card--${tone} ${className}`}>
+    <div
+      className={`ui-kpi-card ui-kpi-card--${tone} ${className}${onClick ? ' ui-kpi-card--clickable' : ''}`}
+      {...(onClick
+        ? {
+            role: 'button' as const,
+            tabIndex: 0,
+            onClick,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            },
+          }
+        : {})}
+    >
       <div className="ui-kpi-card__top">
         {icon && <div className="ui-kpi-card__icon-box">{icon}</div>}
         {delta != null && (

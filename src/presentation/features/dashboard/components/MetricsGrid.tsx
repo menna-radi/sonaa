@@ -47,6 +47,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics, loading = fal
             icon={config.icon}
             label={t(config.labelKey) || (metric ? t(metric.nameKey) : id)}
             value={formattedValue}
+            delta={metric?.delta ?? null}
             caption={caption}
             tone={isEmergency ? 'danger' : 'default'}
             loading={loading}

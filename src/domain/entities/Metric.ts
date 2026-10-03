@@ -9,4 +9,6 @@ export interface Metric {
   history: number[];
   /** Live online count backing the craftsmen card caption (from overview-stats). */
   onlineCount?: number;
+  /** Range-over-range % change from analytics.deltas (null when unknown). */
+  delta?: number | null;
 }
