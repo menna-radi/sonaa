@@ -1,16 +1,32 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Submission, VerificationTab } from '../types';
-import { useDependencies } from '../../../../core/di/DependencyProvider';
+import React, { useState, useEffect } from 'react';
+import type { VerificationTab } from '../types';
 import {
   PageHeader,
   Button,
   Drawer,
   AlertBanner,
   EmptyState,
+  ErrorState,
   useToast,
   useBreakpoint,
   Skeleton,
 } from '../../../components/ui';
+import { useLanguage } from '../../../context/LanguageContext';
+import { errorMessage } from '../../../../core/errors/errorMessage';
+import { validate, tError } from '../../../../domain/validation';
+import { moderationNotesSchema } from '../../../../domain/validation/ops';
+import { formatNumber } from '../../../../core/utils/format';
+import {
+  useVerificationQueue,
+  useAutoVerification,
+  useModerateVerification,
+  isApproved,
+  isRejected,
+  isFlagged,
+  type QueueStatus,
+  type Decision,
+} from '../hooks/useVerificationQueue';
+import { tf } from '../utils';
 import { ReviewQueue } from '../components/ReviewQueue';
 import { SubmissionHeader } from '../components/SubmissionHeader';
 import { ReviewStepTabs } from '../components/ReviewStepTabs';
@@ -21,173 +37,163 @@ import { PortfolioStep } from '../components/PortfolioStep';
 import { ProfileInfoStep } from '../components/ProfileInfoStep';
 import { ReviewDecisionStep } from '../components/ReviewDecisionStep';
 import { ImageLightbox } from '../components/ImageLightbox';
-import { ShieldCheck, Users, HelpCircle } from 'lucide-react';
+import { ShieldCheck, Users, RefreshCw } from 'lucide-react';
+import '../verification.css';
+
+const EVIDENCE_INCOMPLETE = 'VERIFICATION_EVIDENCE_INCOMPLETE';
 
 export const VerificationPage: React.FC = () => {
-  const { dependencies } = useDependencies();
-  const { verificationRepository } = dependencies;
+  const { t, language } = useLanguage();
   const { success, error: toastError } = useToast();
   const { isMobile, isTablet } = useBreakpoint();
 
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedId, setSelectedId] = useState('');
   const [activeTab, setActiveTab] = useState<VerificationTab>('national_id');
-  const [queueFilter, setQueueFilter] = useState<'pending' | 'flagged' | 'approved' | 'all'>('pending');
-  const [autoVerify, setAutoVerify] = useState(true);
+  const [queueFilter, setQueueFilter] = useState<QueueStatus>('pending');
+  const [page, setPage] = useState(1);
   const [mobileView, setMobileView] = useState<'queue' | 'detail'>('queue');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [moderatorNotes, setModeratorNotes] = useState('');
+  const [notesError, setNotesError] = useState<string | undefined>();
   const [incompleteWarning, setIncompleteWarning] = useState<string | null>(null);
 
-  const isApproved = (s: Submission) => s.verificationStatus === 'APPROVED' || s.status === 'today' || Boolean(s.isVerifiedId);
-  const isRejected = (s: Submission) => s.verificationStatus === 'REJECTED';
-  const isFlagged = (s: Submission) => !isApproved(s) && !isRejected(s) && (s.verificationStatus === 'FLAGGED' || s.status === 'flagged');
-  const isPending = (s: Submission) => !isApproved(s) && !isRejected(s) && !isFlagged(s);
+  const queue = useVerificationQueue({ status: queueFilter, page });
+  const autoVerify = useAutoVerification().data ?? true;
+  const { items, counts, all } = queue;
+  const moderate = useModerateVerification();
 
-  const fetchQueue = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [queueRes, autoRes] = await Promise.all([
-        verificationRepository.getVerificationQueue(),
-        verificationRepository.getAutoVerification(),
-      ]);
-      if (queueRes.success) {
-        setSubmissions(queueRes.data);
-        if (queueRes.data.length > 0 && !selectedId) {
-          setSelectedId(queueRes.data[0].id);
-        }
-      }
-      if (autoRes.success) setAutoVerify(autoRes.data.enabled);
-    } catch (e: any) {
-      toastError(e.message || 'Failed to fetch verification queue');
-    } finally {
-      setLoading(false);
-    }
-  }, [verificationRepository, selectedId, toastError]);
+  const selected = all.find((s) => s.id === selectedId) || items[0];
+  const isSubmitting = moderate.isPending;
+  const desktop = !isMobile && !isTablet;
 
-  useEffect(() => { fetchQueue(); }, [fetchQueue]);
+  const changeFilter = (f: QueueStatus) => {
+    setQueueFilter(f);
+    setPage(1);
+  };
 
-  const filtered = useMemo(() => submissions.filter((s) => {
-    if (queueFilter === 'pending') return isPending(s);
-    if (queueFilter === 'flagged') return isFlagged(s);
-    if (queueFilter === 'approved') return isApproved(s);
-    return true;
-  }), [submissions, queueFilter]);
+  const handleNotesChange = (value: string) => {
+    setModeratorNotes(value);
+    setNotesError(undefined);
+  };
 
-  const counts = useMemo(() => ({
-    pending: submissions.filter(isPending).length,
-    flagged: submissions.filter(isFlagged).length,
-    approved: submissions.filter(isApproved).length,
-    all: submissions.length,
-  }), [submissions]);
-
-  const selected = submissions.find((s) => s.id === selectedId) || filtered[0];
-
-  const handleModerate = async (decision: 'APPROVED' | 'REJECTED' | 'FLAGGED', noteOverride?: string) => {
+  const handleModerate = (decision: Decision, noteOverride?: string) => {
     if (!selected || isSubmitting) return;
-    const noteToSend = noteOverride ?? moderatorNotes;
-    setIsSubmitting(true);
-    setIncompleteWarning(null);
-
-    try {
-      const res = await verificationRepository.moderateVerification(selected.id, decision, noteToSend);
-      if (res.success) {
-        success(`${selected.name} marked as ${decision.toLowerCase()}`);
-        setSubmissions((prev) => prev.map((s) => (s.id === selected.id ? { ...s, verificationStatus: decision, isVerifiedId: decision === 'APPROVED' } : s)));
-        setModeratorNotes('');
-        const remaining = filtered.filter((s) => s.id !== selected.id);
-        if (remaining.length > 0) setSelectedId(remaining[0].id);
-        if (isMobile) setMobileView('queue');
-        fetchQueue();
-      } else {
-        const msg = res.error?.message || '';
-        if (msg.includes('409') || msg.includes('ALREADY_DECIDED')) {
-          toastError('Already decided by another moderator');
-          fetchQueue();
-        } else if (msg.includes('INCOMPLETE')) {
-          setIncompleteWarning(msg);
-        } else {
-          toastError(msg || 'Failed to submit decision');
-        }
-      }
-    } catch (err: any) {
-      toastError(err.message || 'Failed to moderate verification');
-    } finally {
-      setIsSubmitting(false);
+    const notes = noteOverride ?? moderatorNotes;
+    const check = validate(moderationNotesSchema(decision !== 'APPROVED'), { notes });
+    if (!check.ok) {
+      setModeratorNotes(notes);
+      setNotesError(tError(t, check.errors.notes));
+      setActiveTab('review_decision');
+      return;
     }
+    setNotesError(undefined);
+    setIncompleteWarning(null);
+    const name = selected.name;
+    const next = items.find((s) => s.id !== selected.id);
+    moderate.mutate(
+      { id: selected.id, decision, notes },
+      {
+        onSuccess: () => {
+          const key = decision === 'APPROVED' ? 'vr_toast_approved' : decision === 'REJECTED' ? 'vr_toast_rejected' : 'vr_toast_flagged';
+          success(tf(t, key, { name }));
+          setModeratorNotes('');
+          if (next) setSelectedId(next.id);
+          if (isMobile) setMobileView('queue');
+        },
+        onError: (e) => {
+          const msg = errorMessage(e, t);
+          if ((e as { backendCode?: string }).backendCode === EVIDENCE_INCOMPLETE) setIncompleteWarning(msg);
+          else toastError(msg);
+        },
+      }
+    );
   };
 
   // Keyboard navigation on desktop
   useEffect(() => {
-    if (!selected || isMobile || isTablet) return;
+    if (!selected || !desktop) return;
     const handleKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA') return;
+      const idx = items.findIndex((s) => s.id === selected.id);
       if (e.key === 'j' || e.key === 'ArrowDown') {
-        const idx = filtered.findIndex((s) => s.id === selected.id);
-        if (idx < filtered.length - 1) setSelectedId(filtered[idx + 1].id);
+        if (idx < items.length - 1) setSelectedId(items[idx + 1].id);
       } else if (e.key === 'k' || e.key === 'ArrowUp') {
-        const idx = filtered.findIndex((s) => s.id === selected.id);
-        if (idx > 0) setSelectedId(filtered[idx - 1].id);
+        if (idx > 0) setSelectedId(items[idx - 1].id);
       } else if (e.key === 'a') handleModerate('APPROVED');
       else if (e.key === 'r') handleModerate('REJECTED');
       else if (e.key === 'f') handleModerate('FLAGGED');
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [selected, filtered, isMobile, isTablet]);
+  });
 
   const queueNode = (
     <ReviewQueue
-      submissions={filtered}
+      submissions={items}
       selectedId={selected?.id || ''}
       onSelect={(sub) => {
         setSelectedId(sub.id);
+        setNotesError(undefined);
         if (isMobile) setMobileView('detail');
         if (isTablet) setDrawerOpen(false);
       }}
       activeFilter={queueFilter}
-      onFilterChange={setQueueFilter}
+      onFilterChange={changeFilter}
       counts={counts}
+      page={page}
+      pageCount={queue.pageCount}
+      onPageChange={setPage}
       autoVerifyEnabled={autoVerify}
     />
   );
 
+  const metaParts = [
+    tf(t, 'vr_meta_queue', { n: formatNumber(counts.pending, language) }),
+    t(autoVerify ? 'vr_meta_auto_on' : 'vr_meta_auto_off'),
+  ];
+  if (queue.avgSlaRemainingHours > 0) {
+    metaParts.push(tf(t, 'vr_sla_left', { n: formatNumber(Math.round(queue.avgSlaRemainingHours * 10) / 10, language) }));
+  }
+
   return (
-    <div className="verification-page" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+    <div className="ui-page verification-page">
       <PageHeader
-        title="Verification Review"
-        subtitle="Moderate craftsman identity and credential submissions"
-        meta={`${counts.pending} in queue · Auto-verification: ${autoVerify ? 'Active' : 'Disabled'}`}
+        title={t('vr_title')}
+        subtitle={t('vr_subtitle')}
+        meta={metaParts.join(' · ')}
         actions={
-          isTablet ? (
-            <Button variant="outline" size="sm" iconLeading={<Users size={14} />} onClick={() => setDrawerOpen(true)}>
-              Queue ({counts.pending})
+          <>
+            <Button variant="outline" size="sm" iconLeading={<RefreshCw size={14} />} loading={queue.isFetching} onClick={() => queue.refetch()}>
+              {t('btn_sync')}
             </Button>
-          ) : undefined
+            {isTablet && (
+              <Button variant="outline" size="sm" iconLeading={<Users size={14} />} onClick={() => setDrawerOpen(true)}>
+                {t('vr_btn_queue')} ({counts.pending})
+              </Button>
+            )}
+          </>
         }
       />
 
-      {incompleteWarning && (
-        <AlertBanner tone="danger" title="Incomplete Verification Evidence" message={incompleteWarning} />
-      )}
+      {incompleteWarning && <AlertBanner tone="danger" title={t('vr_incomplete_title')} message={incompleteWarning} />}
 
-      {loading && submissions.length === 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '280px 1fr', gap: 'var(--sp-4)' }}>
+      {queue.isError ? (
+        <ErrorState title={t('status_error_title')} message={errorMessage(queue.error, t)} onRetry={() => queue.refetch()} />
+      ) : queue.isLoading ? (
+        <div className={`vr-layout vr-layout--loading${!isMobile ? ' vr-layout--split' : ''}`}>
           <Skeleton height={500} />
           <Skeleton height={500} />
         </div>
       ) : isMobile && mobileView === 'queue' ? (
         queueNode
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: isTablet || isMobile ? '1fr' : '280px 1fr', gap: 'var(--sp-4)', alignItems: 'start' }}>
-          {!isTablet && !isMobile && queueNode}
+        <div className={`vr-layout${desktop ? ' vr-layout--split' : ''}`}>
+          {desktop && queueNode}
 
           {selected ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', minWidth: 0 }}>
+            <div className="ui-stack">
               <SubmissionHeader
                 submission={selected}
                 onApprove={() => handleModerate('APPROVED')}
@@ -213,7 +219,8 @@ export const VerificationPage: React.FC = () => {
                   <ReviewDecisionStep
                     submission={selected}
                     notes={moderatorNotes}
-                    onNotesChange={setModeratorNotes}
+                    onNotesChange={handleNotesChange}
+                    notesError={notesError}
                     isApproved={isApproved(selected)}
                     isRejected={isRejected(selected)}
                     isFlagged={isFlagged(selected)}
@@ -224,16 +231,16 @@ export const VerificationPage: React.FC = () => {
             </div>
           ) : (
             <EmptyState
-              icon={<ShieldCheck size={36} style={{ color: 'var(--text-faint)' }} />}
-              title="No submission selected"
-              description="Select an application from the review queue to inspect documents."
+              icon={<ShieldCheck size={36} className="vr-icon-faint" />}
+              title={t('vr_no_selection_title')}
+              description={t('vr_no_selection_desc')}
             />
           )}
         </div>
       )}
 
       {isTablet && (
-        <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} title="Review Queue" position="left" size="sm">
+        <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} title={t('vr_drawer_title')} position="left" size="sm">
           {queueNode}
         </Drawer>
       )}

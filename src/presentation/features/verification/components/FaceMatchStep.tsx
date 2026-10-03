@@ -1,7 +1,9 @@
 import React from 'react';
 import type { Submission } from '../types';
-import { DocumentCard } from './DocumentCard';
+import { DocumentCard, type DocumentField } from './DocumentCard';
 import { Card, ProgressBar, StatusPill } from '../../../components/ui';
+import { useLanguage } from '../../../context/LanguageContext';
+import { tf } from '../utils';
 
 interface FaceMatchStepProps {
   submission: Submission;
@@ -9,82 +11,59 @@ interface FaceMatchStepProps {
 }
 
 export const FaceMatchStep: React.FC<FaceMatchStepProps> = ({ submission, onZoom }) => {
+  const { t } = useLanguage();
   const idImg = submission.idFrontImageUrl || submission.idFrontUrl || submission.avatar;
   const selfieImg = submission.selfieImageUrl || submission.selfieUrl;
-  const matchScore = submission.faceMatchScore ?? submission.faceScore;
+  const matchScore = submission.faceMatchScore;
+  const matchTone = matchScore === undefined ? 'danger' : matchScore >= 90 ? 'success' : matchScore >= 75 ? 'warning' : 'danger';
+  const liveness = submission.livenessPassed;
+
+  const selfieFields: DocumentField[] =
+    liveness !== undefined
+      ? [{ label: t('vr_face_liveness_check'), value: liveness ? t('vr_face_passed') : t('vr_state_pending'), tone: liveness ? 'success' : 'warning' }]
+      : [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
-      {/* Biometric Comparison Match Bar (only if matchScore is present) */}
+    <div className="ui-stack">
       {matchScore !== undefined && matchScore !== null && (
         <Card padding="md">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--sp-2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-              <span style={{ fontSize: 'var(--fs-caption)', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                Biometric Face Match Confidence
-              </span>
-              {submission.livenessPassed !== undefined && (
+          <div className="vr-match-head">
+            <div className="vr-match-label-row">
+              <span className="vr-match-label">{t('vr_match_label')}</span>
+              {liveness !== undefined && (
                 <StatusPill
-                  variant={submission.livenessPassed ? 'success' : 'warning'}
-                  label={submission.livenessPassed ? 'Liveness Confirmed' : 'Liveness Unverified'}
+                  variant={liveness ? 'success' : 'warning'}
+                  label={liveness ? t('vr_liveness_ok') : t('vr_liveness_no')}
                 />
               )}
             </div>
-            <span
-              style={{
-                fontSize: 'var(--fs-body)',
-                fontWeight: 700,
-                fontFamily: 'var(--font-mono)',
-                color: matchScore >= 90 ? 'var(--success)' : matchScore >= 75 ? 'var(--warning)' : 'var(--danger)',
-              }}
-            >
-              {matchScore}% Match
+            <span className={`vr-match-value vr-tone-${matchTone} ui-num`}>
+              {tf(t, 'vr_match_value', { n: matchScore })}
             </span>
           </div>
 
-          <ProgressBar
-            value={matchScore}
-            max={100}
-            size="md"
-            tone={matchScore >= 90 ? 'success' : matchScore >= 75 ? 'warning' : 'danger'}
-          />
+          <ProgressBar value={matchScore} max={100} size="md" tone={matchTone} />
         </Card>
       )}
 
-      {/* Side-by-Side Comparison Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 'var(--sp-4)',
-        }}
-      >
+      <div className="vr-grid-docs">
         <DocumentCard
-          title="ID Card Photo (Reference)"
+          title={t('vr_face_id_photo')}
           imageUrl={idImg}
           onZoom={onZoom}
           craftsmanName={submission.name}
           fields={[
-            { label: 'Document Type', value: submission.idDocumentType || 'National Identity Card' },
-            { label: 'Detected Name', value: submission.ocrDetectedName || submission.name },
+            { label: t('vr_field_doc_type'), value: submission.idDocumentType },
+            { label: t('vr_field_detected_name'), value: submission.ocrDetectedName },
           ]}
         />
 
         <DocumentCard
-          title="Live Camera Selfie"
+          title={t('vr_face_selfie')}
           imageUrl={selfieImg}
           onZoom={onZoom}
           craftsmanName={submission.name}
-          fields={[
-            { label: 'Capture Mode', value: 'Live Camera Capture' },
-            ...(submission.livenessPassed !== undefined
-              ? [{
-                  label: 'Liveness Check',
-                  value: submission.livenessPassed ? 'Passed' : 'Pending',
-                  tone: submission.livenessPassed ? ('success' as const) : ('warning' as const),
-                }]
-              : []),
-          ]}
+          fields={selfieFields}
         />
       </div>
     </div>

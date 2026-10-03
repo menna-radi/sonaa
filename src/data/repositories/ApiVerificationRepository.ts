@@ -5,21 +5,70 @@ import { API_ENDPOINTS, API_BASE_URL } from '../../core/config/apiEndpoints';
 import { AppError } from '../../core/errors/AppError';
 import { storageService } from '../../core/storage/StorageService';
 
-interface ApiVerificationRequestDTO {
-  id: string;
-  craftsman?: {
-    firstName: string;
-    lastName: string;
-    avatarUrl?: string;
-  };
-  createdAt: string;
-  // Fallbacks for other fields not documented in API response
+interface ApiSkillDTO {
+  name?: string;
+  category?: string;
+  bio?: string;
 }
 
-interface PaginatedVerificationResponse {
-  results: ApiVerificationRequestDTO[];
-  totalResults: number;
+interface ApiProfileDTO {
+  title?: string;
+  avatarUrl?: string;
+  firstName?: string;
+  lastName?: string;
+  trustScore?: number | string;
+  isVerifiedId?: boolean;
+  isVerifiedCert?: boolean;
+  isInsured?: boolean;
+  isVerifiedSelfie?: boolean;
+  isVerifiedBankIban?: boolean;
+  isVerifiedBackground?: boolean;
+  locationCity?: string;
+  yearsExperience?: number;
+  bio?: string;
+  skills?: ApiSkillDTO[];
+  user?: { firstName?: string; lastName?: string; phoneNumber?: string; email?: string; createdAt?: string };
 }
+
+interface ApiSubmissionDTO {
+  id: string;
+  status?: string;
+  firstName?: string;
+  lastName?: string;
+  completedStepsCount?: number;
+  submittedAt?: string;
+  slaDeadline?: string;
+  moderatorNotes?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  nationality?: string;
+  residentialAddress?: string;
+  emergencyContactPhone?: string;
+  idFrontImageUrl?: string;
+  idBackImageUrl?: string;
+  idDocumentType?: string;
+  ocrDetectedName?: string;
+  ocrConfidence?: number;
+  idExpiryDate?: string;
+  selfieImageUrl?: string;
+  faceMatchScore?: number | string;
+  livenessPassed?: boolean;
+  certImageUrl?: string;
+  certAuthority?: string;
+  insuranceLimit?: number | string;
+  craftsmanProfile?: ApiProfileDTO;
+}
+
+interface ApiQueueResponse {
+  submissions?: ApiSubmissionDTO[];
+}
+
+const toPercent = (v?: number | string | null): number | undefined => {
+  if (v === undefined || v === null || v === '') return undefined;
+  const n = Number(v);
+  if (Number.isNaN(n)) return undefined;
+  return n <= 1 ? Math.round(n * 100) : Math.min(100, Math.round(n));
+};
 
 const resolveImageUrl = (url?: string | null): string | undefined => {
   if (!url) return undefined;
@@ -36,186 +85,93 @@ const resolveImageUrl = (url?: string | null): string | undefined => {
   return fullUrl;
 };
 
+const mapSubmission = (sub: ApiSubmissionDTO): VerificationRequest => {
+  const profile = sub.craftsmanProfile ?? {};
+  const user = profile.user ?? {};
+  const firstName = sub.firstName || profile.firstName || user.firstName || '';
+  const lastName = sub.lastName || profile.lastName || user.lastName || '';
+  const fullName = `${firstName} ${lastName}`.trim();
+  const trustScore = profile.trustScore !== undefined && profile.trustScore !== null ? Number(profile.trustScore) : undefined;
+  const lowTrust = trustScore !== undefined && !Number.isNaN(trustScore) && trustScore < 0.85;
+  const isVerified = Boolean(profile.isVerifiedId || sub.status === 'APPROVED');
+  const completedSteps = isVerified ? 5 : sub.completedStepsCount ?? 0;
+  const faceMatchScore = toPercent(sub.faceMatchScore);
+
+  let status: VerificationRequest['status'] = 'pending';
+  if (isVerified) status = 'today';
+  else if (sub.status === 'FLAGGED' || lowTrust) status = 'flagged';
+
+  return {
+    id: sub.id,
+    name: fullName,
+    role: profile.title || profile.skills?.[0]?.name || '',
+    submittedAgo: '',
+    avatar: resolveImageUrl(profile.avatarUrl) || resolveImageUrl(sub.selfieImageUrl),
+    verificationId: `#VR-${sub.id.substring(0, 4).toUpperCase()}`,
+    faceScore: faceMatchScore ?? 0,
+    docsCount: `${completedSteps}/5`,
+    risk: lowTrust ? 'High' : 'Low',
+    status,
+    isVerifiedId: isVerified,
+    isVerifiedCert: Boolean(profile.isVerifiedCert || sub.certImageUrl),
+    isInsured: Boolean(profile.isInsured),
+    isVerifiedSelfie: Boolean(profile.isVerifiedSelfie || sub.selfieImageUrl),
+    isVerifiedBankIban: Boolean(profile.isVerifiedBankIban),
+    isVerifiedBackground: Boolean(profile.isVerifiedBackground),
+    city: profile.locationCity,
+    phoneNumber: user.phoneNumber || sub.emergencyContactPhone,
+    email: user.email,
+    registeredDate: user.createdAt,
+    skills: profile.skills?.map((s) => s.name || s.category || '').filter(Boolean) ?? [],
+
+    // 5-Step Flow Fields
+    completedStepsCount: completedSteps,
+    totalSteps: 5,
+    verificationStatus: isVerified ? 'APPROVED' : sub.status,
+
+    // Step 1: Personal Info
+    firstName,
+    lastName,
+    dateOfBirth: sub.dateOfBirth,
+    gender: sub.gender,
+    nationality: sub.nationality,
+    residentialAddress: sub.residentialAddress || profile.locationCity,
+    emergencyContactPhone: sub.emergencyContactPhone || user.phoneNumber,
+
+    // Step 2: National ID Document
+    idFrontImageUrl: resolveImageUrl(sub.idFrontImageUrl),
+    idBackImageUrl: resolveImageUrl(sub.idBackImageUrl),
+    idDocumentType: sub.idDocumentType,
+    ocrDetectedName: sub.ocrDetectedName,
+    ocrConfidence: sub.ocrConfidence,
+    idExpiryDate: sub.idExpiryDate,
+
+    // Step 3: Selfie Verification
+    selfieImageUrl: resolveImageUrl(sub.selfieImageUrl),
+    faceMatchScore,
+    livenessPassed: sub.livenessPassed,
+
+    // Step 4: Skills & Certifications
+    tradeCategory: profile.skills?.[0]?.category || profile.title,
+    yearsExperience: profile.yearsExperience,
+    bio: profile.bio || profile.skills?.[0]?.bio,
+    certImageUrl: resolveImageUrl(sub.certImageUrl),
+    certAuthority: sub.certAuthority,
+    insuranceLimit: sub.insuranceLimit ? Number(sub.insuranceLimit) : undefined,
+
+    // Step 5: Review & Decision
+    submittedAt: sub.submittedAt,
+    slaDeadline: sub.slaDeadline,
+    moderatorNotes: sub.moderatorNotes || '',
+  };
+};
+
 export class ApiVerificationRepository implements VerificationRepository {
   public async getVerificationQueue(): Promise<Result<VerificationRequest[]>> {
     try {
-      let submissions: any[] = [];
-      try {
-        const queueRes = await apiClient.get<any>(`${API_ENDPOINTS.admin.verificationQueue}?status=ALL&limit=50`);
-        if (queueRes && Array.isArray(queueRes.submissions) && queueRes.submissions.length > 0) {
-          submissions = queueRes.submissions;
-        }
-      } catch (queueErr) {
-        console.warn('[ApiVerificationRepository] Failed to fetch verification queue, attempting fallback:', queueErr);
-      }
-
-      if (submissions.length > 0) {
-        const mapped: VerificationRequest[] = submissions.map((sub: any, index: number) => {
-          const profile = sub.craftsmanProfile || {};
-          const user = profile.user || {};
-          const rawFirstName = sub.firstName || profile.firstName || user.firstName || 'Craftsman';
-          const rawLastName = sub.lastName || profile.lastName || user.lastName || '';
-          const fullName = `${rawFirstName} ${rawLastName}`.trim();
-          const completedSteps = sub.completedStepsCount ?? (sub.status === 'APPROVED' ? 5 : 4);
-          const trustScore = Number(profile.trustScore || 0.95);
-
-          const isVerified = Boolean(profile.isVerifiedId || sub.status === 'APPROVED');
-          let statusKey: 'pending' | 'flagged' | 'today' = 'pending';
-          if (isVerified) statusKey = 'today';
-          else if (sub.status === 'FLAGGED' || trustScore < 0.85) statusKey = 'flagged';
-
-          return {
-            id: sub.id,
-            name: fullName,
-            role: profile.title || (profile.skills?.[0]?.name) || 'Technician',
-            submittedAgo: sub.submittedAt ? new Date(sub.submittedAt).toLocaleDateString() : (user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Recently'),
-            avatar: resolveImageUrl(profile.avatarUrl) || resolveImageUrl(sub.selfieImageUrl),
-            verificationId: `#VR-${sub.id.substring(0, 4).toUpperCase()}`,
-            faceScore: sub.faceMatchScore ? Math.round(sub.faceMatchScore * 100) : Math.round(trustScore * 100),
-            docsCount: `${isVerified ? 5 : completedSteps}/5`,
-            risk: trustScore < 0.85 ? 'High' : 'Low',
-            status: statusKey,
-            isVerifiedId: isVerified,
-            isVerifiedCert: Boolean(profile.isVerifiedCert || sub.certImageUrl),
-            isInsured: Boolean(profile.isInsured),
-            isVerifiedSelfie: Boolean(profile.isVerifiedSelfie || sub.selfieImageUrl),
-            isVerifiedBankIban: Boolean(profile.isVerifiedBankIban),
-            isVerifiedBackground: Boolean(profile.isVerifiedBackground),
-            city: profile.locationCity || 'Jerusalem',
-            phoneNumber: user.phoneNumber || sub.emergencyContactPhone || '+972 50 000 0000',
-            email: user.email || `${rawFirstName.toLowerCase()}.${rawLastName.toLowerCase()}@sonaa.com`,
-            deviceOs: 'Android 14 (SDK 34)',
-            appVersion: 'Sonaa Partner v2.4.1',
-            registeredDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Sep 2026',
-            skills: profile.skills?.map((s: any) => s.name || s.category) || [],
-
-            // 5-Step Flow Fields
-            completedStepsCount: isVerified ? 5 : completedSteps,
-            totalSteps: 5,
-            verificationStatus: isVerified ? 'APPROVED' : sub.status,
-
-            // Step 1: Personal Info
-            firstName: rawFirstName,
-            lastName: rawLastName,
-            dateOfBirth: sub.dateOfBirth ? new Date(sub.dateOfBirth).toISOString().split('T')[0] : '1995-06-15',
-            gender: sub.gender || 'MALE',
-            nationality: sub.nationality || 'Palestinian',
-            residentialAddress: sub.residentialAddress || profile.locationCity || 'Jerusalem',
-            emergencyContactPhone: sub.emergencyContactPhone || user.phoneNumber,
-
-            // Step 2: National ID Document
-            idFrontImageUrl: resolveImageUrl(sub.idFrontImageUrl),
-            idBackImageUrl: resolveImageUrl(sub.idBackImageUrl),
-            idDocumentType: sub.idDocumentType || 'Jerusalem / Palestinian ID',
-            ocrDetectedName: sub.ocrDetectedName || fullName,
-            ocrConfidence: sub.ocrConfidence || (profile.isVerifiedId ? 98.4 : 94.2),
-            idExpiryDate: sub.idExpiryDate ? new Date(sub.idExpiryDate).toLocaleDateString() : 'Mar 2031',
-
-            // Step 3: Selfie Verification
-            selfieImageUrl: resolveImageUrl(sub.selfieImageUrl),
-            faceMatchScore: sub.faceMatchScore != null
-              ? (Number(sub.faceMatchScore) <= 1 ? Math.round(Number(sub.faceMatchScore) * 100) : Math.min(100, Math.round(Number(sub.faceMatchScore))))
-              : 95,
-            livenessPassed: Boolean(sub.livenessPassed || sub.selfieImageUrl),
-
-            // Step 4: Skills & Certifications
-            tradeCategory: profile.skills?.[0]?.category || profile.title || 'General Technician',
-            yearsExperience: profile.yearsExperience || 5,
-            bio: profile.bio || profile.skills?.[0]?.bio || 'Certified technician with verified trade expertise.',
-            certImageUrl: resolveImageUrl(sub.certImageUrl),
-            certAuthority: sub.certAuthority || 'Jerusalem Trade Chamber / Vocational Board',
-            insuranceLimit: sub.insuranceLimit ? Number(sub.insuranceLimit) : undefined,
-
-            // Step 5: Review & Decision
-            submittedAt: sub.submittedAt,
-            slaDeadline: sub.slaDeadline,
-            moderatorNotes: sub.moderatorNotes || '',
-          };
-        });
-
-        return ok(mapped);
-      }
-
-      // Fallback to craftsmen list
-      const response = await apiClient.get<any>(API_ENDPOINTS.craftsmen.list);
-      const craftsmenList = response.items || response.craftsmen || (Array.isArray(response) ? response : []);
-
-      const mapped: VerificationRequest[] = craftsmenList.map((r: any, index: number) => {
-        const vReq = r.verificationRequest;
-        const rawFirstName = vReq?.firstName || r.firstName || 'Craftsman';
-        const rawLastName = vReq?.lastName || r.lastName || '';
-        const name = `${rawFirstName} ${rawLastName}`.trim();
-        const completedSteps = vReq?.completedStepsCount ?? (r.isVerifiedId ? 5 : 3);
-        const trustScore = Number(r.trustScore || 0.95);
-
-        return {
-          id: vReq?.id || r.id,
-          name,
-          role: r.title || (r.skills?.[0]?.name) || 'Craftsman',
-          submittedAgo: r.user?.createdAt ? new Date(r.user.createdAt).toLocaleDateString() : 'Recently',
-          avatar: resolveImageUrl(r.avatarUrl) || resolveImageUrl(vReq?.selfieImageUrl),
-          verificationId: `#VR-${(vReq?.id || r.id).substring(0, 4).toUpperCase()}`,
-          faceScore: vReq?.faceMatchScore ? Math.round(vReq.faceMatchScore * 100) : Math.round(trustScore * 100),
-          docsCount: `${completedSteps}/5`,
-          risk: trustScore < 0.85 ? 'High' : 'Low',
-          status: r.isVerifiedId ? 'today' : (index % 3 === 0 ? 'flagged' : 'pending'),
-          isVerifiedId: Boolean(r.isVerifiedId),
-          isVerifiedCert: Boolean(r.isVerifiedCert || vReq?.certImageUrl),
-          isInsured: Boolean(r.isInsured),
-          isVerifiedSelfie: Boolean(r.isVerifiedSelfie || vReq?.selfieImageUrl),
-          isVerifiedBankIban: Boolean(r.isVerifiedBankIban),
-          isVerifiedBackground: Boolean(r.isVerifiedBackground),
-          city: r.locationCity || 'Jerusalem',
-          phoneNumber: r.user?.phoneNumber || '+972 50 000 0000',
-          email: r.user?.email || `${rawFirstName.toLowerCase()}.${rawLastName.toLowerCase()}@sonaa.com`,
-          deviceOs: 'Android 14 (SDK 34)',
-          appVersion: 'Sonaa Partner v2.4.1',
-          registeredDate: r.user?.createdAt ? new Date(r.user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Jul 21, 2026',
-          skills: r.skills?.map((s: any) => s.name || s.category) || [],
-
-          // 5-Step Flow Fields
-          completedStepsCount: completedSteps,
-          totalSteps: 5,
-          verificationStatus: vReq?.status || (r.isVerifiedId ? 'APPROVED' : 'PENDING_SUBMISSION'),
-
-          // Step 1: Personal Info
-          firstName: rawFirstName,
-          lastName: rawLastName,
-          dateOfBirth: vReq?.dateOfBirth ? new Date(vReq.dateOfBirth).toISOString().split('T')[0] : '1992-04-10',
-          gender: vReq?.gender || 'MALE',
-          nationality: vReq?.nationality || 'Palestinian',
-          residentialAddress: vReq?.residentialAddress || r.locationCity || 'Jerusalem',
-          emergencyContactPhone: vReq?.emergencyContactPhone,
-
-          // Step 2: National ID Document
-          idFrontImageUrl: resolveImageUrl(vReq?.idFrontImageUrl),
-          idBackImageUrl: resolveImageUrl(vReq?.idBackImageUrl),
-          idDocumentType: vReq?.idDocumentType || 'Jerusalem / Palestinian ID',
-          ocrDetectedName: vReq?.ocrDetectedName || name,
-          ocrConfidence: vReq?.ocrConfidence || (r.isVerifiedId ? 98.4 : 90.0),
-          idExpiryDate: vReq?.idExpiryDate ? new Date(vReq.idExpiryDate).toLocaleDateString() : undefined,
-
-          // Step 3: Selfie Verification
-          selfieImageUrl: resolveImageUrl(vReq?.selfieImageUrl),
-          faceMatchScore: vReq?.faceMatchScore ? Math.round(vReq.faceMatchScore * 100) : 95,
-          livenessPassed: Boolean(vReq?.livenessPassed || vReq?.selfieImageUrl),
-
-          // Step 4: Skills & Certifications
-          tradeCategory: r.skills?.[0]?.category || r.title || 'General Technician',
-          yearsExperience: r.yearsExperience || 5,
-          bio: r.bio || r.skills?.[0]?.bio || '',
-          certImageUrl: resolveImageUrl(vReq?.certImageUrl),
-          certAuthority: vReq?.certAuthority || 'Jerusalem Vocational Board',
-          insuranceLimit: vReq?.insuranceLimit ? Number(vReq.insuranceLimit) : undefined,
-
-          // Step 5: Review & Decision
-          submittedAt: vReq?.submittedAt,
-          slaDeadline: vReq?.slaDeadline,
-          moderatorNotes: vReq?.moderatorNotes || '',
-        };
-      });
-
-      return ok(mapped);
+      const queueRes = await apiClient.get<ApiQueueResponse>(`${API_ENDPOINTS.admin.verificationQueue}?status=ALL&limit=100`);
+      const submissions = Array.isArray(queueRes?.submissions) ? queueRes.submissions : [];
+      return ok(submissions.map(mapSubmission));
     } catch (error) {
       return fail(error as AppError);
     }
@@ -227,7 +183,7 @@ export class ApiVerificationRepository implements VerificationRepository {
     moderatorNotes: string
   ): Promise<Result<boolean>> {
     try {
-      const notes = moderatorNotes?.trim() || (decision === 'APPROVED' ? 'Approved by admin' : 'Reviewed by admin');
+      const notes = moderatorNotes?.trim() || 'Approved by admin';
       await apiClient.post<void>(API_ENDPOINTS.admin.verificationModerate, {
         requestId,
         decision,
@@ -242,7 +198,7 @@ export class ApiVerificationRepository implements VerificationRepository {
     try {
       const response = await apiClient.get<{ enabled: boolean }>('/admin/settings/auto-verification');
       return ok(response);
-    } catch (error) {
+    } catch {
       return ok({ enabled: true });
     }
   }

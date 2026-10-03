@@ -1,6 +1,8 @@
 import React from 'react';
 import type { Submission } from '../types';
-import { DocumentCard } from './DocumentCard';
+import { DocumentCard, type DocumentField } from './DocumentCard';
+import { useLanguage } from '../../../context/LanguageContext';
+import { formatDate } from '../../../../core/utils/format';
 
 interface NationalIdStepProps {
   submission: Submission;
@@ -8,41 +10,36 @@ interface NationalIdStepProps {
 }
 
 export const NationalIdStep: React.FC<NationalIdStepProps> = ({ submission, onZoom }) => {
+  const { t, language } = useLanguage();
   const frontImg = submission.idFrontImageUrl || submission.idFrontUrl;
   const backImg = submission.idBackImageUrl;
 
-  // OCR confidence tone calculation
-  let ocrTone: 'success' | 'warning' | 'danger' = 'success';
-  if (submission.ocrConfidence !== undefined && submission.ocrConfidence !== null) {
-    if (submission.ocrConfidence >= 90) ocrTone = 'success';
-    else if (submission.ocrConfidence >= 70) ocrTone = 'warning';
-    else ocrTone = 'danger';
-  }
+  const ocr = submission.ocrConfidence;
+  const hasOcr = ocr !== undefined && ocr !== null;
+  const ocrTone: DocumentField['tone'] = !hasOcr ? 'default' : ocr >= 90 ? 'success' : ocr >= 70 ? 'warning' : 'danger';
 
-  const frontFields = [
-    { label: 'Document Type', value: submission.idDocumentType || 'National ID Card' },
-    { label: 'Detected Name', value: submission.ocrDetectedName || submission.name },
-    ...(submission.idExpiryDate ? [{ label: 'Expiry Date', value: submission.idExpiryDate }] : []),
-    ...(submission.ocrConfidence !== undefined && submission.ocrConfidence !== null
-      ? [{ label: 'OCR Confidence', value: `${submission.ocrConfidence}%`, tone: ocrTone }]
-      : []),
+  const frontFields: DocumentField[] = [
+    { label: t('vr_field_doc_type'), value: submission.idDocumentType },
+    { label: t('vr_field_detected_name'), value: submission.ocrDetectedName },
+    {
+      label: t('vr_field_expiry'),
+      value: submission.idExpiryDate ? formatDate(submission.idExpiryDate, language) : undefined,
+    },
+    { label: t('vr_field_ocr'), value: hasOcr ? `${ocr}%` : undefined, tone: ocrTone },
   ];
 
-  const backFields = [
-    { label: 'Document Status', value: submission.isVerifiedId ? 'Verified' : 'Pending Review' },
-    { label: 'Issuing Region', value: submission.city || 'Jerusalem / West Bank' },
+  const backFields: DocumentField[] = [
+    {
+      label: t('vr_field_doc_status'),
+      value: submission.isVerifiedId ? t('vr_state_verified') : t('vr_state_pending_review'),
+    },
+    { label: t('vr_field_city'), value: submission.city },
   ];
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: 'var(--sp-4)',
-      }}
-    >
+    <div className="vr-grid-docs">
       <DocumentCard
-        title="Front Side"
+        title={t('vr_id_front')}
         imageUrl={frontImg}
         fields={frontFields}
         onZoom={onZoom}
@@ -50,7 +47,7 @@ export const NationalIdStep: React.FC<NationalIdStepProps> = ({ submission, onZo
       />
 
       <DocumentCard
-        title="Back Side"
+        title={t('vr_id_back')}
         imageUrl={backImg}
         fields={backFields}
         onZoom={onZoom}

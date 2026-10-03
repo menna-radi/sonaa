@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { Submission } from '../types';
 import { Card, EmptyState, IconButton, Skeleton } from '../../../components/ui';
+import { useLanguage } from '../../../context/LanguageContext';
+import { tf } from '../utils';
 import { Image as ImageIcon, ZoomIn } from 'lucide-react';
 
 interface PortfolioStepProps {
@@ -9,6 +11,7 @@ interface PortfolioStepProps {
 }
 
 export const PortfolioStep: React.FC<PortfolioStepProps> = ({ submission, onZoom }) => {
+  const { t } = useLanguage();
   const [loadedMap, setLoadedMap] = useState<Record<number, boolean>>({});
 
   // Collect any available portfolio photos (avatar, work photos, etc.)
@@ -18,68 +21,36 @@ export const PortfolioStep: React.FC<PortfolioStepProps> = ({ submission, onZoom
 
   return (
     <Card
-      title={`${submission.name}'s Portfolio`}
-      subtitle="Craftsman project samples and past work evidence"
+      title={tf(t, 'vr_portfolio_title', { name: submission.name })}
+      subtitle={t('vr_portfolio_desc')}
       padding="md"
     >
       {portfolioPhotos.length === 0 ? (
         <EmptyState
-          icon={<ImageIcon size={32} style={{ color: 'var(--text-faint)' }} />}
-          title="No portfolio images uploaded"
-          description="This craftsman has not attached project portfolio photos to their verification submission."
+          icon={<ImageIcon size={32} className="vr-icon-faint" />}
+          title={t('vr_portfolio_empty_title')}
+          description={t('vr_portfolio_empty_desc')}
         />
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: 'var(--sp-4)',
-          }}
-        >
+        <div className="vr-grid-photos">
           {portfolioPhotos.map((url, idx) => (
-            <div
-              key={idx}
-              style={{
-                position: 'relative',
-                aspectRatio: '4 / 3',
-                background: 'var(--surface-sunken)',
-                borderRadius: 'var(--radius-md)',
-                overflow: 'hidden',
-                border: '1px solid var(--border-subtle)',
-                cursor: 'pointer',
-              }}
-              onClick={() => onZoom(url)}
-            >
+            <div key={idx} className="vr-photo" onClick={() => onZoom(url)}>
               {!loadedMap[idx] && (
-                <div style={{ position: 'absolute', inset: 0 }}>
+                <div className="vr-doc-skeleton">
                   <Skeleton width="100%" height="100%" />
                 </div>
               )}
               <img
                 src={url}
-                alt={`Portfolio piece ${idx + 1}`}
+                alt={tf(t, 'vr_portfolio_piece', { n: idx + 1 })}
                 loading="lazy"
+                className={`vr-photo__img${loadedMap[idx] ? '' : ' vr-doc-img--hidden'}`}
                 onLoad={() => setLoadedMap((prev) => ({ ...prev, [idx]: true }))}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: loadedMap[idx] ? 'block' : 'none',
-                }}
               />
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 'var(--sp-2)',
-                  right: 'var(--sp-2)',
-                  background: 'var(--surface-raised)',
-                  borderRadius: 'var(--radius-full)',
-                  boxShadow: 'var(--shadow-overlay)',
-                }}
-              >
+              <div className="vr-photo__zoom">
                 <IconButton
                   icon={<ZoomIn size={14} />}
-                  aria-label="Zoom portfolio photo"
+                  aria-label={t('vr_portfolio_zoom')}
                   onClick={(e) => {
                     e.stopPropagation();
                     onZoom(url);

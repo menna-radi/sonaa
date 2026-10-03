@@ -1,0 +1,92 @@
+/* Verification review workspace (mockup 5) — all rules use tokens and logical properties. */
+.vr-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
+.vr-layout--split { grid-template-columns: 280px minmax(0, 1fr); }
+.vr-layout--loading { align-items: stretch; }
+
+.vr-queue-pager { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-block-start: 1px solid var(--border-subtle); }
+.vr-queue-pager__label { font-size: var(--fs-caption); color: var(--text-muted); }
+
+/* Review queue */
+.review-queue-card { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.vr-queue-filters { padding: var(--sp-3); border-block-end: 1px solid var(--border-subtle); }
+.vr-queue-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.vr-queue-trailing { display: flex; align-items: center; gap: 6px; }
+.vr-icon-faint { color: var(--text-faint); }
+.vr-icon-success { color: var(--success); }
+.vr-icon-warning { color: var(--warning); }
+
+/* Submission header */
+.submission-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-4); padding: var(--sp-4) var(--sp-6); background: var(--surface-raised); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); }
+.vr-submission-main { display: flex; align-items: center; gap: var(--sp-4); }
+.vr-submission-text { display: flex; flex-direction: column; gap: 2px; }
+.vr-submission-name-row { display: flex; align-items: center; gap: var(--sp-2); }
+.vr-submission-name { margin: 0; font-size: var(--fs-card-title); font-weight: 700; color: var(--text-primary); }
+.vr-submission-meta { font-size: var(--fs-caption); color: var(--text-faint); display: flex; align-items: center; gap: var(--sp-2); }
+.vr-mono { font-family: var(--font-mono); }
+.submission-header-actions { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+
+/* Step tabs */
+.review-step-tabs { display: flex; align-items: center; gap: var(--sp-2); overflow-x: auto; padding-block: var(--sp-2); scrollbar-width: none; }
+.vr-step-tab { position: relative; display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); background: var(--surface-raised); color: var(--text-secondary); font-size: var(--fs-caption); font-weight: 600; cursor: pointer; white-space: nowrap; transition: all var(--transition-fast); }
+.vr-step-tab--active { border-color: var(--text-primary); background: var(--text-primary); color: var(--surface-raised); }
+.vr-step-tab__num { width: 18px; height: 18px; border-radius: var(--radius-full); background: var(--surface-sunken); color: var(--text-faint); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.vr-step-tab--active .vr-step-tab__num { background: var(--surface-raised); color: var(--text-primary); }
+.vr-step-tab__dot { width: 6px; height: 6px; border-radius: var(--radius-full); background: var(--warning); display: inline-block; }
+
+/* Audit checklist */
+.vr-check-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3); border-radius: var(--radius-md); background: var(--surface-raised); border: 1px solid var(--border-subtle); }
+.vr-check-row--done { background: var(--surface-sunken); }
+.vr-check-left { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+.vr-check-num { width: 24px; height: 24px; flex-shrink: 0; border-radius: var(--radius-full); background: var(--surface-sunken); color: var(--text-faint); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.vr-check-num--done { background: var(--text-primary); color: var(--surface-raised); }
+.vr-check-name { font-size: var(--fs-caption); font-weight: 600; color: var(--text-primary); }
+.vr-check-desc { font-size: var(--fs-nano); color: var(--text-faint); }
+
+/* Moderator notes */
+.vr-presets { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.vr-preset-btn { font-size: var(--fs-nano); padding: var(--sp-1) var(--sp-2); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--surface-sunken); color: var(--text-secondary); cursor: pointer; transition: background var(--transition-fast); }
+.vr-preset-btn:disabled { cursor: not-allowed; }
+
+/* Grids */
+.vr-grid-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-3); }
+.vr-grid-docs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--sp-4); }
+.vr-grid-creds { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--sp-2); }
+.vr-grid-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-4); }
+
+/* Document card */
+.vr-doc-media { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--surface-sunken); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle); cursor: default; }
+.vr-doc-media--zoomable { cursor: pointer; }
+.vr-doc-skeleton { position: absolute; inset: 0; }
+.vr-doc-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.vr-doc-img--hidden { display: none; }
+.vr-doc-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-2); padding: var(--sp-4); text-align: center; }
+.vr-doc-placeholder__title { font-size: var(--fs-caption); font-weight: 600; color: var(--text-muted); }
+.vr-doc-placeholder__hint { font-size: var(--fs-nano); color: var(--text-faint); }
+.vr-doc-fields { margin-block-start: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-1); border-block-start: 1px solid var(--border-subtle); padding-block-start: var(--sp-2); }
+.vr-doc-field { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); padding-block: var(--sp-1); font-size: var(--fs-caption); }
+.vr-doc-field__label { color: var(--text-faint); }
+.vr-doc-field__value { font-weight: 600; color: var(--text-primary); text-align: end; }
+.vr-doc-field__value--num { font-family: var(--font-mono); }
+.vr-tone-success { color: var(--success); }
+.vr-tone-warning { color: var(--warning); }
+.vr-tone-danger { color: var(--danger); }
+
+/* Face match */
+.vr-match-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin-block-end: var(--sp-2); }
+.vr-match-label-row { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.vr-match-label { font-size: var(--fs-caption); font-weight: 600; color: var(--text-secondary); }
+.vr-match-value { font-size: var(--fs-body); font-weight: 700; font-family: var(--font-mono); }
+
+/* Skills */
+.vr-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.vr-bio { margin: 0; font-size: var(--fs-caption); color: var(--text-secondary); line-height: 1.6; }
+.vr-cred-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); background: var(--surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+.vr-cred-row--ok { background: var(--surface-sunken); }
+.vr-cred-label { font-size: var(--fs-caption); color: var(--text-secondary); }
+
+/* Portfolio */
+.vr-photo { position: relative; aspect-ratio: 4 / 3; background: var(--surface-sunken); border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-subtle); cursor: pointer; }
+.vr-photo__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vr-photo__zoom { position: absolute; inset-block-start: var(--sp-2); inset-inline-end: var(--sp-2); background: var(--surface-raised); border-radius: var(--radius-full); box-shadow: var(--shadow-overlay); }
+
+.vr-badge-list { margin: 0; padding-inline-start: var(--sp-5); }

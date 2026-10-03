@@ -1,119 +1,75 @@
 import React from 'react';
 import type { Submission } from '../types';
 import { Card, StatTile } from '../../../components/ui';
-import { User, Phone, Mail, MapPin, Smartphone, Calendar, Hash } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
+import { formatDate } from '../../../../core/utils/format';
+import { User, Phone, Mail, MapPin, Calendar, Hash } from 'lucide-react';
 
 interface ProfileInfoStepProps {
   submission: Submission;
 }
 
 export const ProfileInfoStep: React.FC<ProfileInfoStepProps> = ({ submission }) => {
+  const { t, language } = useLanguage();
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
-      {/* Contact & Personal Details Card */}
-      <Card title="Personal & Contact Information" padding="md">
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 'var(--sp-3)',
-          }}
-        >
-          <StatTile
-            label="Full Legal Name"
-            value={submission.name}
-            icon={<User size={16} />}
-          />
+    <div className="ui-stack">
+      <Card title={t('vr_profile_title')} padding="md">
+        <div className="vr-grid-tiles">
+          <StatTile label={t('vr_profile_name')} value={submission.name} icon={<User size={16} />} />
           {submission.phoneNumber && (
             <StatTile
-              label="Phone Number"
-              value={submission.phoneNumber}
+              label={t('vr_profile_phone')}
+              value={<bdi className="ui-num">{submission.phoneNumber}</bdi>}
               icon={<Phone size={16} />}
             />
           )}
           {submission.email && (
-            <StatTile
-              label="Email Address"
-              value={submission.email}
-              icon={<Mail size={16} />}
-            />
+            <StatTile label={t('vr_profile_email')} value={submission.email} icon={<Mail size={16} />} />
           )}
           {submission.city && (
-            <StatTile
-              label="City / District"
-              value={submission.city}
-              icon={<MapPin size={16} />}
-            />
+            <StatTile label={t('vr_field_city')} value={submission.city} icon={<MapPin size={16} />} />
           )}
           {submission.dateOfBirth && (
             <StatTile
-              label="Date of Birth"
-              value={submission.dateOfBirth}
+              label={t('vr_profile_dob')}
+              value={formatDate(submission.dateOfBirth, language)}
               icon={<Calendar size={16} />}
             />
           )}
-          {submission.nationality && (
-            <StatTile
-              label="Nationality"
-              value={submission.nationality}
-            />
-          )}
+          {submission.nationality && <StatTile label={t('vr_profile_nationality')} value={submission.nationality} />}
           {submission.residentialAddress && (
             <StatTile
-              label="Residential Address"
+              label={t('vr_profile_address')}
               value={submission.residentialAddress}
               icon={<MapPin size={16} />}
             />
           )}
           {submission.emergencyContactPhone && (
             <StatTile
-              label="Emergency Contact"
-              value={submission.emergencyContactPhone}
+              label={t('vr_profile_emergency')}
+              value={<bdi className="ui-num">{submission.emergencyContactPhone}</bdi>}
               icon={<Phone size={16} />}
             />
           )}
         </div>
       </Card>
 
-      {/* Device & System Diagnostics (if available) */}
-      {(submission.deviceOs || submission.appVersion || submission.registeredDate) && (
-        <Card title="Device & Registration Diagnostics" padding="md">
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: 'var(--sp-3)',
-            }}
-          >
-            {submission.deviceOs && (
-              <StatTile
-                label="Operating System"
-                value={submission.deviceOs}
-                icon={<Smartphone size={16} />}
-              />
-            )}
-            {submission.appVersion && (
-              <StatTile
-                label="App Version"
-                value={submission.appVersion}
-                icon={<Smartphone size={16} />}
-              />
-            )}
-            {submission.registeredDate && (
-              <StatTile
-                label="Registration Date"
-                value={submission.registeredDate}
-                icon={<Calendar size={16} />}
-              />
-            )}
+      <Card title={t('vr_profile_diag_title')} padding="md">
+        <div className="vr-grid-tiles">
+          {submission.registeredDate && (
             <StatTile
-              label="Verification ID"
-              value={submission.verificationId}
-              icon={<Hash size={16} />}
+              label={t('vr_profile_registered')}
+              value={formatDate(submission.registeredDate, language)}
+              icon={<Calendar size={16} />}
             />
-          </div>
-        </Card>
-      )}
+          )}
+          <StatTile
+            label={t('vr_profile_verification_id')}
+            value={<bdi className="ui-num">{submission.verificationId}</bdi>}
+            icon={<Hash size={16} />}
+          />
+        </div>
+      </Card>
     </div>
   );
 };

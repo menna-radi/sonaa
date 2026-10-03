@@ -1,53 +1,41 @@
 import React from 'react';
 import { Card, TextArea } from '../../../components/ui';
+import { useLanguage } from '../../../context/LanguageContext';
 
 interface ModeratorNotesProps {
   notes: string;
   onChange: (val: string) => void;
   disabled?: boolean;
+  error?: string;
 }
 
-const PRESETS = [
-  'Verified national ID and selfie match successfully.',
-  'ID document photo is blurry; please re-upload clear photos.',
-  'Selfie does not match photo on national ID card.',
-  'Trade certification verified with local licensing board.',
-  'Applicant approved for marketplace dispatch.',
-];
+const PRESET_KEYS = ['vr_preset_1', 'vr_preset_2', 'vr_preset_3', 'vr_preset_4', 'vr_preset_5'];
 
 export const ModeratorNotes: React.FC<ModeratorNotesProps> = ({
   notes,
   onChange,
   disabled = false,
+  error,
 }) => {
+  const { t } = useLanguage();
   return (
     <Card
-      eyebrow="Audit Log"
-      title="Moderator Notes"
+      eyebrow={t('vr_notes_eyebrow')}
+      title={t('vr_notes_title')}
       padding="md"
       className="moderator-notes-card"
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
-        {/* Quick Presets */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
-          {PRESETS.map((preset, idx) => (
+      <div className="ui-stack">
+        <div className="vr-presets">
+          {PRESET_KEYS.map((key) => (
             <button
-              key={idx}
+              key={key}
               type="button"
+              className="vr-preset-btn"
               disabled={disabled}
-              onClick={() => onChange(preset)}
-              style={{
-                fontSize: 'var(--fs-nano)',
-                padding: 'var(--sp-1) var(--sp-2)',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--surface-sunken)',
-                color: 'var(--text-secondary)',
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                transition: 'background var(--transition-fast)',
-              }}
+              onClick={() => onChange(t(key))}
             >
-              + {preset}
+              + {t(key)}
             </button>
           ))}
         </div>
@@ -55,10 +43,13 @@ export const ModeratorNotes: React.FC<ModeratorNotesProps> = ({
         <TextArea
           value={notes}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Add a note for the audit log…"
+          placeholder={t('vr_notes_placeholder')}
           rows={4}
           disabled={disabled}
+          error={error}
+          aria-invalid={error ? true : undefined}
         />
+        <span className="ui-caption">{t('vr_notes_required_hint')}</span>
       </div>
     </Card>
   );

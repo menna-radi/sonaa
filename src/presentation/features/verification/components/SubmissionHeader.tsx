@@ -3,6 +3,9 @@ import { Flag, X, CheckCircle2, ArrowLeft } from 'lucide-react';
 import type { Submission } from '../types';
 import { Avatar, Button, IconButton, StatusPill } from '../../../components/ui';
 import { useConfirm, useConfirmWithReason } from '../../../components/ui/ConfirmDialog';
+import { useLanguage } from '../../../context/LanguageContext';
+import { formatRelativeTime } from '../../../../core/utils/format';
+import { tf } from '../utils';
 
 interface SubmissionHeaderProps {
   submission: Submission;
@@ -29,72 +32,66 @@ export const SubmissionHeader: React.FC<SubmissionHeaderProps> = ({
   currentNotes = '',
   onBackToList,
 }) => {
+  const { t, language } = useLanguage();
   const confirm = useConfirm();
   const confirmWithReason = useConfirmWithReason();
 
   const handleApproveClick = async () => {
     const ok = await confirm({
-      title: `Approve ${submission.name}`,
-      body: `Are you sure you want to approve this craftsman for platform activation? All identity checks will be marked as verified.`,
-      confirmLabel: 'Approve Submission',
+      title: tf(t, 'vr_approve_title', { name: submission.name }),
+      body: (
+        <div className="ui-stack ui-stack--tight">
+          <span>{t('vr_approve_body')}</span>
+          <ul className="vr-badge-list">
+            <li>{t('vr_badge_id')}</li>
+            <li>{t('vr_badge_cert')}</li>
+            <li>{t('vr_badge_selfie')}</li>
+            <li>{t('vr_badge_background')}</li>
+            <li>{t('vr_badge_insured')}</li>
+          </ul>
+        </div>
+      ),
+      confirmLabel: t('vr_approve_confirm'),
       tone: 'default',
     });
-    if (ok) {
-      onApprove();
-    }
+    if (ok) onApprove();
   };
 
   const handleRejectClick = async () => {
     const res = await confirmWithReason({
-      title: `Reject ${submission.name}`,
-      body: `Please provide a reason for rejecting this verification request. This note will be recorded in the audit log.`,
-      confirmLabel: 'Reject Submission',
+      title: tf(t, 'vr_reject_title', { name: submission.name }),
+      body: t('vr_reject_body'),
+      confirmLabel: t('vr_reject_confirm'),
       tone: 'danger',
       requireReason: true,
-      reasonPlaceholder: currentNotes || 'Explain why this submission is rejected (e.g. blurry ID photo)...',
+      reasonPlaceholder: currentNotes || t('vr_reject_placeholder'),
     });
-    if (res.confirmed) {
-      onReject(res.reason);
-    }
+    if (res.confirmed) onReject(res.reason);
   };
 
   const handleFlagClick = async () => {
     const res = await confirmWithReason({
-      title: `Flag ${submission.name}`,
-      body: `Flagging marks this submission for suspicious activity or secondary escalation.`,
-      confirmLabel: 'Flag Submission',
+      title: tf(t, 'vr_flag_title', { name: submission.name }),
+      body: t('vr_flag_body'),
+      confirmLabel: t('vr_flag_confirm'),
       tone: 'warning',
       requireReason: true,
-      reasonPlaceholder: currentNotes || 'Reason for flagging (e.g. mismatched document numbers)...',
+      reasonPlaceholder: currentNotes || t('vr_flag_placeholder'),
     });
-    if (res.confirmed) {
-      onFlag(res.reason);
-    }
+    if (res.confirmed) onFlag(res.reason);
   };
 
   const shortId = submission.verificationId.replace(/^#/, '').slice(-6);
+  const submittedWhen = submission.submittedAt ? formatRelativeTime(submission.submittedAt, language) : '—';
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 'var(--sp-4)',
-        padding: 'var(--sp-4) var(--sp-6)',
-        background: 'var(--surface-raised)',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border-subtle)',
-      }}
-      className="submission-header"
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
+    <div className="submission-header">
+      <div className="vr-submission-main">
         {onBackToList && (
           <div className="mobile-only">
             <IconButton
-              icon={<ArrowLeft size={18} />}
-              aria-label="Back to queue"
+              icon={<ArrowLeft size={18} className="ui-icon--directional" />}
+              aria-label={t('vr_back_queue')}
               onClick={onBackToList}
               variant="ghost"
             />
@@ -103,51 +100,25 @@ export const SubmissionHeader: React.FC<SubmissionHeaderProps> = ({
 
         <Avatar src={submission.avatar} name={submission.name} size={48} />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: 'var(--fs-card-title)',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-              }}
-            >
-              {submission.name}
-            </h2>
-            {isApproved && <StatusPill variant="success" label="Approved" />}
-            {isRejected && <StatusPill variant="danger" label="Rejected" />}
-            {isFlagged && <StatusPill variant="warning" label="Flagged" />}
+        <div className="vr-submission-text">
+          <div className="vr-submission-name-row">
+            <h2 className="vr-submission-name">{submission.name}</h2>
+            {isApproved && <StatusPill variant="success" label={t('status_approved')} />}
+            {isRejected && <StatusPill variant="danger" label={t('status_rejected')} />}
+            {isFlagged && <StatusPill variant="warning" label={t('status_flagged')} />}
           </div>
 
-          <div
-            style={{
-              fontSize: 'var(--fs-caption)',
-              color: 'var(--text-faint)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--sp-2)',
-            }}
-          >
-            <span>{submission.role || 'Craftsman'}</span>
+          <div className="vr-submission-meta">
+            <span>{submission.role || t('vr_role_default')}</span>
             <span>·</span>
-            <span>Submitted {submission.submittedAgo || 'Today'}</span>
+            <span>{tf(t, 'vr_submitted_at', { when: submittedWhen })}</span>
             <span>·</span>
-            <span style={{ fontFamily: 'var(--font-mono)' }}>ID #{shortId}</span>
+            <bdi className="vr-mono">{tf(t, 'vr_id_label', { id: shortId })}</bdi>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--sp-2)',
-          flexWrap: 'wrap',
-        }}
-        className="submission-header-actions"
-      >
+      <div className="submission-header-actions">
         <Button
           variant="outline"
           size="sm"
@@ -155,7 +126,7 @@ export const SubmissionHeader: React.FC<SubmissionHeaderProps> = ({
           onClick={handleFlagClick}
           disabled={isSubmitting || isFlagged}
         >
-          Flag
+          {t('vr_btn_flag')}
         </Button>
 
         <Button
@@ -165,7 +136,7 @@ export const SubmissionHeader: React.FC<SubmissionHeaderProps> = ({
           onClick={handleRejectClick}
           disabled={isSubmitting || isRejected}
         >
-          Reject
+          {t('vr_btn_reject')}
         </Button>
 
         <Button
@@ -176,7 +147,7 @@ export const SubmissionHeader: React.FC<SubmissionHeaderProps> = ({
           disabled={isSubmitting || isApproved}
           loading={isSubmitting}
         >
-          Approve all
+          {t('vr_btn_approve_all')}
         </Button>
       </div>
     </div>
