@@ -90,4 +90,55 @@ The last ticket writes `REPORT.md` (build/lint/audit results and known gaps).
 * Review the diff per ticket (`git log --oneline refactor/dash-v2`), merge the branches when satisfied. Deploy the **backend first** (new migrations: `20261004000100_audit_ip`, `20261004000200_dispute_resolution`), then the dashboard.
 
 ## Status (filled by T-F094 from `.refactor-state.json`)
-_Not run yet._
+
+| Ticket | Status | Commit |
+|---|---|---|
+| T-F001 | DONE | 31913f7 |
+| T-F002 | DONE | e0fb381 |
+| T-F003 | DONE | 893f8e5 |
+| T-F004 | DONE | 3daff80 |
+| T-F005 | DONE | d9250d9 |
+| T-F006 | DONE | 5d37f50 |
+| T-F010 | DONE | 4b2952f |
+| T-F011 | DONE | 052b704 |
+| T-F020 | DONE | f562722 |
+| T-F021 | DONE | bac9523 |
+| T-F022 | DONE | 11d66d5 |
+| T-F023 | DONE | 47027f2 |
+| T-F030 | DONE | db45cc2 |
+| T-F031 | DONE | f0b2f67 |
+| T-F032 | DONE | 60b80e2 |
+| T-F033 | DONE | 7bfd4e6 |
+| T-F034 | DONE | 81de734 |
+| T-F035 | DONE | df0dcdf |
+| T-F036 | DONE | 7f7ef01 |
+| T-F038 | DONE | 4af4d1b |
+| T-F039 | DONE | 79335d9 |
+| T-F040 | DONE | bb4c381 |
+| T-F050 | DONE | 11cfa17 |
+| T-F051 | DONE | 4886ccd |
+| T-F052 | DONE | 3741fba |
+| T-F053 | DONE | d15c693 |
+| T-F054 | DONE | 7dfb761 |
+| T-F055 | DONE | 3a21d90 |
+| T-F056 | DONE | dbf9f1d |
+| T-F060 | DONE | 190d169 |
+| T-F061 | DONE | 70708e9 |
+| T-F062 | DONE | b476dea |
+| T-F063 | DONE | 29235c2 |
+| T-F064 | DONE | 2ce9374 |
+| T-F065 | DONE | acd85e8 |
+| T-F066 | DONE | b66b62b |
+| T-F067 | DONE | 68d1de2 |
+| T-F068 | DONE | 8475f20 |
+| T-F069 | DONE | db5a0f5 |
+| T-F070 | DONE | 5a6d490 |
+| T-F071 | DONE | f79902c |
+| T-F072 | DONE | 592f149 |
+| T-F073 | DONE | 43d660c |
+| T-F074 | DONE | 425c96a |
+| T-F075 | DONE | 501c268 |
+| T-F076 | DONE | 1e07457 |
+| T-F077 | DONE | 34dd7f3 |
+| T-F078 | DONE | 585cc0a |
+
