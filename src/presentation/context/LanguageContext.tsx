@@ -165,9 +165,19 @@ export const translations: TranslationDict = {
     he: 'לוח מודעות'
   },
   nav_campaigns: {
-    en: 'Active Ads',
-    ar: 'الإعلانات النشطة',
-    he: 'מודעות פעילות'
+    en: 'Campaigns',
+    ar: 'الحملات',
+    he: 'קמפיינים'
+  },
+  nav_offers: {
+    en: 'Offers & Banners',
+    ar: 'العروض والبانرات',
+    he: 'מבצעים ובאנרים'
+  },
+  sec_growth: {
+    en: 'Growth',
+    ar: 'النمو',
+    he: 'צמיחה'
   },
   nav_scheduled: {
     en: 'Scheduled',
@@ -3550,6 +3560,51 @@ export const translations: TranslationDict = {
     en: 'Active campaigns',
     ar: 'الحملات النشطة',
     he: 'קמפיינים פעילים'
+  },
+  sidebar_theme: {
+    en: 'Theme',
+    ar: 'المظهر',
+    he: 'ערכת נושא'
+  },
+  sidebar_expand: {
+    en: 'Expand sidebar',
+    ar: 'توسيع الشريط الجانبي',
+    he: 'הרחב סרגל צד'
+  },
+  sidebar_collapse: {
+    en: 'Collapse sidebar',
+    ar: 'طي الشريط الجانبي',
+    he: 'כווץ סרגל צד'
+  },
+  tabs_more: {
+    en: 'More',
+    ar: 'المزيد',
+    he: 'עוד'
+  },
+  header_no_notifications: {
+    en: 'No notifications',
+    ar: 'لا توجد إشعارات',
+    he: 'אין התראות'
+  },
+  header_view_all: {
+    en: 'View all notifications',
+    ar: 'عرض كل الإشعارات',
+    he: 'הצג את כל ההתראות'
+  },
+  header_aria_language: {
+    en: 'Language selector',
+    ar: 'اختيار اللغة',
+    he: 'בחירת שפה'
+  },
+  header_aria_clear: {
+    en: 'Clear search',
+    ar: 'مسح البحث',
+    he: 'נקה חיפוש'
+  },
+  header_aria_menu: {
+    en: 'Toggle navigation drawer',
+    ar: 'تبديل درج التنقل',
+    he: 'החלף מגירת ניווט'
   }
 };
 

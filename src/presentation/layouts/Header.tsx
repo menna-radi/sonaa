@@ -1,29 +1,67 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useLanguage, type Language } from '../context/LanguageContext';
+import React, { useState, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '../context/LanguageContext';
 import { useNavigation } from '../context/NavigationContext';
 import { useBreakpoint } from '../components/ui/useBreakpoint';
 import { useDependencies } from '../../core/di/DependencyProvider';
+import { unwrap } from '../../core/query/unwrap';
 import { NotificationItem, NotificationCategory } from '../../domain/entities/Notification';
 import { Search, Bell, Globe, Menu, X, Check, MessageSquare, AlertTriangle, UserCheck, AlertCircle, ShieldAlert, TrendingUp, Settings } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { storageService } from '../../core/storage/StorageService';
+import './layouts.css';
 
 interface HeaderProps {
   onMenuToggle: () => void;
 }
 
+interface SocketNotificationPayload {
+  id?: unknown;
+  title?: unknown;
+  subtitle?: unknown;
+  body?: unknown;
+  category?: unknown;
+  type?: unknown;
+  time?: unknown;
+  critical?: unknown;
+}
+
+interface SocketChatPayload {
+  id?: unknown;
+  senderRole?: unknown;
+  senderName?: unknown;
+  content?: unknown;
+}
+
+const asText = (v: unknown, fallback = ''): string => (typeof v === 'string' && v ? v : fallback);
+
 export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
-  const { t, language, setLanguage, isRtl } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
   const { navigate, currentPage, searchQuery, setSearchQuery } = useNavigation();
   const { isMobile } = useBreakpoint();
   const { dependencies } = useDependencies();
   const { notificationRepository } = dependencies;
+  const qc = useQueryClient();
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const socketRef = useRef<Socket | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Bell badge shares the ['notifications'] query (no separate fetch).
+  const notifQ = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => notificationRepository.getNotifications().then(unwrap),
+    staleTime: 30000,
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+  });
+  const notifications = notifQ.data ?? [];
+  const prependNotification = (item: NotificationItem) => {
+    qc.setQueryData<NotificationItem[]>(['notifications'], (prev) =>
+      prev ? [item, ...prev.filter((n) => n.id !== item.id)] : [item]
+    );
+  };
 
   // Global Ctrl/Cmd + K shortcut to focus search
   useEffect(() => {
@@ -37,26 +75,11 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await notificationRepository.getNotifications();
-      if (res.success) {
-        setNotifications(res.data);
-      }
-    } catch {
-      // Graceful fallback
-    }
-  }, [notificationRepository]);
-
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
   useEffect(() => {
     if (notifMenuOpen) {
-      fetchNotifications();
+      void qc.invalidateQueries({ queryKey: ['notifications'] });
     }
-  }, [notifMenuOpen, fetchNotifications]);
+  }, [notifMenuOpen, qc]);
 
   // Real-time WebSocket connection
   useEffect(() => {
@@ -71,31 +94,38 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
 
     socketRef.current = socket;
 
-    socket.on('notification:new', (notif: any) => {
+    socket.on('notification:new', (payload: SocketNotificationPayload) => {
+      const notif = payload ?? {};
+      const rawCategory = typeof notif.category === 'string' ? notif.category : typeof notif.type === 'string' ? notif.type : 'system';
+      const category: NotificationCategory =
+        rawCategory === 'chat' || rawCategory === 'emergency' || rawCategory === 'verification' || rawCategory === 'payments' || rawCategory === 'reports'
+          ? rawCategory
+          : 'system';
       const newNotif: NotificationItem = {
-        id: notif.id || `notif_${Date.now()}`,
-        title: notif.title || 'New Notification',
-        subtitle: notif.subtitle || notif.body || '',
-        category: (notif.category || notif.type || 'system') as NotificationCategory,
-        time: notif.time || 'Just now',
+        id: asText(notif.id, `notif_${Date.now()}`),
+        title: asText(notif.title, 'New Notification'),
+        subtitle: asText(notif.subtitle, asText(notif.body)),
+        category,
+        time: asText(notif.time, 'Just now'),
         unread: true,
-        critical: Boolean(notif.critical),
+        critical: notif.critical === true,
       };
-      setNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)]);
+      prependNotification(newNotif);
     });
 
-    socket.on('chat:message', (msg: any) => {
+    socket.on('chat:message', (payload: SocketChatPayload) => {
+      const msg = payload ?? {};
       if (msg.senderRole !== 'ADMIN') {
         const notif: NotificationItem = {
-          id: `chat_notif_${msg.id || Date.now()}`,
-          title: `Message from ${msg.senderName || 'User'}`,
-          subtitle: msg.content || 'Sent an attachment',
+          id: `chat_notif_${asText(msg.id, String(Date.now()))}`,
+          title: `Message from ${asText(msg.senderName, 'User')}`,
+          subtitle: asText(msg.content, 'Sent an attachment'),
           category: 'chat',
           time: 'Just now',
           unread: true,
           critical: false,
         };
-        setNotifications((prev) => [notif, ...prev.filter((n) => n.id !== notif.id)]);
+        prependNotification(notif);
       }
     });
 
@@ -109,14 +139,14 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const markAllRead = async () => {
     const res = await notificationRepository.markAllRead();
     if (res.success) {
-      fetchNotifications();
+      void qc.invalidateQueries({ queryKey: ['notifications'] });
     }
   };
 
   const handleNotificationClick = async (item: NotificationItem) => {
     if (item.unread) {
       await notificationRepository.toggleRead(item.id);
-      fetchNotifications();
+      void qc.invalidateQueries({ queryKey: ['notifications'] });
     }
     setNotifMenuOpen(false);
     switch (item.category) {
@@ -132,71 +162,34 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'chat': return <div style={{ background: 'var(--success-soft)', color: 'var(--success)', padding: 6, borderRadius: '50%', display: 'flex' }}><MessageSquare size={14} /></div>;
-      case 'emergency': return <div style={{ background: 'var(--danger-soft)', color: 'var(--danger)', padding: 6, borderRadius: '50%', display: 'flex' }}><AlertTriangle size={14} /></div>;
-      case 'verification': return <div style={{ background: 'var(--info-soft)', color: 'var(--info)', padding: 6, borderRadius: '50%', display: 'flex' }}><UserCheck size={14} /></div>;
-      case 'payments': return <div style={{ background: 'var(--warning-soft)', color: 'var(--warning)', padding: 6, borderRadius: '50%', display: 'flex' }}><AlertCircle size={14} /></div>;
-      case 'fraud': return <div style={{ background: 'var(--danger-soft)', color: 'var(--danger)', padding: 6, borderRadius: '50%', display: 'flex' }}><ShieldAlert size={14} /></div>;
-      default: return <div style={{ background: 'var(--surface-sunken)', color: 'var(--text-strong)', padding: 6, borderRadius: '50%', display: 'flex' }}><TrendingUp size={14} /></div>;
+      case 'chat': return <div className="hd-cat-icon hd-cat-icon--chat"><MessageSquare size={14} /></div>;
+      case 'emergency': return <div className="hd-cat-icon hd-cat-icon--emergency"><AlertTriangle size={14} /></div>;
+      case 'verification': return <div className="hd-cat-icon hd-cat-icon--verification"><UserCheck size={14} /></div>;
+      case 'payments': return <div className="hd-cat-icon hd-cat-icon--payments"><AlertCircle size={14} /></div>;
+      case 'fraud': return <div className="hd-cat-icon hd-cat-icon--fraud"><ShieldAlert size={14} /></div>;
+      default: return <div className="hd-cat-icon"><TrendingUp size={14} /></div>;
     }
   };
 
   return (
     <header
-      className="top-header"
-      style={{
-        height: 'var(--topbar-h)',
-        backgroundColor: 'var(--surface-card)',
-        borderBottom: '1px solid var(--border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: isMobile ? '0 12px' : '0 var(--page-pad)',
-        gap: isMobile ? 10 : 'var(--space-4)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        width: '100%',
-        boxSizing: 'border-box',
-      }}
+      className={`top-header hd${isMobile ? ' is-mobile' : ''}`}
     >
       {/* Mobile Drawer Hamburger Trigger */}
       <button
         onClick={onMenuToggle}
-        className="menu-toggle"
-        aria-label="Toggle navigation drawer"
-        style={{
-          display: 'none',
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-strong)',
-          cursor: 'pointer',
-          padding: 4,
-        }}
+        className="menu-toggle hd-menu-btn"
+        aria-label={t('header_aria_menu')}
       >
         <Menu size={20} />
       </button>
 
       {/* Centered Search Pill */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minWidth: 0 }}>
+      <div className="hd-search-wrap">
         <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            maxWidth: 560,
-            minWidth: 0,
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: 'var(--surface-sunken)',
-            borderRadius: 'var(--radius-full)',
-            padding: isMobile ? '0 10px' : '0 14px',
-            height: isMobile ? 36 : 38,
-            border: '1px solid transparent',
-            transition: 'all var(--dur-fast) var(--ease)',
-          }}
-          className="topbar-search-pill"
+          className={`topbar-search-pill hd-search-pill${isMobile ? ' is-mobile' : ''}`}
         >
-          <Search size={16} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+          <Search size={16} color="var(--text-muted)" className="hd-search-icon" />
           <input
             ref={searchInputRef}
             type="text"
@@ -207,51 +200,21 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
             }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              border: 'none',
-              background: 'transparent',
-              outline: 'none',
-              padding: '0 10px',
-              fontFamily: 'inherit',
-              fontSize: 'var(--fs-body)',
-              color: 'var(--text-strong)',
-            }}
+            className="hd-search-input"
           />
           {searchQuery ? (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-                padding: 0,
-                display: 'flex',
-                alignItems: 'center',
-              }}
-              aria-label="Clear search"
+              className="hd-search-clear"
+              aria-label={t('header_aria_clear')}
             >
               <X size={14} />
             </button>
           ) : (
             /* ⌘K hint is desktop-only — no room or shortcut on touch */
             !isMobile && (
-              <kbd
-                style={{
-                  fontSize: 11,
-                  padding: '2px 6px',
-                  borderRadius: 'var(--radius-xs)',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'var(--surface-card)',
-                  color: 'var(--text-faint)',
-                  userSelect: 'none',
-                  fontFamily: 'inherit',
-                  flexShrink: 0,
-                }}
-              >
+              <kbd className="hd-search-kbd">
                 ⌘K
               </kbd>
             )
@@ -260,44 +223,20 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
       </div>
 
       {/* End Controls: Notification Bell + Language */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 4 : 'var(--space-2)', flexShrink: 0 }}>
+      <div className={`hd-controls${isMobile ? ' is-mobile' : ''}`}>
         {/* Notification Bell */}
-        <div style={{ position: 'relative' }}>
+        <div className="hd-pop-wrap">
           <button
             onClick={() => {
               setNotifMenuOpen(!notifMenuOpen);
               setLangMenuOpen(false);
             }}
-            aria-label="Notifications"
-            style={{
-              position: 'relative',
-              width: 36,
-              height: 36,
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: notifMenuOpen ? 'var(--surface-hover)' : 'transparent',
-              border: 'none',
-              color: 'var(--text-body)',
-              cursor: 'pointer',
-              transition: 'background var(--dur-fast) var(--ease)',
-            }}
+            aria-label={t('nav_notifications')}
+            className={`hd-icon-btn${notifMenuOpen ? ' is-open' : ''}`}
           >
             <Bell size={18} />
             {unreadCount > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 8,
-                  insetInlineEnd: 8,
-                  width: 8,
-                  height: 8,
-                  borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--live)',
-                  animation: 'livePulse 1.5s ease-in-out infinite',
-                }}
-              />
+              <span className="hd-dot" />
             )}
           </button>
 
@@ -305,51 +244,18 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           {notifMenuOpen && (
             <>
               <div
-                style={{ position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, zIndex: 998 }}
+                className="hd-pop-overlay"
                 onClick={() => setNotifMenuOpen(false)}
               />
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 8px)',
-                  insetInlineEnd: 0,
-                  width: 340,
-                  backgroundColor: 'var(--surface-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                  boxShadow: 'var(--shadow-pop)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  zIndex: 999,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '12px 16px',
-                    borderBottom: '1px solid var(--border)',
-                  }}
-                >
-                  <span style={{ fontWeight: 600, fontSize: 'var(--fs-small)', color: 'var(--text-strong)' }}>
+              <div className="hd-pop">
+                <div className="hd-pop-head">
+                  <span className="hd-pop-title">
                     {t('nav_notifications') || 'Notifications'}
                   </span>
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllRead}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--text-strong)',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                      }}
+                      className="hd-mark-read"
                     >
                       <Check size={12} />
                       <span>{t('btn_mark_all_read') || 'Mark all read'}</span>
@@ -357,37 +263,29 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   )}
                 </div>
 
-                <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+                <div className="hd-pop-list">
                   {notifications.length === 0 ? (
-                    <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-                      No notifications
+                    <div className="hd-pop-empty">
+                      {t('header_no_notifications')}
                     </div>
                   ) : (
                     notifications.map((item) => (
                       <div
                         key={item.id}
                         onClick={() => handleNotificationClick(item)}
-                        style={{
-                          display: 'flex',
-                          gap: 10,
-                          padding: '10px 16px',
-                          borderBottom: '1px solid var(--border)',
-                          backgroundColor: item.unread ? 'var(--surface-sunken)' : 'transparent',
-                          cursor: 'pointer',
-                          transition: 'background var(--dur-fast) var(--ease)',
-                        }}
+                        className={`hd-notif-row${item.unread ? ' is-unread' : ''}`}
                       >
-                        <div style={{ marginTop: 2 }}>{getCategoryIcon(item.category)}</div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <p style={{ margin: 0, fontSize: 13, fontWeight: item.unread ? 600 : 500, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div className="hd-notif-icon">{getCategoryIcon(item.category)}</div>
+                        <div className="hd-notif-body">
+                          <div className="hd-notif-top">
+                            <p className={`hd-notif-title${item.unread ? ' is-unread' : ''}`}>
                               {item.title}
                             </p>
-                            <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0 }}>
+                            <span className="hd-notif-time">
                               {item.time}
                             </span>
                           </div>
-                          <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p className="hd-notif-sub">
                             {item.subtitle}
                           </p>
                         </div>
@@ -401,19 +299,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                     setNotifMenuOpen(false);
                     navigate('notifications');
                   }}
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderTop: '1px solid var(--border)',
-                    padding: 10,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: 'var(--text-strong)',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                  }}
+                  className="hd-pop-foot"
                 >
-                  View all notifications
+                  {t('header_view_all')}
                 </button>
               </div>
             </>
@@ -421,25 +309,14 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
         </div>
 
         {/* Language Selector */}
-        <div style={{ position: 'relative' }}>
+        <div className="hd-pop-wrap">
           <button
             onClick={() => {
               setLangMenuOpen(!langMenuOpen);
               setNotifMenuOpen(false);
             }}
-            aria-label="Language selector"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: langMenuOpen ? 'var(--surface-hover)' : 'transparent',
-              border: 'none',
-              color: 'var(--text-body)',
-              cursor: 'pointer',
-            }}
+            aria-label={t('header_aria_language')}
+            className={`hd-icon-btn${langMenuOpen ? ' is-open' : ''}`}
           >
             <Globe size={18} />
           </button>
@@ -447,26 +324,10 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           {langMenuOpen && (
             <>
               <div
-                style={{ position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, zIndex: 998 }}
+                className="hd-pop-overlay"
                 onClick={() => setLangMenuOpen(false)}
               />
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 8px)',
-                  insetInlineEnd: 0,
-                  width: 140,
-                  backgroundColor: 'var(--surface-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                  boxShadow: 'var(--shadow-pop)',
-                  padding: 4,
-                  zIndex: 999,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                }}
-              >
+              <div className="hd-pop hd-pop--sm">
                 {([
                   { code: 'en', name: 'English' },
                   { code: 'ar', name: 'العربية' },
@@ -475,24 +336,10 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   <button
                     key={opt.code}
                     onClick={() => {
-                      setLanguage(opt.code as Language);
+                      setLanguage(opt.code);
                       setLangMenuOpen(false);
                     }}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      fontSize: 13,
-                      fontWeight: language === opt.code ? 600 : 500,
-                      borderRadius: 'var(--radius-xs)',
-                      border: 'none',
-                      backgroundColor: language === opt.code ? 'var(--surface-sunken)' : 'transparent',
-                      color: 'var(--text-strong)',
-                      cursor: 'pointer',
-                      textAlign: isRtl ? 'right' : 'left',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
+                    className={`hd-lang-opt${language === opt.code ? ' is-active' : ''}`}
                   >
                     <span>{opt.name}</span>
                     {language === opt.code && <Check size={14} />}
@@ -512,19 +359,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           }}
           aria-label={t('nav_settings') || 'Settings'}
           title={t('nav_settings') || 'Settings'}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: currentPage === 'settings' ? 'var(--surface-hover)' : 'transparent',
-            border: 'none',
-            color: currentPage === 'settings' ? 'var(--text-strong)' : 'var(--text-body)',
-            cursor: 'pointer',
-            transition: 'background var(--dur-fast) var(--ease)',
-          }}
+          className={`hd-icon-btn${currentPage === 'settings' ? ' is-active' : ''}`}
         >
           <Settings size={18} />
         </button>

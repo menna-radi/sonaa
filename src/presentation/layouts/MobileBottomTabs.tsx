@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNavigation, PageKey } from '../context/NavigationContext';
 import { useSidebarCounts } from '../hooks/useSidebarCounts';
 import { LayoutDashboard, Activity, ShieldCheck, CheckSquare, Menu } from 'lucide-react';
+import './layouts.css';
 
 interface MobileBottomTabsProps {
   onOpenSidebar?: () => void;
@@ -39,22 +40,7 @@ export const MobileBottomTabs: React.FC<MobileBottomTabsProps> = ({ onOpenSideba
   ];
 
   return (
-    <nav
-      className="mobile-bottom-tabs"
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        backgroundColor: 'var(--surface-card)',
-        borderTop: '1px solid var(--border)',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        zIndex: 95,
-      }}
-    >
+    <nav className="mobile-bottom-tabs mtabs">
       {tabItems.map((tab) => {
         const isActive = currentPage === tab.pageKey;
         return (
@@ -62,69 +48,13 @@ export const MobileBottomTabs: React.FC<MobileBottomTabsProps> = ({ onOpenSideba
             key={tab.pageKey}
             type="button"
             onClick={() => navigate(tab.pageKey)}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'none',
-              border: 'none',
-              color: isActive ? 'var(--text-strong)' : 'var(--text-muted)',
-              fontSize: '11px',
-              fontWeight: isActive ? 600 : 500,
-              flex: 1,
-              height: '100%',
-              gap: 2,
-              cursor: 'pointer',
-              position: 'relative',
-            }}
+            className={`mtabs__btn${isActive ? ' is-active' : ''}`}
           >
-            {isActive && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  width: 24,
-                  height: 2,
-                  backgroundColor: 'var(--text-strong)',
-                  borderRadius: 'var(--radius-full)',
-                }}
-              />
-            )}
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            {isActive && <span className="mtabs__bar" />}
+            <div className="mtabs__iconwrap">
               {tab.icon}
-              {tab.hasDot && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: -2,
-                    insetInlineEnd: -2,
-                    width: 6,
-                    height: 6,
-                    borderRadius: 'var(--radius-full)',
-                    backgroundColor: 'var(--live)',
-                  }}
-                />
-              )}
-              {tab.badge && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: -6,
-                    insetInlineEnd: -10,
-                    backgroundColor: 'var(--surface-inverse)',
-                    color: 'var(--on-inverse)',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    borderRadius: 'var(--radius-full)',
-                    padding: '1px 5px',
-                    minWidth: 16,
-                    textAlign: 'center',
-                  }}
-                >
-                  {tab.badge}
-                </span>
-              )}
+              {tab.hasDot && <span className="mtabs__dot" />}
+              {tab.badge && <span className="mtabs__badge">{tab.badge}</span>}
             </div>
             <span>{tab.label}</span>
           </button>
@@ -132,27 +62,9 @@ export const MobileBottomTabs: React.FC<MobileBottomTabsProps> = ({ onOpenSideba
       })}
 
       {/* "More" button to trigger full sidebar drawer */}
-      <button
-        type="button"
-        onClick={onOpenSidebar}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-muted)',
-          fontSize: '11px',
-          fontWeight: 500,
-          flex: 1,
-          height: '100%',
-          gap: 2,
-          cursor: 'pointer',
-        }}
-      >
+      <button type="button" onClick={onOpenSidebar} className="mtabs__btn">
         <Menu size={20} />
-        <span>More</span>
+        <span>{t('tabs_more')}</span>
       </button>
     </nav>
   );

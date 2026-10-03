@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme, type Theme } from '../context/ThemeContext';
 import { useNavigation, PageKey } from '../context/NavigationContext';
 import { useSidebarCounts } from '../hooks/useSidebarCounts';
+import './layouts.css';
 import {
   LayoutDashboard,
   Activity,
@@ -16,11 +17,7 @@ import {
   Radio,
   Bell,
   Megaphone,
-  Compass,
-  Calendar,
-  Clock,
   Percent,
-  TrendingUp,
   Check,
   Wrench,
   ChevronDown,
@@ -47,6 +44,8 @@ interface NavItem {
   icon: React.ReactNode;
   badge?: string;
   isPulse?: boolean;
+  /** Extra page keys that mark this item active (legacy aliases). */
+  match?: PageKey[];
 }
 
 interface MenuSection {
@@ -182,6 +181,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       ],
     },
     {
+      titleKey: 'sec_growth',
+      titleDefault: 'Growth',
+      items: [
+        {
+          key: 'nav_offers',
+          pageKey: 'promotions',
+          label: t('nav_offers'),
+          icon: <Percent size={16} />,
+        },
+        {
+          key: 'nav_campaigns',
+          pageKey: 'campaigns',
+          label: t('nav_campaigns'),
+          icon: <Megaphone size={16} />,
+          match: ['scheduled', 'expired', 'ads', 'ad_analytics', 'create_ad'],
+        },
+        {
+          key: 'nav_broadcast',
+          pageKey: 'broadcast',
+          label: t('nav_broadcast') || 'Broadcast',
+          icon: <Radio size={16} />,
+        },
+      ],
+    },
+    {
       titleKey: 'sec_insights',
       titleDefault: 'Insights',
       items: [
@@ -192,53 +216,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           icon: <BarChart3 size={16} />,
         },
         {
-          key: 'nav_broadcast',
-          pageKey: 'broadcast',
-          label: t('nav_broadcast') || 'Broadcast',
-          icon: <Radio size={16} />,
-        },
-        {
           key: 'nav_notifications',
           pageKey: 'notifications',
           label: t('nav_notifications') || 'Notifications',
           icon: <Bell size={16} />,
           badge: counts && counts.notifications > 0 ? String(counts.notifications) : undefined,
-        },
-        {
-          key: 'nav_ads',
-          pageKey: 'ads',
-          label: t('nav_ads') || 'Ads Dashboard',
-          icon: <Megaphone size={16} />,
-        },
-        {
-          key: 'nav_campaigns',
-          pageKey: 'campaigns',
-          label: t('nav_campaigns') || 'Active Ads',
-          icon: <Compass size={16} />,
-        },
-        {
-          key: 'nav_scheduled',
-          pageKey: 'scheduled',
-          label: t('nav_scheduled') || 'Scheduled',
-          icon: <Calendar size={16} />,
-        },
-        {
-          key: 'nav_expired',
-          pageKey: 'expired',
-          label: t('nav_expired') || 'Expired',
-          icon: <Clock size={16} />,
-        },
-        {
-          key: 'nav_promotions',
-          pageKey: 'promotions',
-          label: t('nav_promotions') || 'Craftsman Promotions',
-          icon: <Percent size={16} />,
-        },
-        {
-          key: 'nav_ad_analytics',
-          pageKey: 'ad_analytics',
-          label: t('nav_ad_analytics') || 'Ad Analytics',
-          icon: <TrendingUp size={16} />,
         },
         {
           key: 'nav_service_management',
@@ -273,97 +255,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <button
           type="button"
           onClick={() => setCollapsed((prev) => !prev)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? t('sidebar_expand') : t('sidebar_collapse')}
+          title={collapsed ? t('sidebar_expand') : t('sidebar_collapse')}
           className="sidebar-collapse-btn"
         >
           {(isRtl ? !collapsed : collapsed) ? <ChevronsRight size={14} /> : <ChevronsLeft size={14} />}
         </button>
         {/* Brand Block */}
-        <div
-          className="sidebar-brand"
-          style={{
-            minHeight: 'var(--topbar-h)',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '14px var(--space-4)',
-            borderBottom: '1px solid var(--sidebar-border)',
-            gap: 'var(--space-3)',
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, #26262B 0%, #09090B 70%)',
-              border: '1px solid rgba(255, 255, 255, 0.16)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
-            }}
-          >
-            <img src="/arox-icon.svg" alt="Arox Logo" style={{ width: 22, height: 22 }} />
+        <div className="sidebar-brand sb-brand">
+          <div className="sb-brand__logo">
+            <img src="/arox-icon.svg" alt="Arox Logo" />
           </div>
-          <div
-            className="sidebar-brand-text"
-            style={{ display: 'flex', flexDirection: 'column', textAlign: 'start' }}
-          >
-            <span
-              style={{
-                fontWeight: 700,
-                fontSize: 'var(--fs-body)',
-                color: '#FFFFFF',
-                lineHeight: 1.25,
-              }}
-            >
+          <div className="sidebar-brand-text sb-brand__text">
+            <span className="sb-brand__name">
               Arox Admin
             </span>
-            <span
-              style={{
-                display: 'block',
-                marginTop: '2px',
-                fontSize: 'var(--fs-caption)',
-                lineHeight: 1.4,
-                color: 'var(--sidebar-section)',
-              }}
-            >
+            <span className="sb-brand__sub">
               Admin Console
             </span>
           </div>
         </div>
 
         {/* Scrollable Nav Items */}
-        <div
-          className="sidebar-scrollable-body"
-          style={{
-            flexGrow: 1,
-            overflowY: 'auto',
-            padding: 'var(--space-4) var(--space-3)',
-          }}
-        >
+        <div className="sidebar-scrollable-body sb-body">
           {menuSections.map((section, sIdx) => (
-            <div key={sIdx} className="sidebar-section" style={{ marginBottom: 'var(--space-5)' }}>
-              <span
-                className="sidebar-section-title"
-                style={{
-                  display: 'block',
-                  fontSize: 'var(--fs-micro)',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  color: 'var(--sidebar-section)',
-                  padding: '0 var(--space-3)',
-                  marginBottom: 'var(--space-2)',
-                }}
-              >
+            <div key={sIdx} className="sidebar-section sb-section">
+              <span className="sidebar-section-title sb-section__title">
                 {t(section.titleKey) || section.titleDefault}
               </span>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <ul className="sb-list">
                 {section.items.map((item) => {
-                  const isActive = currentPage === item.pageKey;
+                  const isActive = currentPage === item.pageKey || (item.match ?? []).includes(currentPage);
                   const isLive = item.badge === 'LIVE';
 
                   return (
@@ -372,78 +294,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         href={`#${item.pageKey}`}
                         title={collapsed ? undefined : item.label}
                         data-label={item.label}
-                        className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                        className={`sidebar-nav-item sb-link${isActive ? ' active is-active' : ''}`}
                         onClick={(e) => handleNavClick(e, item.pageKey)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          height: 36,
-                          padding: '0 var(--space-3)',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: 'var(--fs-body)',
-                          fontWeight: isActive ? 600 : 500,
-                          backgroundColor: isActive
-                            ? 'var(--sidebar-active-bg)'
-                            : 'transparent',
-                          color: isActive
-                            ? 'var(--sidebar-active-text)'
-                            : 'var(--sidebar-text)',
-                          textDecoration: 'none',
-                          transition: 'all var(--dur-fast) var(--ease)',
-                        }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ display: 'flex', alignItems: 'center' }}>{item.icon}</span>
+                        <div className="sb-link__main">
+                          <span className="sb-link__icon">{item.icon}</span>
                           <span className="sidebar-item-label">{item.label}</span>
                         </div>
 
                         {item.badge &&
                           (isLive ? (
-                            <span
-                              className="sidebar-item-badge"
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                height: 18,
-                                padding: '0 6px',
-                                borderRadius: 4,
-                                border: '1px solid rgba(239, 68, 68, 0.4)',
-                                color: '#EF4444',
-                                fontSize: 10,
-                                fontWeight: 700,
-                                flexShrink: 0,
-                              }}
-                            >
-                              <span
-                                style={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: '50%',
-                                  backgroundColor: '#EF4444',
-                                  animation: 'livePulse 1.5s ease-in-out infinite',
-                                }}
-                              />
+                            <span className="sidebar-item-badge sb-live">
+                              <span className="sb-live__dot" />
                               <span className="sidebar-item-label">LIVE</span>
                             </span>
                           ) : (
-                            <span
-                              className="sidebar-item-badge"
-                              style={{
-                                minWidth: 22,
-                                height: 20,
-                                padding: '0 6px',
-                                borderRadius: 6,
-                                backgroundColor: 'var(--sidebar-badge-bg)',
-                                color: 'var(--sidebar-badge-text)',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
+                            <span className="sidebar-item-badge sb-badge">
                               {item.badge}
                             </span>
                           ))}
@@ -457,17 +323,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer: User Profile with Popover */}
-        <div
-          className="sidebar-footer"
-          style={{
-            padding: 'var(--space-3)',
-            borderTop: '1px solid var(--sidebar-border)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-            position: 'relative',
-          }}
-        >
+        <div className="sidebar-footer sb-footer">
           {/* User Row with Chevron Menu */}
           {user && (
             <div
@@ -480,71 +336,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   return !prev;
                 });
               }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '6px var(--space-3)',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                userSelect: 'none',
-              }}
-              className="sidebar-user-row"
+              className="sidebar-user-row sb-user-row"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                <div
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--n-800)',
-                    color: '#FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 600,
-                    fontSize: 11,
-                    flexShrink: 0,
-                  }}
-                >
+              <div className="sb-user-main">
+                <div className="sb-avatar">
                   {getInitials(user.name || user.email)}
                 </div>
-                <div
-                  className="sidebar-item-label sidebar-user-details"
-                  style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}
-                >
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: '#FFFFFF',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      lineHeight: 1.3,
-                    }}
-                  >
+                <div className="sidebar-item-label sidebar-user-details sb-user-meta">
+                  <span className="sb-user-name">
                     {user.name || 'Admin'}
                   </span>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      lineHeight: 1.3,
-                      color: 'var(--sidebar-section)',
-                    }}
-                  >
+                  <span className="sb-user-role">
                     {user.role || 'Super Admin'}
                   </span>
                 </div>
               </div>
               <ChevronDown
                 size={14}
-                className="sidebar-user-chevron"
-                style={{
-                  color: 'var(--sidebar-text)',
-                  transform: userMenuOpen ? 'rotate(180deg)' : 'none',
-                  transition: 'transform var(--dur-fast) var(--ease)',
-                }}
+                className={`sidebar-user-chevron sb-chevron${userMenuOpen ? ' is-open' : ''}`}
               />
             </div>
           )}
@@ -552,40 +361,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* User Popover Menu */}
           {userMenuOpen && (
             <>
-              <div
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  left: 0,
-                  zIndex: 998,
-                }}
-                onClick={() => setUserMenuOpen(false)}
-              />
-              <div
-                className="sidebar-user-popover"
-                style={{
-                  position: 'absolute',
-                  bottom: 'calc(100% + 8px)',
-                  insetInlineStart: 'var(--space-3)',
-                  insetInlineEnd: 'var(--space-3)',
-                  backgroundColor: 'var(--n-900)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: 8,
-                  boxShadow: 'var(--shadow-modal)',
-                  zIndex: 999,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                }}
-              >
+              <div className="sb-overlay" onClick={() => setUserMenuOpen(false)} />
+              <div className="sidebar-user-popover sb-pop">
                 {/* Language selection (dropdown list) */}
-                <div style={{ padding: '6px 10px 2px', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: 'var(--n-400)', textTransform: 'uppercase' }}>
+                <div className="sb-pop__group-label">
                   {t('language') || 'Language'}
                 </div>
-                <div style={{ position: 'relative', padding: '0 2px' }}>
+                <div className="sb-pop__select-wrap">
                   <button
                     type="button"
                     onClick={() => {
@@ -594,55 +376,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }}
                     aria-haspopup="listbox"
                     aria-expanded={langMenuOpen}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      padding: '8px 10px',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                      color: '#FFFFFF',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: 'var(--radius-md)',
-                      cursor: 'pointer',
-                    }}
+                    className="sb-select-btn"
                   >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <Globe size={14} style={{ color: 'var(--n-300)' }} />
+                    <span className="sb-select-btn__label">
+                      <Globe size={14} className="sb-faint-icon" />
                       <span>{activeLanguage.label}</span>
                     </span>
                     <ChevronDown
                       size={13}
-                      style={{
-                        color: 'var(--n-300)',
-                        transform: langMenuOpen ? 'rotate(180deg)' : 'none',
-                        transition: 'transform var(--dur-fast) var(--ease)',
-                      }}
+                      className={`sb-chevron${langMenuOpen ? ' is-open' : ''}`}
                     />
                   </button>
 
                   {langMenuOpen && (
-                    <div
-                      role="listbox"
-                      aria-label={t('language') || 'Language'}
-                      style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 4px)',
-                        insetInlineStart: 0,
-                        insetInlineEnd: 0,
-                        backgroundColor: 'var(--n-800)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: 'var(--radius-md)',
-                        boxShadow: 'var(--shadow-pop)',
-                        padding: 4,
-                        zIndex: 1000,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                      }}
-                    >
+                    <div role="listbox" aria-label={t('language') || 'Language'} className="sb-listbox">
                       {languageOptions.map((opt) => {
                         const isActive = language === opt.key;
                         return (
@@ -654,30 +401,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                               setLanguage(opt.key as Language);
                               setLangMenuOpen(false);
                             }}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              width: '100%',
-                              padding: '8px 10px',
-                              fontSize: 12,
-                              fontWeight: isActive ? 700 : 500,
-                              backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                              color: isActive ? '#FFFFFF' : 'var(--n-300)',
-                              border: 'none',
-                              borderRadius: 'var(--radius-sm)',
-                              cursor: 'pointer',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
-                            }}
+                            className={`sb-opt${isActive ? ' is-active' : ''}`}
                           >
                             <span>{opt.label}</span>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                              <span style={{ fontSize: 10, color: 'var(--n-400)', fontWeight: 600 }}>
+                            <span className="sb-opt__meta">
+                              <span className="sb-opt__code">
                                 {opt.code}
                               </span>
                               {isActive && <Check size={13} />}
@@ -690,10 +418,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Theme selection (dropdown list) */}
-                <div style={{ padding: '10px 10px 2px', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: 'var(--n-400)', textTransform: 'uppercase' }}>
-                  Theme
+                <div className="sb-pop__group-label">
+                  {t('sidebar_theme')}
                 </div>
-                <div style={{ position: 'relative', padding: '0 2px' }}>
+                <div className="sb-pop__select-wrap">
                   <button
                     type="button"
                     onClick={() => {
@@ -702,55 +430,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }}
                     aria-haspopup="listbox"
                     aria-expanded={themeMenuOpen}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      padding: '8px 10px',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                      color: '#FFFFFF',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: 'var(--radius-md)',
-                      cursor: 'pointer',
-                    }}
+                    className="sb-select-btn"
                   >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <span className="sb-select-btn__label">
                       {activeTheme.icon}
                       <span>{activeTheme.label}</span>
                     </span>
                     <ChevronDown
                       size={13}
-                      style={{
-                        color: 'var(--n-300)',
-                        transform: themeMenuOpen ? 'rotate(180deg)' : 'none',
-                        transition: 'transform var(--dur-fast) var(--ease)',
-                      }}
+                      className={`sb-chevron${themeMenuOpen ? ' is-open' : ''}`}
                     />
                   </button>
 
                   {themeMenuOpen && (
-                    <div
-                      role="listbox"
-                      aria-label="Theme"
-                      style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 4px)',
-                        insetInlineStart: 0,
-                        insetInlineEnd: 0,
-                        backgroundColor: 'var(--n-800)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: 'var(--radius-md)',
-                        boxShadow: 'var(--shadow-pop)',
-                        padding: 4,
-                        zIndex: 1000,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                      }}
-                    >
+                    <div role="listbox" aria-label={t('sidebar_theme')} className="sb-listbox">
                       {themeOptions.map((tOption) => {
                         const isActive = theme === tOption.key;
                         return (
@@ -762,28 +455,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                               setTheme(tOption.key as Theme);
                               setThemeMenuOpen(false);
                             }}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              width: '100%',
-                              padding: '8px 10px',
-                              fontSize: 12,
-                              fontWeight: isActive ? 700 : 500,
-                              backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                              color: isActive ? '#FFFFFF' : 'var(--n-300)',
-                              border: 'none',
-                              borderRadius: 'var(--radius-sm)',
-                              cursor: 'pointer',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
-                            }}
+                            className={`sb-opt${isActive ? ' is-active' : ''}`}
                           >
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                            <span className="sb-opt__meta">
                               {tOption.icon}
                               <span>{tOption.label}</span>
                             </span>
@@ -795,7 +469,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   )}
                 </div>
 
-                <div style={{ height: 1, backgroundColor: 'rgba(255, 255, 255, 0.07)', margin: '8px 4px 6px' }} />
+                <div className="sb-divider" />
 
                 {/* Logout */}
                 <button
@@ -803,28 +477,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     setUserMenuOpen(false);
                     logout();
                   }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '9px 10px',
-                    width: '100%',
-                    backgroundColor: 'rgba(239, 68, 68, 0.09)',
-                    border: '1px solid rgba(239, 68, 68, 0.16)',
-                    borderRadius: 'var(--radius-sm)',
-                    color: '#F87171',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    textAlign: 'start',
-                    transition: 'background var(--dur-fast) var(--ease)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.09)';
-                  }}
+                  className="sb-logout"
                 >
                   <LogOut size={14} />
                   <span>{t('btn_logout') || 'Log out'}</span>
