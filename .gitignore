@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .impeccable
+
+# Refactor runner state
+.refactor-state.json
+.refactor-logs
