@@ -39,7 +39,7 @@ export function useSidebarCounts() {
 
       let notifications = 0;
       if (notifsRes.status === 'fulfilled' && notifsRes.value.success) {
-        notifications = notifsRes.value.data.filter((n) => n.unread).length || 0;
+        notifications = notifsRes.value.data.filter((n) => !n.isRead).length || 0;
       }
 
       // NOTE (T-F030): PaymentRepository is not refactored yet (T-F038), so the

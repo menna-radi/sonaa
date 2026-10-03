@@ -1,254 +1,203 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Bell,
-  Settings,
-  Check,
-  Trash2,
+  RefreshCw,
+  CheckCheck,
   AlertTriangle,
   UserCheck,
-  AlertCircle,
-  TrendingUp,
+  CreditCard,
   ShieldAlert,
+  Bell,
+  Trash2,
 } from 'lucide-react';
+import { PageHeader } from '../../../components/ui/PageHeader';
+import { Button } from '../../../components/ui/Button';
+import { Card } from '../../../components/ui/Card';
+import { Segmented } from '../../../components/ui/Segmented';
+import { EmptyState, ErrorState } from '../../../components/ui/EmptyState';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useNavigation } from '../../../context/NavigationContext';
+import { formatRelativeTime } from '../../../../core/utils/format';
 import { useNotifications } from '../hooks/useNotifications';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { Button, IconButton } from '../../../components/ui/Button';
-import { Segmented } from '../../../components/ui/Segmented';
-import { SearchInput } from '../../../components/ui/SearchInput';
-import { Card } from '../../../components/ui/Card';
-import { ListItem, IconCircle } from '../../../components/ui/ListItem';
-import { Switch } from '../../../components/ui/FormFields';
-import { EmptyState } from '../../../components/ui/EmptyState';
-import { useToast } from '../../../components/ui/Toast';
+import type { NotificationItem, NotificationCategory } from '../../../../domain/entities/Notification';
+import '../notifications.css';
 
 export const NotificationsPage: React.FC = () => {
-  const { t, isRtl } = useLanguage();
+  const { t, language } = useLanguage();
   const { navigate } = useNavigation();
-  const toast = useToast();
+  const [categoryFilter, setCategoryFilter] = useState<'all' | NotificationCategory>('all');
 
   const {
     notifications,
-    categories,
-    searchQuery,
-    setSearchQuery,
-    activeTab,
-    setActiveTab,
-    toggleRead,
+    unreadCount,
+    isLoading,
+    isError,
+    error,
+    isFetching,
+    refetch,
+    dataUpdatedAt,
+    markRead,
     markAllRead,
     deleteNotification,
-    toggleCategorySubscription,
-    counters,
+    isMarkingAllRead,
   } = useNotifications();
 
-  const getCategoryIcon = (category: string) => {
+  const filterItems = [
+    { value: 'all', label: t('notif_cat_all') },
+    { value: 'emergency', label: t('notif_cat_emergency') },
+    { value: 'verification', label: t('notif_cat_verification') },
+    { value: 'payments', label: t('notif_cat_payments') },
+    { value: 'reports', label: t('notif_cat_reports') },
+    { value: 'system', label: t('notif_cat_system') },
+  ];
+
+  const filteredNotifications = notifications.filter((n) => {
+    if (categoryFilter !== 'all' && n.category !== categoryFilter) return false;
+    return true;
+  });
+
+  const getCategoryIcon = (category: NotificationCategory) => {
     switch (category) {
       case 'emergency':
-        return <IconCircle icon={<AlertTriangle size={16} />} tone="danger" size={32} />;
+        return <AlertTriangle size={18} className="ui-text-strong" />;
       case 'verification':
-        return <IconCircle icon={<UserCheck size={16} />} tone="info" size={32} />;
+        return <UserCheck size={18} className="ui-text-strong" />;
       case 'payments':
-        return <IconCircle icon={<AlertCircle size={16} />} tone="warning" size={32} />;
-      case 'fraud':
-        return <IconCircle icon={<ShieldAlert size={16} />} tone="danger" size={32} />;
+        return <CreditCard size={18} className="ui-text-strong" />;
       case 'reports':
+        return <ShieldAlert size={18} className="ui-text-strong" />;
       case 'system':
       default:
-        return <IconCircle icon={<TrendingUp size={16} />} tone="default" size={32} />;
+        return <Bell size={18} className="ui-text-muted" />;
+    }
+  };
+
+  const handleItemClick = (item: NotificationItem) => {
+    if (!item.isRead) {
+      markRead(item.id);
+    }
+
+    const typeStr = (item.type || '').toUpperCase();
+    const entity = (item.entityType || '').toLowerCase();
+
+    if (entity === 'subscription' || entity === 'commission' || entity === 'billing' || typeStr.includes('PAYMENT') || typeStr.includes('COMMISSION')) {
+      navigate('billing');
+    } else if (entity === 'task' || typeStr.includes('TASK') || typeStr.includes('EMERGENCY') || typeStr.includes('DISPUTE')) {
+      navigate('tasks');
+    } else if (entity === 'verification' || typeStr.includes('VERIFICATION')) {
+      navigate('verification');
+    } else if (entity === 'report' || typeStr.includes('REPORT')) {
+      navigate('reports');
     }
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--sp-4)',
-        direction: isRtl ? 'rtl' : 'ltr',
-      }}
-    >
+    <div className="ui-page">
       <PageHeader
-        title={t('notifications_title') || 'Notifications'}
-        subtitle={
-          t('notifications_subtitle') ||
-          'Real-time administrative alerts, critical security notices, and category subscription controls'
-        }
+        title={t('notifications_title')}
+        subtitle={t('notifications_subtitle')}
+        meta={dataUpdatedAt ? `${t('updated')} ${formatRelativeTime(dataUpdatedAt, language)}` : undefined}
         actions={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+          <div className="ui-row">
             <Button
-              size="sm"
               variant="outline"
-              icon={<Settings size={14} />}
-              onClick={() => {
-                localStorage.setItem('settings_active_tab', 'notifications');
-                navigate('settings');
-              }}
+              size="sm"
+              icon={<CheckCheck size={14} />}
+              loading={isMarkingAllRead}
+              disabled={unreadCount === 0}
+              onClick={() => markAllRead()}
             >
-              {t('btn_preferences') || 'Preferences'}
+              {t('btn_mark_all_read')}
             </Button>
             <Button
+              variant="outline"
               size="sm"
-              variant="primary"
-              icon={<Check size={14} />}
-              onClick={() => {
-                markAllRead();
-                toast.success(t('btn_mark_all_read') || 'All notifications marked as read');
-              }}
+              icon={<RefreshCw size={14} className={isFetching ? 'spin' : ''} />}
+              loading={isFetching}
+              onClick={() => refetch()}
             >
-              {t('btn_mark_all_read') || 'Mark all read'}
+              {t('btn_refresh')}
             </Button>
           </div>
         }
       />
 
-      {/* Main split grid: Feed (left ~2fr) + Side Settings (right ~1fr) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-          gap: 'var(--sp-4)',
-          alignItems: 'start',
-        }}
-      >
-        {/* Left Feed Card */}
-        <Card
-          title="Notification Feed"
-          subtitle="Click any notification to toggle read/unread status"
-          style={{ gridColumn: 'span 2' }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
-            {/* Header controls: Segmented tabs + Search */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 'var(--sp-3)',
-              }}
-            >
-              <Segmented
-                value={activeTab}
-                onChange={(v) => setActiveTab(v as any)}
-                items={[
-                  { value: 'all', label: t('notifications_all') || 'All', count: counters.all },
-                  { value: 'unread', label: t('notifications_unread') || 'Unread', count: counters.unread },
-                  {
-                    value: 'critical',
-                    label: t('notifications_critical') || 'Critical',
-                    count: counters.critical,
-                    tone: 'danger',
-                  },
-                ]}
-              />
+      {isError ? (
+        <ErrorState
+          title={t('status_error')}
+          message={error?.message || t('err_generic')}
+          onRetry={() => refetch()}
+        />
+      ) : (
+        <div className="notifications-container">
+          <Segmented
+            value={categoryFilter}
+            onChange={(val) => setCategoryFilter(val as 'all' | NotificationCategory)}
+            items={filterItems}
+          />
 
-              <SearchInput
-                placeholder="Search alerts by title or content..."
-                value={searchQuery}
-                onChange={setSearchQuery}
-                style={{ maxWidth: 280 }}
-              />
-            </div>
-
-            {/* Notifications List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
-              {notifications.length === 0 ? (
+          <Card padding="none">
+            {isLoading ? (
+              <div className="ui-center" style={{ padding: 'var(--sp-8)' }}>
+                <span className="ui-text-muted">{t('loading')}</span>
+              </div>
+            ) : filteredNotifications.length === 0 ? (
+              <div style={{ padding: 'var(--sp-6)' }}>
                 <EmptyState
-                  icon={<Bell size={32} style={{ color: 'var(--on-surface-subtle)' }} />}
-                  title="No notifications found"
-                  description="All alerts have been reviewed or no notifications match the current search query."
+                  icon={<Bell size={32} className="ui-text-muted" />}
+                  title={t('notifications_empty_title')}
+                  description={t('notifications_empty_desc')}
                 />
-              ) : (
-                notifications.map((item) => (
-                  <ListItem
+              </div>
+            ) : (
+              <div className="notifications-list">
+                {filteredNotifications.map((item) => (
+                  <div
                     key={item.id}
-                    leading={getCategoryIcon(item.category)}
-                    title={
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-                        <span style={{ fontWeight: item.unread ? 700 : 500 }}>{item.title}</span>
-                        {item.unread && (
-                          <span
-                            style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: '50%',
-                              backgroundColor: 'var(--primary)',
-                              display: 'inline-block',
-                            }}
-                          />
-                        )}
+                    onClick={() => handleItemClick(item)}
+                    className={`notifications-item ${!item.isRead ? 'notifications-item--unread' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleItemClick(item);
+                      }
+                    }}
+                  >
+                    <div className="notifications-item__icon">
+                      {getCategoryIcon(item.category)}
+                    </div>
+                    <div className="notifications-item__body">
+                      <div className="ui-row ui-row--between">
+                        <span className="ui-text-strong">{item.title}</span>
+                        <span className="ui-caption ui-text-faint">
+                          {formatRelativeTime(item.createdAt, language)}
+                        </span>
                       </div>
-                    }
-                    subtitle={item.subtitle}
-                    meta={
-                      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--on-surface-subtle)' }}>
-                        {item.time}
-                      </span>
-                    }
-                    trailing={
-                      <IconButton
-                        icon={<Trash2 size={14} />}
-                        aria-label="Delete notification"
-                        size="sm"
+                      <p className="ui-caption ui-text-muted" style={{ margin: 0 }}>
+                        {item.body}
+                      </p>
+                    </div>
+                    <div className="notifications-item__actions">
+                      <Button
                         variant="ghost"
+                        size="sm"
+                        icon={<Trash2 size={14} className="ui-text-muted" />}
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteNotification(item.id);
-                          toast.info('Notification dismissed.');
                         }}
+                        aria-label={t('btn_delete')}
                       />
-                    }
-                    selected={item.unread}
-                    onClick={() => toggleRead(item.id)}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* Right Alert Categories Card */}
-        <Card
-          title={t('notifications_categories') || 'Alert Subscriptions'}
-          subtitle={t('notifications_what_receive') || 'Toggle real-time dispatch categories'}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
-            {categories.map((cat) => (
-              <div
-                key={cat.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: 'var(--sp-3)',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--surface-sunken)',
-                  border: '1px solid var(--border-subtle)',
-                  gap: 'var(--sp-3)',
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--on-surface)' }}>
-                    {t(cat.nameKey) || cat.id}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--on-surface-subtle)' }}>
-                    {t(cat.descKey) || ''}
-                  </div>
-                </div>
-
-                <Switch
-                  checked={cat.subscribed}
-                  onChange={() => {
-                    toggleCategorySubscription(cat.id);
-                    toast.info(`${t(cat.nameKey) || cat.id} subscription updated.`);
-                  }}
-                />
+                ))}
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+            )}
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
+export default NotificationsPage;

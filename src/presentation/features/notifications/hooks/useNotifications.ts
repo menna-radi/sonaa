@@ -1,183 +1,130 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
-import type { NotificationItem as DomainNotificationItem } from '../../../../domain/entities/Notification';
+import { unwrap } from '../../../../core/query/unwrap';
+import { useToast } from '../../../components/ui/Toast';
+import { useLanguage } from '../../../context/LanguageContext';
+import { errorMessage } from '../../../../core/errors/errorMessage';
+import type { NotificationItem, NotificationCategory } from '../../../../domain/entities/Notification';
 
-export interface NotificationItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  time: string;
-  unread: boolean;
-  critical: boolean;
-  category: 'emergency' | 'verification' | 'payments' | 'fraud' | 'reports' | 'system';
-}
+export const NOTIFICATIONS_QUERY_KEY = ['notifications'] as const;
 
-export interface AlertCategory {
-  id: string;
-  nameKey: string;
-  descKey: string;
-  subscribed: boolean;
-}
-
-const INITIAL_CATEGORIES: AlertCategory[] = [
-  {
-    id: 'emergency',
-    nameKey: 'cat_emergency',
-    descKey: 'cat_emergency_desc',
-    subscribed: true,
-  },
-  {
-    id: 'verification',
-    nameKey: 'cat_verification',
-    descKey: 'cat_verification_desc',
-    subscribed: true,
-  },
-  {
-    id: 'payments',
-    nameKey: 'cat_failed_payments',
-    descKey: 'cat_failed_payments_desc',
-    subscribed: true,
-  },
-  {
-    id: 'fraud',
-    nameKey: 'cat_fraud',
-    descKey: 'cat_fraud_desc',
-    subscribed: true,
-  },
-  {
-    id: 'reports',
-    nameKey: 'cat_user_reports',
-    descKey: 'cat_user_reports_desc',
-    subscribed: true,
-  },
-  {
-    id: 'system',
-    nameKey: 'cat_system_health',
-    descKey: 'cat_system_health_desc',
-    subscribed: false,
-  },
-];
-
-export const useNotifications = () => {
+export function useNotifications() {
   const { dependencies } = useDependencies();
-  const { notificationRepository } = dependencies;
+  const repo = dependencies.notificationRepository;
+  const qc = useQueryClient();
+  const { error: toastError, success: toastSuccess } = useToast();
+  const { t } = useLanguage();
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [categories, setCategories] = useState<AlertCategory[]>(INITIAL_CATEGORIES);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'critical'>('all');
-  const [loading, setLoading] = useState(true);
+  const query = useQuery({
+    queryKey: NOTIFICATIONS_QUERY_KEY,
+    queryFn: async () => {
+      const res = await repo.getNotifications();
+      return unwrap(res);
+    },
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+  });
 
-  // Load from repository
-  const loadNotifications = useCallback(async () => {
-    try {
-      const result = await notificationRepository.getNotifications();
-      if (result.success && result.data && result.data.length > 0) {
-        setNotifications(result.data.map((n: DomainNotificationItem) => ({
-          id: n.id,
-          title: n.title,
-          subtitle: n.subtitle,
-          time: n.time,
-          unread: n.unread,
-          critical: n.critical,
-          category: (n.category as any) || 'system',
-        })));
+  const markReadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await repo.markRead(id);
+      return unwrap(res);
+    },
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      const previous = qc.getQueryData<NotificationItem[]>(NOTIFICATIONS_QUERY_KEY);
+      if (previous) {
+        qc.setQueryData<NotificationItem[]>(
+          NOTIFICATIONS_QUERY_KEY,
+          previous.map((n) => (n.id === id ? { ...n, isRead: true, unread: false } : n))
+        );
       }
-    } catch {
-      // Keep existing
-    } finally {
-      setLoading(false);
-    }
-  }, [notificationRepository]);
-
-  useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
-
-  // Toggle read status of a specific item
-  const toggleRead = async (id: string) => {
-    setNotifications((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, unread: !item.unread } : item))
-    );
-    try {
-      await notificationRepository.toggleRead(id);
-    } catch {
-      // Local state is already updated
-    }
-  };
-
-  // Mark all unread notifications as read
-  const markAllRead = async () => {
-    setNotifications((prev) => prev.map((item) => ({ ...item, unread: false })));
-    try {
-      await notificationRepository.markAllRead();
-    } catch {
-      // Local state is already updated
-    }
-  };
-
-  // Delete notification item
-  const deleteNotification = async (id: string) => {
-    setNotifications((prev) => prev.filter((item) => item.id !== id));
-    try {
-      await notificationRepository.deleteNotification(id);
-    } catch {
-      // Local state is already updated
-    }
-  };
-
-  // Toggle toggle switches for notification categories subscriptions
-  const toggleCategorySubscription = (categoryId: string) => {
-    setCategories((prev) =>
-      prev.map((cat) => (cat.id === categoryId ? { ...cat, subscribed: !cat.subscribed } : cat))
-    );
-  };
-
-  // Process and filter notifications based on tabs, search and active subscriptions
-  const filteredNotifications = useMemo(() => {
-    return notifications.filter((item) => {
-      // 1. Filter by Active Tab
-      if (activeTab === 'unread' && !item.unread) return false;
-      if (activeTab === 'critical' && !item.critical) return false;
-
-      // 2. Filter by Search Query (Case Insensitive)
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = item.title.toLowerCase().includes(query);
-        const matchesSubtitle = item.subtitle.toLowerCase().includes(query);
-        if (!matchesTitle && !matchesSubtitle) return false;
+      return { previous };
+    },
+    onError: (err, _id, context) => {
+      if (context?.previous) {
+        qc.setQueryData(NOTIFICATIONS_QUERY_KEY, context.previous);
       }
+      toastError(errorMessage(err, t));
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ['sidebarCounts'] });
+    },
+  });
 
-      return true;
-    });
-  }, [notifications, activeTab, searchQuery]);
+  const markAllReadMutation = useMutation({
+    mutationFn: async () => {
+      const res = await repo.markAllRead();
+      return unwrap(res);
+    },
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      const previous = qc.getQueryData<NotificationItem[]>(NOTIFICATIONS_QUERY_KEY);
+      if (previous) {
+        qc.setQueryData<NotificationItem[]>(
+          NOTIFICATIONS_QUERY_KEY,
+          previous.map((n) => ({ ...n, isRead: true, unread: false }))
+        );
+      }
+      return { previous };
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(NOTIFICATIONS_QUERY_KEY, context.previous);
+      }
+      toastError(errorMessage(err, t));
+    },
+    onSuccess: () => {
+      toastSuccess(t('toast_all_read'));
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ['sidebarCounts'] });
+    },
+  });
 
-  // Tab counters dynamically updated
-  const counters = useMemo(() => {
-    const unreadCount = notifications.filter((item) => item.unread).length;
-    const criticalCount = notifications.filter((item) => item.critical).length;
-    return {
-      all: notifications.length,
-      unread: unreadCount,
-      critical: criticalCount,
-    };
-  }, [notifications]);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await repo.deleteNotification(id);
+      return unwrap(res);
+    },
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      const previous = qc.getQueryData<NotificationItem[]>(NOTIFICATIONS_QUERY_KEY);
+      if (previous) {
+        qc.setQueryData<NotificationItem[]>(
+          NOTIFICATIONS_QUERY_KEY,
+          previous.filter((n) => n.id !== id)
+        );
+      }
+      return { previous };
+    },
+    onError: (err, _id, context) => {
+      if (context?.previous) {
+        qc.setQueryData(NOTIFICATIONS_QUERY_KEY, context.previous);
+      }
+      toastError(errorMessage(err, t));
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ['sidebarCounts'] });
+    },
+  });
+
+  const notifications = query.data ?? [];
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return {
-    notifications: filteredNotifications,
-    categories,
-    searchQuery,
-    setSearchQuery,
-    activeTab,
-    setActiveTab,
-    toggleRead,
-    markAllRead,
-    deleteNotification,
-    toggleCategorySubscription,
-    counters,
-    loading,
-    refresh: loadNotifications,
+    ...query,
+    notifications,
+    unreadCount,
+    markRead: (id: string) => markReadMutation.mutate(id),
+    markAllRead: () => markAllReadMutation.mutate(),
+    deleteNotification: (id: string) => deleteMutation.mutate(id),
+    isMarkingAllRead: markAllReadMutation.isPending,
   };
-};
+}
 
+export type { NotificationCategory };
 export default useNotifications;

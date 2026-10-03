@@ -838,10 +838,65 @@ export const translations: TranslationDict = {
     ar: 'تحديد الكل كمقروء',
     he: 'סמן הכל כנקרא'
   },
+  loading: {
+    en: 'Loading...',
+    ar: 'جاري التحميل...',
+    he: 'טוען...'
+  },
+  btn_delete: {
+    en: 'Delete',
+    ar: 'حذف',
+    he: 'מחק'
+  },
   notifications_all: {
     en: 'All',
     ar: 'الكل',
     he: 'הכל'
+  },
+  toast_all_read: {
+    en: 'All notifications marked as read',
+    ar: 'تم تحديد جميع الإشعارات كمقروءة',
+    he: 'כל ההודעות סומנו כנקראו'
+  },
+  notifications_empty_title: {
+    en: 'No notifications',
+    ar: 'لا توجد إشعارات',
+    he: 'אין התראות'
+  },
+  notifications_empty_desc: {
+    en: 'You are all caught up.',
+    ar: 'ليس لديك إشعارات جديدة.',
+    he: 'אתה מעודכן לחלוטין.'
+  },
+  notif_cat_all: {
+    en: 'All',
+    ar: 'الكل',
+    he: 'הכל'
+  },
+  notif_cat_emergency: {
+    en: 'Emergency',
+    ar: 'طوارئ',
+    he: 'חירום'
+  },
+  notif_cat_verification: {
+    en: 'Verification',
+    ar: 'التحقق',
+    he: 'אימות'
+  },
+  notif_cat_payments: {
+    en: 'Payments',
+    ar: 'المدفوعات',
+    he: 'תשלומים'
+  },
+  notif_cat_reports: {
+    en: 'Reports',
+    ar: 'البلاغات',
+    he: 'דיווחים'
+  },
+  notif_cat_system: {
+    en: 'System',
+    ar: 'النظام',
+    he: 'מערכת'
   },
   notifications_unread: {
     en: 'Unread',

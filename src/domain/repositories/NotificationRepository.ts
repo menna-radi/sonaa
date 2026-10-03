@@ -1,11 +1,10 @@
-import { NotificationItem, AlertCategory } from '../entities/Notification';
+import { NotificationItem } from '../entities/Notification';
 import { Result } from '../../core/result/Result';
 
 export interface NotificationRepository {
   getNotifications(): Promise<Result<NotificationItem[]>>;
-  toggleRead(id: string): Promise<Result<NotificationItem>>;
-  markAllRead(): Promise<Result<void>>;
+  markRead(id: string): Promise<Result<boolean>>;
+  markAllRead(): Promise<Result<boolean>>;
   deleteNotification(id: string): Promise<Result<boolean>>;
-  getAlertCategories(): Promise<Result<AlertCategory[]>>;
-  toggleCategorySubscription(id: string): Promise<Result<AlertCategory>>;
+  toggleRead(id: string): Promise<Result<NotificationItem | boolean>>;
 }

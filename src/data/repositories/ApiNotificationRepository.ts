@@ -1,99 +1,95 @@
 import { NotificationRepository } from '../../domain/repositories/NotificationRepository';
-import { NotificationItem, AlertCategory } from '../../domain/entities/Notification';
+import { NotificationItem, NotificationCategory } from '../../domain/entities/Notification';
 import { Result, ok, fail } from '../../core/result/Result';
 import { apiClient } from '../../core/network/apiClient';
 import { API_ENDPOINTS } from '../../core/config/apiEndpoints';
 import { AppError } from '../../core/errors/AppError';
 
+export function deriveCategory(type?: string): NotificationCategory {
+  const t = (type || '').toUpperCase();
+  if (t.includes('EMERGENCY') || t.includes('SOS')) return 'emergency';
+  if (t.includes('VERIFICATION') || t.includes('VERIFY')) return 'verification';
+  if (t.includes('PAYMENT') || t.includes('COMMISSION') || t.includes('WITHDRAWAL') || t.includes('BILLING')) return 'payments';
+  if (t.includes('REPORT') || t.includes('DISPUTE')) return 'reports';
+  return 'system';
+}
+
 export class ApiNotificationRepository implements NotificationRepository {
   public async getNotifications(): Promise<Result<NotificationItem[]>> {
     try {
-      // 1. Try to fetch user notification inbox
-      try {
-        const notifRes = await apiClient.get<any>(API_ENDPOINTS.notifications.list);
-        const inboxItems = Array.isArray(notifRes) ? notifRes : (notifRes.items || notifRes.notifications || []);
-        if (inboxItems.length > 0) {
-          const mappedInbox: NotificationItem[] = inboxItems.map((n: any) => ({
-            id: String(n.id),
-            title: n.title || 'Notification',
-            subtitle: n.body || n.message || n.subtitle || '',
-            time: n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
-            unread: !n.isRead && !n.read,
-            critical: n.type === 'EMERGENCY_ALERT' || n.type === 'SOS_TRIGGERED' || n.type === 'DISPUTE_OPENED',
-            category: n.type?.toLowerCase().includes('emergency') ? 'emergency' : n.type?.toLowerCase().includes('verify') ? 'verification' : 'system',
-          }));
-          return ok(mappedInbox);
-        }
-      } catch {
-        // Fallback to broadcast logs
-      }
+      const response = await apiClient.get<
+        { items?: unknown[]; notifications?: unknown[] } | unknown[]
+      >(API_ENDPOINTS.notifications.list);
 
-      // 2. Fetch platform broadcast logs as fallback
-      const response = await apiClient.get<any>(API_ENDPOINTS.admin.broadcasts);
-      const items = Array.isArray(response) ? response : (response.items || []);
-      const mapped: NotificationItem[] = items.map((b: any, idx: number) => ({
-        id: String(b.id || idx + 1),
-        title: b.title || 'System Broadcast Notification',
-        subtitle: b.body || b.message || b.subtitle || 'System alert sent to platform users.',
-        time: b.createdAt ? new Date(b.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
-        unread: true,
-        critical: b.targetAudience === 'CRAFTSMAN',
-        category: 'system',
-      }));
-      return ok(mapped);
+      const rawItems = Array.isArray(response)
+        ? response
+        : (response as { items?: unknown[]; notifications?: unknown[] })?.items ||
+          (response as { notifications?: unknown[] })?.notifications ||
+          [];
+
+      const items: NotificationItem[] = (rawItems as Record<string, unknown>[]).map(
+        (n): NotificationItem => {
+          const typeStr = typeof n.type === 'string' ? n.type : 'SYSTEM';
+          const isRead = Boolean(n.isRead ?? n.read);
+          const bodyStr = typeof n.body === 'string' ? n.body : (typeof n.message === 'string' ? n.message : (typeof n.subtitle === 'string' ? n.subtitle : ''));
+          const titleStr = typeof n.title === 'string' ? n.title : 'Notification';
+          const createdAt = typeof n.createdAt === 'string' ? new Date(n.createdAt).toISOString() : new Date().toISOString();
+          const refId = n.referenceId ? String(n.referenceId) : (n.entityId ? String(n.entityId) : undefined);
+          const entityType = typeof n.entityType === 'string' ? n.entityType : undefined;
+
+          return {
+            id: String(n.id || ''),
+            type: typeStr,
+            title: titleStr,
+            body: bodyStr,
+            isRead,
+            createdAt,
+            referenceId: refId,
+            entityType,
+            category: deriveCategory(typeStr),
+            unread: !isRead,
+            subtitle: bodyStr,
+            time: createdAt,
+            critical: typeStr.toUpperCase().includes('EMERGENCY'),
+          };
+        }
+      );
+
+      return ok(items);
     } catch (error) {
       return fail(error as AppError);
     }
   }
 
-  public async toggleRead(id: string): Promise<Result<NotificationItem>> {
+  public async markRead(id: string): Promise<Result<boolean>> {
     try {
-      await apiClient.put<any>(API_ENDPOINTS.notifications.markRead(id));
-    } catch {
-      // Gracefully continue even if remote update fails
+      await apiClient.put<unknown>(API_ENDPOINTS.notifications.markRead(id));
+      return ok(true);
+    } catch (error) {
+      return fail(error as AppError);
     }
-    const item: NotificationItem = {
-      id,
-      title: 'Notification',
-      subtitle: 'Marked read',
-      time: 'Just now',
-      unread: false,
-      critical: false,
-      category: 'system',
-    };
-    return ok(item);
   }
 
-  public async markAllRead(): Promise<Result<void>> {
+  public async markAllRead(): Promise<Result<boolean>> {
     try {
-      await apiClient.put<any>(API_ENDPOINTS.notifications.markAllRead);
-    } catch {
-      // Gracefully continue
+      await apiClient.put<unknown>(API_ENDPOINTS.notifications.markAllRead);
+      return ok(true);
+    } catch (error) {
+      return fail(error as AppError);
     }
-    return ok(undefined);
   }
 
   public async deleteNotification(id: string): Promise<Result<boolean>> {
     try {
-      await apiClient.delete<void>(API_ENDPOINTS.admin.deleteBroadcast(id));
+      await apiClient.delete<unknown>(`/notifications/${id}`);
       return ok(true);
-    } catch {
-      return ok(true);
+    } catch (error) {
+      return fail(error as AppError);
     }
   }
 
-  public async getAlertCategories(): Promise<Result<AlertCategory[]>> {
-    const categories: AlertCategory[] = [
-      { id: 'c1', nameKey: 'alert_emergency', descKey: 'desc_emergency', subscribed: true },
-      { id: 'c2', nameKey: 'alert_fraud', descKey: 'desc_fraud', subscribed: true },
-      { id: 'c3', nameKey: 'alert_verification', descKey: 'desc_verification', subscribed: true },
-    ];
-    return ok(categories);
-  }
-
-  public async toggleCategorySubscription(id: string): Promise<Result<AlertCategory>> {
-    const cat: AlertCategory = { id, nameKey: 'cat_system', descKey: 'desc_system', subscribed: true };
-    return ok(cat);
+  public async toggleRead(id: string): Promise<Result<boolean>> {
+    return this.markRead(id);
   }
 }
 export default ApiNotificationRepository;

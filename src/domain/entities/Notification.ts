@@ -1,18 +1,24 @@
-export type NotificationCategory = 'emergency' | 'verification' | 'payments' | 'fraud' | 'reports' | 'system' | 'chat';
+export type NotificationCategory =
+  | 'emergency'
+  | 'verification'
+  | 'payments'
+  | 'reports'
+  | 'system'
+  | 'chat'
+  | 'fraud';
 
 export interface NotificationItem {
   id: string;
+  type?: string;
   title: string;
-  subtitle: string;
-  time: string;
-  unread: boolean;
-  critical: boolean;
+  body?: string;
+  isRead?: boolean;
+  createdAt?: string;
+  referenceId?: string;
+  entityType?: string;
   category: NotificationCategory;
-}
-
-export interface AlertCategory {
-  id: string;
-  nameKey: string;
-  descKey: string;
-  subscribed: boolean;
+  unread?: boolean;
+  subtitle?: string;
+  time?: string;
+  critical?: boolean;
 }
