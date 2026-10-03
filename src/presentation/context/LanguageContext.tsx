@@ -2661,6 +2661,151 @@ export const translations: TranslationDict = {
     ar: 'تم رفض دفعة العمولة.',
     he: 'תשלום העמלה נדחה.'
   },
+  subscribers_filter_all: {
+    en: 'All',
+    ar: 'الكل',
+    he: 'הכל'
+  },
+  subscribers_filter_active: {
+    en: 'Active',
+    ar: 'نشطون',
+    he: 'פעילים'
+  },
+  subscribers_filter_free: {
+    en: 'Free tasks',
+    ar: 'مهام مجانية',
+    he: 'משימות חינם'
+  },
+  subscribers_filter_commission: {
+    en: 'Commission',
+    ar: 'عمولة',
+    he: 'עמלה'
+  },
+  subscribers_filter_locked: {
+    en: 'Locked',
+    ar: 'مقفلون',
+    he: 'נעולים'
+  },
+  subscribers_filter_expired: {
+    en: 'Expired',
+    ar: 'منتهية',
+    he: 'פג'
+  },
+  subscribers_col_billing: {
+    en: 'Billing',
+    ar: 'الفوترة',
+    he: 'חיוב'
+  },
+  subscribers_col_subscription: {
+    en: 'Subscription',
+    ar: 'الاشتراك',
+    he: 'מנוי'
+  },
+  subscribers_col_free: {
+    en: 'Free tasks',
+    ar: 'مهام مجانية',
+    he: 'משימות חינם'
+  },
+  subscribers_col_accept: {
+    en: 'Accepts work',
+    ar: 'يقبل العمل',
+    he: 'מקבל עבודה'
+  },
+  subscribers_no_plan: {
+    en: 'No plan chosen',
+    ar: 'لم تُختر باقة',
+    he: 'לא נבחרה חבילה'
+  },
+  subscribers_can_accept: {
+    en: 'Can accept tasks',
+    ar: 'يمكنه قبول المهام',
+    he: 'יכול לקבל משימות'
+  },
+  subscribers_cannot_accept: {
+    en: 'Cannot accept tasks',
+    ar: 'لا يمكنه قبول المهام',
+    he: 'לא יכול לקבל משימות'
+  },
+  subscribers_open_craftsman: {
+    en: 'Open craftsman',
+    ar: 'فتح ملف الحرفي',
+    he: 'פתח בעל מקצוע'
+  },
+  subscribers_extend_title: {
+    en: 'Extend subscription',
+    ar: 'تمديد الاشتراك',
+    he: 'הארך מנוי'
+  },
+  subscribers_extend_days: {
+    en: 'Extra days',
+    ar: 'أيام إضافية',
+    he: 'ימים נוספים'
+  },
+  subscribers_extend_result: {
+    en: 'New expiry date',
+    ar: 'تاريخ الانتهاء الجديد',
+    he: 'תאריך סיום חדש'
+  },
+  subscribers_free_title: {
+    en: 'Grant free tasks',
+    ar: 'منح مهام مجانية',
+    he: 'הענק משימות חינם'
+  },
+  subscribers_free_count: {
+    en: 'Free tasks left',
+    ar: 'المهام المجانية المتبقية',
+    he: 'משימות חינם שנותרו'
+  },
+  subscribers_free_default: {
+    en: 'Platform default is',
+    ar: 'الافتراضي للمنصة هو',
+    he: 'ברירת המחדל היא'
+  },
+  subscribers_free_of: {
+    en: 'of {n}',
+    ar: 'من {n}',
+    he: 'מתוך {n}'
+  },
+  subscribers_cancel_title: {
+    en: 'Cancel subscription?',
+    ar: 'إلغاء الاشتراك؟',
+    he: 'לבטל מנוי?'
+  },
+  subscribers_cancel_body: {
+    en: 'The subscription expires immediately. The craftsman keeps any remaining free tasks.',
+    ar: 'ينتهي الاشتراك فورًا. يحتفظ الحرفي بأي مهام مجانية متبقية.',
+    he: 'המנוי פג מיד. בעל המקצוע שומר משימות חינם שנותרו.'
+  },
+  billing_plan_days_short: {
+    en: 'd left',
+    ar: 'يوم متبقٍ',
+    he: 'ימים נותרו'
+  },
+  billing_subscribers_search_ph: {
+    en: 'Search name, phone or email…',
+    ar: 'ابحث بالاسم أو الهاتف أو البريد…',
+    he: 'חפש שם, טלפון או אימייל…'
+  },
+  empty_subscribers: {
+    en: 'No subscribers found',
+    ar: 'لا يوجد مشتركون',
+    he: 'לא נמצאו מנויים'
+  },
+  toast_subscriber_extended: {
+    en: 'Subscription extended.',
+    ar: 'تم تمديد الاشتراك.',
+    he: 'המנוי הוארך.'
+  },
+  toast_subscriber_cancelled: {
+    en: 'Subscription cancelled.',
+    ar: 'تم إلغاء الاشتراك.',
+    he: 'המנוי בוטל.'
+  },
+  toast_free_tasks_updated: {
+    en: 'Free tasks updated.',
+    ar: 'تم تحديث المهام المجانية.',
+    he: 'משימות חינם עודכנו.'
+  },
   billing_ledger_filter_due: {
     en: 'Due',
     ar: 'مستحقة',
