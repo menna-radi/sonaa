@@ -9,7 +9,7 @@ import {
   StatusPill,
   EmptyState,
   Skeleton,
-  Button
+  Button,
 } from '../../../components/ui';
 import { Briefcase, CreditCard, User, Inbox } from 'lucide-react';
 
@@ -36,7 +36,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   onFilterTabChange,
   onResetFilters,
 }) => {
-  const { isRtl } = useLanguage();
+  const { isRtl, t } = useLanguage();
 
   const filterTabs = [
     { value: 'all', label: isRtl ? 'الكل' : 'All' },
@@ -46,31 +46,13 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   ];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        background: 'var(--surface-base)',
-        borderInlineEnd: '1px solid var(--border-subtle)',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="chat-pane-sidebar" style={{ width: '100%', maxWidth: '100%' }}>
       {/* Search and Filter Toolbar */}
-      <div
-        style={{
-          padding: 'var(--sp-4)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--sp-3)',
-          borderBottom: '1px solid var(--border-subtle)',
-          flexShrink: 0,
-        }}
-      >
+      <div className="chat-sidebar-toolbar">
         <SearchInput
           value={searchQuery}
           onChange={onSearchChange}
-          placeholder={isRtl ? 'بحث بالاسم، الهاتف، أو المهمة...' : 'Search participant, phone, task...'}
+          placeholder={t('chat_search_placeholder')}
         />
 
         <Segmented
@@ -81,22 +63,13 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       </div>
 
       {/* Rooms List */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: 'var(--sp-2)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--sp-1)',
-        }}
-      >
+      <div className="chat-sidebar-feed">
         {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', padding: 'var(--sp-3)' }}>
+          <div className="ui-col" style={{ gap: 'var(--sp-3)', padding: 'var(--sp-3)' }}>
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} style={{ display: 'flex', gap: 'var(--sp-3)', alignItems: 'center' }}>
+              <div key={i} className="ui-row" style={{ gap: 'var(--sp-3)' }}>
                 <Skeleton width={40} height={40} variant="circle" />
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div className="ui-col" style={{ flex: 1, gap: 6 }}>
                   <Skeleton width="60%" height={14} />
                   <Skeleton width="40%" height={11} />
                 </div>
@@ -106,16 +79,16 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         ) : rooms.length === 0 ? (
           <div style={{ padding: 'var(--sp-6) var(--sp-2)' }}>
             <EmptyState
-              icon={<Inbox size={32} style={{ color: 'var(--on-surface-subtle)' }} />}
+              icon={<Inbox size={32} />}
               title={
                 searchQuery || filterTab !== 'all'
                   ? (isRtl ? 'لا توجد محادثات مطابقة' : 'No matching conversations')
-                  : (isRtl ? 'لا توجد محادثات نشطة' : 'No active conversations')
+                  : t('chat_empty_title')
               }
               description={
                 searchQuery || filterTab !== 'all'
                   ? (isRtl ? 'لم نتمكن من العثور على محادثات تطابق بحثك الحالي.' : 'No threads match your filter or search criteria.')
-                  : (isRtl ? 'ستظهر محادثات العملاء والحرفيين هنا فور إرسالها.' : 'Customer and craftsman conversations will appear here automatically.')
+                  : t('chat_empty_desc')
               }
               action={
                 searchQuery || filterTab !== 'all' ? (
@@ -142,26 +115,11 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             );
 
             return (
-              <div
+              <button
                 key={room.id}
+                type="button"
                 onClick={() => onSelectRoom(room.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 'var(--sp-3)',
-                  padding: 'var(--sp-3)',
-                  borderRadius: 'var(--radius-md)',
-                  background: isSelected ? 'var(--surface-sunken)' : 'transparent',
-                  borderInlineStart: isSelected ? '3px solid var(--primary)' : '3px solid transparent',
-                  cursor: 'pointer',
-                  transition: 'background var(--transition-fast)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) e.currentTarget.style.background = 'var(--surface-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) e.currentTarget.style.background = 'transparent';
-                }}
+                className={`chat-room-card ${isSelected ? 'chat-room-card--selected' : ''}`}
               >
                 <Avatar
                   src={room.otherParticipant.avatarUrl}
@@ -170,39 +128,23 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                   presence="online"
                 />
 
-                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span
-                      style={{
-                        fontWeight: isSelected ? 600 : 500,
-                        fontSize: 'var(--font-sm)',
-                        color: 'var(--on-surface)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                <div className="chat-room-card__content">
+                  <div className="chat-room-card__top">
+                    <span className="chat-room-card__name ui-text-strong">
                       {name}
                     </span>
-                    <span
-                      style={{
-                        fontSize: 'var(--font-xs)',
-                        color: 'var(--on-surface-subtle)',
-                        flexShrink: 0,
-                        marginInlineStart: 'var(--sp-2)',
-                      }}
-                    >
+                    <span className="chat-room-card__time ui-num">
                       {time}
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--sp-2)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden' }}>
+                  <div className="chat-room-card__meta">
+                    <div className="chat-room-card__tags">
                       {room.task ? (
                         <StatusPill
                           variant="neutral"
                           label={
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <span className="ui-row ui-row--tight">
                               <Briefcase size={10} />
                               {room.task.displayId}
                             </span>
@@ -212,7 +154,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                         <StatusPill
                           variant="warning"
                           label={
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <span className="ui-row ui-row--tight">
                               <CreditCard size={10} />
                               Bit
                             </span>
@@ -222,7 +164,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                         <StatusPill
                           variant="neutral"
                           label={
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <span className="ui-row ui-row--tight">
                               <User size={10} />
                               {room.otherParticipant.role}
                             </span>
@@ -232,39 +174,18 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                     </div>
 
                     {room.unreadCount > 0 && (
-                      <span
-                        style={{
-                          background: 'var(--primary)',
-                          color: 'var(--on-primary)',
-                          borderRadius: 'var(--radius-pill)',
-                          padding: '1px 6px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          lineHeight: '16px',
-                        }}
-                      >
+                      <span className="chat-room-card__unread ui-num">
                         {room.unreadCount}
                       </span>
                     )}
                   </div>
 
-                  <p
-                    style={{
-                      margin: 0,
-                      marginTop: 2,
-                      fontSize: 'var(--font-xs)',
-                      color: room.unreadCount > 0 ? 'var(--on-surface)' : 'var(--on-surface-subtle)',
-                      fontWeight: room.unreadCount > 0 ? 600 : 400,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
+                  <p className={`chat-room-card__snippet ${room.unreadCount > 0 ? 'chat-room-card__snippet--unread' : ''}`}>
                     {room.lastMessage?.content ||
                       (room.lastMessage?.imageUrl ? '📷 [Image Attachment]' : (isRtl ? 'بدء المحادثة' : 'Started conversation'))}
                   </p>
                 </div>
-              </div>
+              </button>
             );
           })
         )}

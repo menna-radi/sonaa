@@ -36,8 +36,11 @@ export const useChat = () => {
       const result = await chatRepository.getChatRooms();
       if (result.success) {
         setRooms(result.data);
-        // Default select first room if none selected yet
-        if (!activeRoomIdRef.current && result.data.length > 0) {
+        const deepLinkedRoom = typeof window !== 'undefined' ? sessionStorage.getItem('chat_open_room') : null;
+        if (deepLinkedRoom) {
+          sessionStorage.removeItem('chat_open_room');
+          setSelectedRoomId(deepLinkedRoom);
+        } else if (!activeRoomIdRef.current && result.data.length > 0) {
           setSelectedRoomId(result.data[0].id);
         }
       } else {
@@ -91,7 +94,19 @@ export const useChat = () => {
       setIsConnected(false);
     });
 
-    socket.on('chat:message', (incomingMsg: any) => {
+    socket.on('chat:message', (incomingMsg: {
+      id?: string;
+      chatRoomId: string;
+      senderId: string;
+      senderRole?: string;
+      senderName?: string;
+      sender?: { role?: string; firstName?: string };
+      messageType?: string;
+      content?: string;
+      imageUrl?: string | null;
+      visibility?: 'PUBLIC' | 'CUSTOMER_PRIVATE' | 'CRAFTSMAN_PRIVATE' | 'ADMIN_INTERNAL';
+      createdAt?: string;
+    }) => {
       const chatRoomId = incomingMsg.chatRoomId;
       const formattedMsg: ChatMessage = {
         id: incomingMsg.id || `msg_${Date.now()}`,
@@ -103,6 +118,7 @@ export const useChat = () => {
         content: incomingMsg.content || '',
         imageUrl: incomingMsg.imageUrl || null,
         status: 'DELIVERED',
+        visibility: incomingMsg.visibility || 'PUBLIC',
         createdAt: incomingMsg.createdAt || new Date().toISOString(),
       };
 
@@ -137,35 +153,56 @@ export const useChat = () => {
 
   // 4. Initial Load
   useEffect(() => {
-    fetchRooms(true);
+    let active = true;
+    void (async () => {
+      await Promise.resolve();
+      if (active) {
+        fetchRooms(true);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [fetchRooms]);
 
-  // 5. Silent periodic safety refetch fallback (every 60s, paused in background tab)
+  // 5. Silent refetch on window focus (foreground only, no setInterval)
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.hidden) return;
+    const handleFocus = () => {
       fetchRooms(false);
       if (activeRoomIdRef.current) {
         fetchMessages(activeRoomIdRef.current, false);
       }
-    }, 60000);
-    return () => clearInterval(interval);
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [fetchRooms, fetchMessages]);
 
   // 6. When selected room changes, fetch its messages
   useEffect(() => {
-    if (selectedRoomId) {
-      fetchMessages(selectedRoomId, true);
-    }
+    if (!selectedRoomId) return;
+    let active = true;
+    void (async () => {
+      await Promise.resolve();
+      if (active) {
+        fetchMessages(selectedRoomId, true);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [selectedRoomId, fetchMessages]);
 
   // 7. Send Message Action
-  const sendMessage = useCallback(async (content: string, imageUrl?: string): Promise<boolean> => {
+  const sendMessage = useCallback(async (
+    content: string,
+    imageUrl?: string,
+    visibility?: 'PUBLIC' | 'CUSTOMER_PRIVATE' | 'CRAFTSMAN_PRIVATE' | 'ADMIN_INTERNAL'
+  ): Promise<boolean> => {
     if (!selectedRoomId || (!content.trim() && !imageUrl)) return false;
 
     setSending(true);
     try {
-      const result = await chatRepository.sendMessage(selectedRoomId, content.trim(), imageUrl);
+      const result = await chatRepository.sendMessage(selectedRoomId, content.trim(), imageUrl, visibility);
       if (result.success) {
         const newMsg = result.data;
         setMessages(prev => {

@@ -848,6 +848,106 @@ export const translations: TranslationDict = {
     ar: 'حذف',
     he: 'מחק'
   },
+  chat_visibility_public: {
+    en: 'Public',
+    ar: 'عام',
+    he: 'ציבורי'
+  },
+  chat_visibility_customer_private: {
+    en: 'Customer private',
+    ar: 'خاص بالعميل',
+    he: 'פרטי ללקוח'
+  },
+  chat_visibility_craftsman_private: {
+    en: 'Craftsman private',
+    ar: 'خاص بالحرفي',
+    he: 'פרטי לבעל המקצוע'
+  },
+  chat_visibility_internal: {
+    en: 'Internal note',
+    ar: 'ملاحظة داخلية',
+    he: 'הערה פנימית'
+  },
+  chat_visibility_helper_public: {
+    en: 'Visible to everyone in this room',
+    ar: 'مرئي للجميع في هذه الغرفة',
+    he: 'גלוי לכולם בחדר זה'
+  },
+  chat_visibility_helper_customer: {
+    en: 'Visible only to admin and customer',
+    ar: 'مرئي للمشرف والعميل فقط',
+    he: 'גלוי למנהל וללקוח בלבד'
+  },
+  chat_visibility_helper_craftsman: {
+    en: 'Visible only to admin and craftsman',
+    ar: 'مرئي للمشرف والحرفي فقط',
+    he: 'גלוי למנהל ולבעל המקצוע בלבד'
+  },
+  chat_visibility_helper_internal: {
+    en: 'Visible only to administrators',
+    ar: 'مرئي للمشرفين فقط',
+    he: 'גלוי למנהלים בלבד'
+  },
+  chat_empty_title: {
+    en: 'No messages yet',
+    ar: 'لا توجد رسائل بعد',
+    he: 'אין הודעות עדיין'
+  },
+  chat_empty_desc: {
+    en: 'Start the conversation below.',
+    ar: 'ابدأ المحادثة أدناه.',
+    he: 'התחל את השיחה למטה.'
+  },
+  chat_attach_image: {
+    en: 'Attach image',
+    ar: 'إرفاق صورة',
+    he: 'צרף תמונה'
+  },
+  chat_remove_image: {
+    en: 'Remove image',
+    ar: 'إزالة الصورة',
+    he: 'הסר תמונה'
+  },
+  chat_send: {
+    en: 'Send',
+    ar: 'إرسال',
+    he: 'שלח'
+  },
+  chat_type_message: {
+    en: 'Type a message... (Enter to send, Shift+Enter for newline)',
+    ar: 'اكتب رسالة... (Enter للإرسال، Shift+Enter لسطر جديد)',
+    he: 'הקלד הודעה... (Enter לשליחה, Shift+Enter לשורה חדשה)'
+  },
+  chat_new_conversation: {
+    en: 'New conversation',
+    ar: 'محادثة جديدة',
+    he: 'שיחה חדשה'
+  },
+  chat_search_placeholder: {
+    en: 'Search conversations...',
+    ar: 'البحث في المحادثات...',
+    he: 'חפש שיחות...'
+  },
+  chat_title: {
+    en: 'Chat Operations',
+    ar: 'غرفة المحادثات',
+    he: 'חדר שיחות'
+  },
+  chat_subtitle: {
+    en: 'Direct administrative communications with customers and craftsmen',
+    ar: 'تواصل إداري مباشر مع العملاء والحرفيين',
+    he: 'תקשורת ניהולית ישירה עם לקוחות ובעלי מקצוע'
+  },
+  chat_room_empty: {
+    en: 'Select a conversation to start chatting',
+    ar: 'اختر محادثة لبدء المراسلة',
+    he: 'בחר שיחה כדי להתחיל לשוחח'
+  },
+  chat_task_linked: {
+    en: 'Linked Task',
+    ar: 'المهمة المرتبطة',
+    he: 'משימה מקושרת'
+  },
   notifications_all: {
     en: 'All',
     ar: 'الكل',

@@ -6,27 +6,27 @@ import {
   PageHeader,
   Button,
   StatusPill,
-  EmptyState,
   useBreakpoint,
 } from '../../../components/ui';
 import { ImageLightbox } from '../../verification/components/ImageLightbox';
 import { ConversationList } from '../components/ConversationList';
 import { ThreadHeader } from '../components/ThreadHeader';
 import { MessageList } from '../components/MessageList';
-import { Composer } from '../components/Composer';
+import { Composer, ChatVisibility } from '../components/Composer';
 import { QuickTemplates } from '../components/QuickTemplates';
 import { NewMessageModal } from '../components/NewMessageModal';
+import { ChatSearchUser } from '../../../../domain/entities/Chat';
 import {
   MessageSquare,
   RefreshCw,
   UserPlus,
   ShieldCheck,
   CreditCard,
-  Radio,
 } from 'lucide-react';
+import '../chat.css';
 
 export const ChatPage: React.FC = () => {
-  const { isRtl } = useLanguage();
+  const { isRtl, t } = useLanguage();
   const { navigate } = useNavigation();
   const { isMobile } = useBreakpoint();
 
@@ -54,8 +54,9 @@ export const ChatPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [previewLightboxImg, setPreviewLightboxImg] = useState<string | null>(null);
   const [newChatModalOpen, setNewChatModalOpen] = useState(false);
+  const [visibility, setVisibility] = useState<ChatVisibility>('PUBLIC');
 
-  const handleStartChat = async (targetUser: any) => {
+  const handleStartChat = async (targetUser: ChatSearchUser) => {
     const roomId = await startNewChat(targetUser.id);
     if (roomId) {
       setNewChatModalOpen(false);
@@ -72,7 +73,7 @@ export const ChatPage: React.FC = () => {
 
   const handleSend = async () => {
     if (!inputContent.trim() && !selectedImage) return;
-    const success = await sendMessage(inputContent, selectedImage || undefined);
+    const success = await sendMessage(inputContent, selectedImage || undefined, visibility);
     if (success) {
       setInputContent('');
       setSelectedImage(null);
@@ -80,17 +81,7 @@ export const ChatPage: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'calc(100vh - 72px)',
-        padding: 'var(--sp-4)',
-        boxSizing: 'border-box',
-        overflow: 'hidden',
-        gap: 'var(--sp-3)',
-      }}
-    >
+    <div className="chat-page">
       {/* Page Header */}
       <PageHeader
         title={isRtl ? 'مركز المحادثات والدعم المباشر' : 'Live Support & Communications'}
@@ -112,7 +103,7 @@ export const ChatPage: React.FC = () => {
           />
         }
         actions={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+          <div className="chat-header-actions">
             <Button
               variant="outline"
               size="sm"
@@ -134,31 +125,10 @@ export const ChatPage: React.FC = () => {
       />
 
       {/* Dual-Pane Workspace */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          background: 'var(--surface-base)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          overflow: 'hidden',
-          boxShadow: 'var(--shadow-xs)',
-          minHeight: 0,
-        }}
-      >
+      <div className="chat-workspace">
         {/* Left Pane: Conversation List */}
         {(!isMobile || !selectedRoomId) && (
-          <div
-            style={{
-              width: isMobile ? '100%' : '360px',
-              minWidth: isMobile ? '100%' : '320px',
-              maxWidth: isMobile ? '100%' : '420px',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              flexShrink: 0,
-            }}
-          >
+          <div className={isMobile ? 'chat-pane-sidebar chat-pane-sidebar--mobile' : 'chat-pane-sidebar'}>
             <ConversationList
               rooms={rooms}
               selectedRoomId={selectedRoomId}
@@ -178,16 +148,7 @@ export const ChatPage: React.FC = () => {
 
         {/* Right Pane: Thread or No-Selected State */}
         {(!isMobile || Boolean(selectedRoomId)) && (
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              minWidth: 0,
-              background: 'var(--surface-base)',
-            }}
-          >
+          <div className="chat-pane-thread">
             {selectedRoom ? (
               <>
                 <ThreadHeader
@@ -226,77 +187,26 @@ export const ChatPage: React.FC = () => {
                   onRemoveImage={() => setSelectedImage(null)}
                   onSend={handleSend}
                   sending={sending}
+                  visibility={visibility}
+                  onChangeVisibility={setVisibility}
                 />
               </>
             ) : (
-              <div
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 'var(--sp-6)',
-                }}
-              >
-                <div
-                  style={{
-                    maxWidth: 420,
-                    textAlign: 'center',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 'var(--sp-3)',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 'var(--radius-pill)',
-                      background: 'var(--surface-sunken)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--on-surface-subtle)',
-                    }}
-                  >
+              <div className="chat-empty-hub">
+                <div className="chat-empty-hub__card">
+                  <div className="chat-empty-hub__icon">
                     <MessageSquare size={28} />
                   </div>
 
-                  <h3
-                    style={{
-                      margin: 0,
-                      fontSize: 'var(--font-lg)',
-                      fontWeight: 600,
-                      color: 'var(--on-surface)',
-                    }}
-                  >
-                    {isRtl ? 'مركز المحادثات والدعم الإداري' : 'Direct Support & Communication Hub'}
+                  <h3 className="chat-empty-hub__title">
+                    {t('chat_title')}
                   </h3>
 
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: 'var(--font-sm)',
-                      color: 'var(--on-surface-subtle)',
-                      lineHeight: 'var(--line-height-normal)',
-                    }}
-                  >
-                    {isRtl
-                      ? 'اختر محادثة من القائمة الجانبية لعرض الرسائل المباشرة، فحص إيصالات Bit، وتقديم الدعم الفوري للحرفيين والعملاء.'
-                      : 'Select a conversation from the sidebar to inspect participant threads, review payment attachments, or dispatch official administrative responses.'}
+                  <p className="chat-empty-hub__desc">
+                    {t('chat_subtitle')}
                   </p>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 'var(--sp-2)',
-                      flexWrap: 'wrap',
-                      justifyContent: 'center',
-                      marginTop: 'var(--sp-2)',
-                    }}
-                  >
+                  <div className="chat-empty-hub__pills">
                     <StatusPill
                       variant="success"
                       dot
@@ -305,7 +215,7 @@ export const ChatPage: React.FC = () => {
                     <StatusPill
                       variant="info"
                       label={
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span className="ui-row ui-row--tight">
                           <ShieldCheck size={11} />
                           {isRtl ? 'سجل رقابي مدقق' : 'Audit Trail Logged'}
                         </span>
@@ -314,7 +224,7 @@ export const ChatPage: React.FC = () => {
                     <StatusPill
                       variant="warning"
                       label={
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span className="ui-row ui-row--tight">
                           <CreditCard size={11} />
                           {isRtl ? 'فحص إيصالات Bit' : 'Bit Slip Verification'}
                         </span>

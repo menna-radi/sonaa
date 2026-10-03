@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Phone,
-  MapPin,
   Briefcase,
   ExternalLink,
   Shield,
@@ -32,19 +31,8 @@ export const ThreadHeader: React.FC<ThreadHeaderProps> = ({
   const name = `${participant.firstName} ${participant.lastName}`.trim() || 'User';
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 'var(--sp-3) var(--sp-4)',
-        background: 'var(--surface-base)',
-        borderBottom: '1px solid var(--border-subtle)',
-        minHeight: 64,
-        flexShrink: 0,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', minWidth: 0 }}>
+    <div className="chat-thread-header">
+      <div className="chat-thread-header__main">
         {showBackButton && onBack && (
           <IconButton
             variant="ghost"
@@ -62,19 +50,9 @@ export const ThreadHeader: React.FC<ThreadHeaderProps> = ({
           presence="online"
         />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: 'var(--font-md)',
-                fontWeight: 600,
-                color: 'var(--on-surface)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
+        <div className="chat-thread-header__details">
+          <div className="chat-thread-header__row">
+            <h2 className="chat-thread-header__name">
               {name}
             </h2>
             <StatusPill
@@ -83,42 +61,24 @@ export const ThreadHeader: React.FC<ThreadHeaderProps> = ({
             />
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--sp-3)',
-              fontSize: 'var(--font-xs)',
-              color: 'var(--on-surface-subtle)',
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className="chat-thread-header__meta">
             {participant.phoneNumber && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <span className="ui-row ui-row--tight">
                 <Phone size={12} />
                 <span>{participant.phoneNumber}</span>
               </span>
             )}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <MapPin size={12} />
-              <span>{isRtl ? 'القدس' : 'Jerusalem'}</span>
-            </span>
+            {participant.trade && (
+              <span className="ui-row ui-row--tight">
+                <Briefcase size={12} />
+                <span>{participant.trade}</span>
+              </span>
+            )}
             {room.task && (
               <button
                 type="button"
                 onClick={onViewTask}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  background: 'var(--surface-sunken)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '1px 6px',
-                  color: 'var(--on-surface)',
-                  fontSize: 'var(--font-xs)',
-                  cursor: 'pointer',
-                }}
+                className="chat-thread-header__task-btn"
               >
                 <Briefcase size={12} />
                 <span>{room.task.title || room.task.displayId}</span>
@@ -128,7 +88,7 @@ export const ThreadHeader: React.FC<ThreadHeaderProps> = ({
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', flexShrink: 0 }}>
+      <div className="chat-thread-header__actions">
         {room.task && onViewTask && (
           <Button
             variant="outline"

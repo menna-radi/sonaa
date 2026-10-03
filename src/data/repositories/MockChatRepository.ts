@@ -1,5 +1,5 @@
 import { ChatRepository } from '../../domain/repositories/ChatRepository';
-import { ChatRoom, ChatMessage } from '../../domain/entities/Chat';
+import { ChatRoom, ChatMessage, ChatSearchUser } from '../../domain/entities/Chat';
 import { Result, ok } from '../../core/result/Result';
 
 export class MockChatRepository implements ChatRepository {
@@ -14,7 +14,12 @@ export class MockChatRepository implements ChatRepository {
     return ok(this.messages[chatRoomId] || []);
   }
 
-  public async sendMessage(chatRoomId: string, content: string, imageUrl?: string): Promise<Result<ChatMessage>> {
+  public async sendMessage(
+    chatRoomId: string,
+    content: string,
+    imageUrl?: string,
+    visibility?: 'PUBLIC' | 'CUSTOMER_PRIVATE' | 'CRAFTSMAN_PRIVATE' | 'ADMIN_INTERNAL'
+  ): Promise<Result<ChatMessage>> {
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       chatRoomId,
@@ -25,6 +30,7 @@ export class MockChatRepository implements ChatRepository {
       content,
       imageUrl: imageUrl || null,
       status: 'SENT',
+      visibility: visibility || 'PUBLIC',
       createdAt: new Date().toISOString(),
     };
 
@@ -65,9 +71,12 @@ export class MockChatRepository implements ChatRepository {
     return ok(newRoom);
   }
 
-  public async searchUsers(_query?: string, _role?: string): Promise<Result<any[]>> {
+  public async searchUsers(_query?: string, _role?: string): Promise<Result<ChatSearchUser[]>> {
+    void _query;
+    void _role;
     return ok([]);
   }
 }
 
 export default MockChatRepository;
+

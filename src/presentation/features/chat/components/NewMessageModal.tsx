@@ -11,12 +11,14 @@ import {
   Skeleton,
 } from '../../../components/ui';
 import { Phone, Briefcase, MessageSquare, User } from 'lucide-react';
+import { ChatSearchUser } from '../../../../domain/entities/Chat';
+import { Result } from '../../../../core/result/Result';
 
 export interface NewMessageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectUser: (user: any) => Promise<void>;
-  searchUsers: (query?: string, role?: string) => Promise<any>;
+  onSelectUser: (user: ChatSearchUser) => Promise<void>;
+  searchUsers: (query?: string, role?: string) => Promise<Result<ChatSearchUser[]>>;
 }
 
 export const NewMessageModal: React.FC<NewMessageModalProps> = ({
@@ -28,16 +30,16 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
   const { isRtl } = useLanguage();
   const [query, setQuery] = useState('');
   const [role, setRole] = useState<'ALL' | 'CUSTOMER' | 'CRAFTSMAN'>('ALL');
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<ChatSearchUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [startingUserId, setStartingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     let isMounted = true;
-    setLoading(true);
 
     const timer = setTimeout(async () => {
+      if (isMounted) setLoading(true);
       try {
         const res = await searchUsers(query, role);
         if (isMounted) {
@@ -48,7 +50,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
           }
           setLoading(false);
         }
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setUsers([]);
           setLoading(false);
@@ -62,7 +64,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
     };
   }, [isOpen, query, role, searchUsers]);
 
-  const handleStart = async (user: any) => {
+  const handleStart = async (user: ChatSearchUser) => {
     setStartingUserId(user.id);
     try {
       await onSelectUser(user);
@@ -84,8 +86,8 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
       title={isRtl ? 'بدء محادثة مع أي مستخدم' : 'Message Any User'}
       size="md"
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
-        <p style={{ margin: 0, fontSize: 'var(--font-xs)', color: 'var(--on-surface-subtle)' }}>
+      <div className="ui-col" style={{ gap: 'var(--sp-4)' }}>
+        <p className="ui-caption ui-text-muted" style={{ margin: 0 }}>
           {isRtl
             ? 'تواصل مباشرة مع أي حرفي أو عميل مسجل في المنصة.'
             : 'Search and start a direct real-time chat with any customer or craftsman.'}
@@ -105,22 +107,13 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
         />
 
         {/* Users list feed */}
-        <div
-          style={{
-            maxHeight: 340,
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--sp-2)',
-            paddingInlineEnd: 4,
-          }}
-        >
+        <div className="chat-users-modal-list">
           {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', padding: 'var(--sp-2)' }}>
+            <div className="ui-col" style={{ gap: 'var(--sp-3)', padding: 'var(--sp-2)' }}>
               {[1, 2, 3].map((i) => (
-                <div key={i} style={{ display: 'flex', gap: 'var(--sp-3)', alignItems: 'center' }}>
+                <div key={i} className="ui-row" style={{ gap: 'var(--sp-3)' }}>
                   <Skeleton width={36} height={36} variant="circle" />
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div className="ui-col" style={{ flex: 1, gap: 4 }}>
                     <Skeleton width="50%" height={14} />
                     <Skeleton width="30%" height={11} />
                   </div>
@@ -129,7 +122,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
             </div>
           ) : users.length === 0 ? (
             <EmptyState
-              icon={<User size={32} style={{ color: 'var(--on-surface-subtle)' }} />}
+              icon={<User size={32} />}
               title={isRtl ? 'لم يتم العثور على مستخدمين' : 'No users found'}
               description={
                 isRtl
@@ -139,38 +132,17 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
             />
           ) : (
             users.map((usr) => (
-              <div
-                key={usr.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: 'var(--sp-2) var(--sp-3)',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--surface-sunken)',
-                  border: '1px solid var(--border-subtle)',
-                  gap: 'var(--sp-2)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', minWidth: 0 }}>
+              <div key={usr.id} className="chat-user-item">
+                <div className="chat-user-item__info">
                   <Avatar
                     src={usr.avatarUrl}
-                    name={usr.name}
+                    name={usr.name || 'User'}
                     size={32}
                   />
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-                      <span
-                        style={{
-                          fontSize: 'var(--font-sm)',
-                          fontWeight: 600,
-                          color: 'var(--on-surface)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
+                  <div className="chat-user-item__details">
+                    <div className="chat-user-item__name-row">
+                      <span className="chat-user-item__name">
                         {usr.name}
                       </span>
                       <StatusPill
@@ -183,23 +155,15 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                       />
                     </div>
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 'var(--sp-3)',
-                        fontSize: 'var(--font-xs)',
-                        color: 'var(--on-surface-subtle)',
-                      }}
-                    >
+                    <div className="chat-user-item__subtext">
                       {usr.phoneNumber && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span className="ui-row ui-row--tight">
                           <Phone size={11} />
                           <span>{usr.phoneNumber}</span>
                         </span>
                       )}
                       {usr.trade && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span className="ui-row ui-row--tight">
                           <Briefcase size={11} />
                           <span>{usr.trade}</span>
                         </span>

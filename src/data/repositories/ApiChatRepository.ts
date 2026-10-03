@@ -1,21 +1,96 @@
 import { ChatRepository } from '../../domain/repositories/ChatRepository';
-import { ChatRoom, ChatMessage } from '../../domain/entities/Chat';
+import { ChatRoom, ChatMessage, ChatSearchUser } from '../../domain/entities/Chat';
 import { Result, ok, fail } from '../../core/result/Result';
 import { apiClient } from '../../core/network/apiClient';
 import { API_ENDPOINTS } from '../../core/config/apiEndpoints';
 import { AppError } from '../../core/errors/AppError';
 
+interface RawParticipant {
+  id?: string | null;
+  craftsmanProfileId?: string | null;
+  customerProfileId?: string | null;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string | null;
+  role?: string;
+  phoneNumber?: string;
+  email?: string;
+  trade?: string;
+  rating?: number;
+}
+
+interface RawTaskSummary {
+  id: string;
+  title?: string;
+  displayId?: string;
+  status?: string;
+  budgetAmount?: number;
+}
+
+interface RawMessage {
+  id?: string;
+  chatRoomId?: string;
+  senderId?: string;
+  senderRole?: string;
+  senderName?: string;
+  senderAvatar?: string | null;
+  sender?: {
+    role?: string;
+    firstName?: string;
+    lastName?: string;
+    avatarUrl?: string | null;
+    craftsmanProfile?: { id?: string };
+    customerProfile?: { id?: string };
+  };
+  craftsmanProfileId?: string | null;
+  customerProfileId?: string | null;
+  messageType?: string;
+  content?: string;
+  imageUrl?: string | null;
+  status?: string;
+  visibility?: 'PUBLIC' | 'CUSTOMER_PRIVATE' | 'CRAFTSMAN_PRIVATE' | 'ADMIN_INTERNAL';
+  createdAt?: string;
+}
+
+interface RawRoom {
+  id: string;
+  task?: RawTaskSummary | null;
+  otherParticipant?: RawParticipant;
+  customerProfile?: ChatRoom['customerProfile'];
+  craftsmanProfile?: ChatRoom['craftsmanProfile'];
+  lastMessage?: RawMessage | null;
+  unreadCount?: number;
+  createdAt?: string;
+}
+
+interface RawUserRecord {
+  id: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  phoneNumber?: string;
+  email?: string;
+  role?: string;
+  avatarUrl?: string | null;
+  trade?: string;
+  rating?: number;
+  status?: string;
+  customerProfile?: { avatarUrl?: string | null };
+  craftsmanProfile?: { avatarUrl?: string | null; tradeCategory?: string; rating?: number };
+}
+
 export class ApiChatRepository implements ChatRepository {
   public async getChatRooms(): Promise<Result<ChatRoom[]>> {
     try {
-      const response = await apiClient.get<any[]>(API_ENDPOINTS.chat.rooms);
-      const rawList = Array.isArray(response) ? response : (response as any).items || [];
+      const response = await apiClient.get<RawRoom[] | { items: RawRoom[] }>(API_ENDPOINTS.chat.rooms);
+      const rawList: RawRoom[] = Array.isArray(response) ? response : response?.items || [];
       
-      const mapped: ChatRoom[] = rawList.map((room: any) => {
+      const mapped: ChatRoom[] = rawList.map((room) => {
         const lastMsg: ChatMessage | null = room.lastMessage ? {
-          id: room.lastMessage.id,
-          chatRoomId: room.lastMessage.chatRoomId,
-          senderId: room.lastMessage.senderId,
+          id: room.lastMessage.id || '',
+          chatRoomId: room.lastMessage.chatRoomId || room.id,
+          senderId: room.lastMessage.senderId || '',
           senderRole: room.lastMessage.senderRole,
           senderName: room.lastMessage.senderName,
           senderAvatar: room.lastMessage.senderAvatar || null,
@@ -25,6 +100,7 @@ export class ApiChatRepository implements ChatRepository {
           content: room.lastMessage.content || '',
           imageUrl: room.lastMessage.imageUrl || null,
           status: room.lastMessage.status || 'SENT',
+          visibility: room.lastMessage.visibility || 'PUBLIC',
           createdAt: room.lastMessage.createdAt || new Date().toISOString(),
         } : null;
 
@@ -68,16 +144,16 @@ export class ApiChatRepository implements ChatRepository {
 
   public async getChatRoomMessages(chatRoomId: string): Promise<Result<ChatMessage[]>> {
     try {
-      const response = await apiClient.get<any[]>(API_ENDPOINTS.chat.messages(chatRoomId));
-      const rawList = Array.isArray(response) ? response : (response as any).items || [];
+      const response = await apiClient.get<RawMessage[] | { items: RawMessage[] }>(API_ENDPOINTS.chat.messages(chatRoomId));
+      const rawList: RawMessage[] = Array.isArray(response) ? response : response?.items || [];
 
       // Backend returns newest first (descending); reverse to chronological ascending order (oldest at top, newest at bottom)
       const chronological = [...rawList].reverse();
 
-      const mapped: ChatMessage[] = chronological.map((msg: any) => ({
-        id: msg.id,
+      const mapped: ChatMessage[] = chronological.map((msg) => ({
+        id: msg.id || `msg_${Date.now()}`,
         chatRoomId: msg.chatRoomId || chatRoomId,
-        senderId: msg.senderId,
+        senderId: msg.senderId || '',
         senderRole: msg.senderRole || (msg.sender?.role) || 'USER',
         senderName: msg.senderName || (msg.sender ? `${msg.sender.firstName || ''} ${msg.sender.lastName || ''}`.trim() : 'User'),
         senderAvatar: msg.senderAvatar || msg.sender?.avatarUrl || null,
@@ -87,6 +163,7 @@ export class ApiChatRepository implements ChatRepository {
         content: msg.content || '',
         imageUrl: msg.imageUrl || null,
         status: msg.status || 'SENT',
+        visibility: msg.visibility || 'PUBLIC',
         createdAt: msg.createdAt || new Date().toISOString(),
       }));
 
@@ -96,11 +173,17 @@ export class ApiChatRepository implements ChatRepository {
     }
   }
 
-  public async sendMessage(chatRoomId: string, content: string, imageUrl?: string): Promise<Result<ChatMessage>> {
+  public async sendMessage(
+    chatRoomId: string,
+    content: string,
+    imageUrl?: string,
+    visibility?: 'PUBLIC' | 'CUSTOMER_PRIVATE' | 'CRAFTSMAN_PRIVATE' | 'ADMIN_INTERNAL'
+  ): Promise<Result<ChatMessage>> {
     try {
-      const response = await apiClient.post<any>(API_ENDPOINTS.chat.sendMessage(chatRoomId), {
+      const response = await apiClient.post<RawMessage>(API_ENDPOINTS.chat.sendMessage(chatRoomId), {
         content,
         imageUrl: imageUrl || undefined,
+        visibility: visibility || 'PUBLIC',
       });
 
       const message: ChatMessage = {
@@ -116,6 +199,7 @@ export class ApiChatRepository implements ChatRepository {
         content: response.content || content,
         imageUrl: response.imageUrl || imageUrl || null,
         status: response.status || 'SENT',
+        visibility: response.visibility || visibility || 'PUBLIC',
         createdAt: response.createdAt || new Date().toISOString(),
       };
 
@@ -136,7 +220,7 @@ export class ApiChatRepository implements ChatRepository {
 
   public async createChatRoom(participantId: string): Promise<Result<ChatRoom>> {
     try {
-      const response = await apiClient.post<any>(API_ENDPOINTS.chat.createRoom, {
+      const response = await apiClient.post<RawRoom>(API_ENDPOINTS.chat.createRoom, {
         targetUserId: participantId,
       });
 
@@ -176,15 +260,28 @@ export class ApiChatRepository implements ChatRepository {
     }
   }
 
-  public async searchUsers(query?: string, role?: string): Promise<Result<any[]>> {
+  public async searchUsers(query?: string, role?: string): Promise<Result<ChatSearchUser[]>> {
     try {
-      const params: Record<string, any> = {};
+      const params: Record<string, string> = {};
       if (query && query.trim()) params.q = query.trim();
       if (role && role !== 'ALL') params.role = role;
 
-      const response = await apiClient.get<any>(API_ENDPOINTS.admin.users, { params });
-      const userList = response?.users || (Array.isArray(response) ? response : []);
-      return ok(userList);
+      const response = await apiClient.get<RawUserRecord[] | { users: RawUserRecord[] }>(API_ENDPOINTS.admin.users, { params });
+      const rawList: RawUserRecord[] = Array.isArray(response) ? response : response?.users || [];
+      const mapped: ChatSearchUser[] = rawList.map((u) => ({
+        id: u.id,
+        name: u.firstName ? `${u.firstName} ${u.lastName || ''}`.trim() : u.name || 'User',
+        firstName: u.firstName || '',
+        lastName: u.lastName || '',
+        phoneNumber: u.phoneNumber || u.phone || '',
+        email: u.email || '',
+        role: u.role || 'CUSTOMER',
+        avatarUrl: u.avatarUrl || u.customerProfile?.avatarUrl || u.craftsmanProfile?.avatarUrl || null,
+        trade: u.craftsmanProfile?.tradeCategory || u.trade || '',
+        rating: u.craftsmanProfile?.rating || u.rating,
+        status: u.status,
+      }));
+      return ok(mapped);
     } catch (error) {
       return fail(error as AppError);
     }

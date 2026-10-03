@@ -33,6 +33,7 @@ export interface ChatMessage {
   content: string;
   imageUrl?: string | null;
   status: 'SENT' | 'DELIVERED' | 'READ' | string;
+  visibility?: 'PUBLIC' | 'CUSTOMER_PRIVATE' | 'CRAFTSMAN_PRIVATE' | 'ADMIN_INTERNAL';
   createdAt: string;
 }
 
@@ -67,4 +68,18 @@ export interface ChatRoom {
   lastMessage: ChatMessage | null;
   unreadCount: number;
   createdAt: string;
+}
+
+export interface ChatSearchUser {
+  id: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  email?: string;
+  role?: string;
+  avatarUrl?: string | null;
+  trade?: string;
+  rating?: number;
+  status?: string;
 }
