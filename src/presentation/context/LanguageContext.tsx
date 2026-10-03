@@ -2965,6 +2965,86 @@ export const translations: TranslationDict = {
     en: 'No ledger entries',
     ar: 'لا توجد قيود',
     he: 'אין רשומות'
+  },
+  settings_bit_title: {
+    en: 'Bit payment details',
+    ar: 'تفاصيل الدفع عبر Bit',
+    he: "פרטי תשלום Bit"
+  },
+  settings_bit_phone: {
+    en: 'Bit phone number',
+    ar: 'رقم هاتف Bit',
+    he: 'מספר טלפון Bit'
+  },
+  settings_bit_recipient: {
+    en: 'Recipient name',
+    ar: 'اسم المستلم',
+    he: 'שם המוטב'
+  },
+  settings_bit_instructions_en: {
+    en: 'Instructions (English)',
+    ar: 'التعليمات (الإنجليزية)',
+    he: 'הוראות (אנגלית)'
+  },
+  settings_bit_instructions_ar: {
+    en: 'Instructions (Arabic)',
+    ar: 'التعليمات (العربية)',
+    he: 'הוראות (ערבית)'
+  },
+  settings_bit_preview_title: {
+    en: 'Craftsman preview',
+    ar: 'معاينة الحرفي',
+    he: 'תצוגה מקדימה'
+  },
+  settings_bit_copy: {
+    en: 'Copy phone number',
+    ar: 'نسخ رقم الهاتف',
+    he: 'העתק מספר טלפון'
+  },
+  settings_bit_copied: {
+    en: 'Copied.',
+    ar: 'تم النسخ.',
+    he: 'הועתק.'
+  },
+  settings_free_tasks_title: {
+    en: 'Free tasks for new craftsmen',
+    ar: 'المهام المجانية للحرفيين الجدد',
+    he: 'משימות חינם לבעלי מקצוע חדשים'
+  },
+  settings_free_count: {
+    en: 'Free tasks count',
+    ar: 'عدد المهام المجانية',
+    he: 'מספר משימות חינם'
+  },
+  settings_free_help: {
+    en: 'Applies to craftsmen who register after the change. Use Grant free tasks for existing ones.',
+    ar: 'ينطبق على الحرفيين الذين يسجلون بعد التغيير. استخدم منح مهام مجانية للحاليين.',
+    he: 'חל על בעלי מקצוע שנרשמים לאחר השינוי. השתמש בהענקת משימות חינם לקיימים.'
+  },
+  settings_commission_title: {
+    en: 'Commission rate',
+    ar: 'نسبة العمولة',
+    he: 'שיעור עמלה'
+  },
+  settings_commission_rate: {
+    en: 'Rate (percent, 0.1–50)',
+    ar: 'النسبة (بالمئة، 0.1–50)',
+    he: 'שיעור (אחוז, 0.1–50)'
+  },
+  settings_commission_example: {
+    en: 'On a ₪1,000 task the craftsman owes',
+    ar: 'في مهمة بقيمة ₪1,000 يدين الحرفي بـ',
+    he: 'במשימה של ₪1,000 בעל המקצוע חייב'
+  },
+  settings_commission_warning: {
+    en: 'Changing the rate affects only tasks completed after saving.',
+    ar: 'يؤثر تغيير النسبة فقط على المهام المكتملة بعد الحفظ.',
+    he: 'שינוי השיעור משפיע רק על משימות שיושלמו לאחר השמירה.'
+  },
+  toast_settings_saved: {
+    en: 'Settings saved.',
+    ar: 'تم حفظ الإعدادات.',
+    he: 'ההגדרות נשמרו.'
   }
 };
 
