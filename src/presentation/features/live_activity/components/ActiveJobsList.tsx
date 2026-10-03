@@ -1,9 +1,11 @@
 import React from 'react';
 import { Briefcase, MapPin, ExternalLink } from 'lucide-react';
 import type { ActiveJob } from '../../../../domain/entities/LiveActivity';
-import { useNavigation } from '../../../../presentation/context/NavigationContext';
-import { Card, ProgressBar, StatusPill, Button, pillVariantFor } from '../../../components/ui';
-import { formatMoney } from '../../../../core/utils/format';
+import { useNavigation } from '../../../context/NavigationContext';
+import { useLanguage } from '../../../context/LanguageContext';
+import { Card, ProgressBar, StatusPill, Button, EmptyState, pillVariantFor, statusLabelKey } from '../../../components/ui';
+import { formatMoney, formatNumber } from '../../../../core/utils/format';
+import { LIVE_FABRICATED_FIELDS_TRUSTED } from '../flags';
 
 interface ActiveJobsListProps {
   jobs: ActiveJob[];
@@ -12,160 +14,93 @@ interface ActiveJobsListProps {
 
 export const ActiveJobsList: React.FC<ActiveJobsListProps> = ({ jobs, totalCount }) => {
   const { navigate, setSearchQuery } = useNavigation();
+  const { t, language } = useLanguage();
+
+  const statusLabel = (status?: string): string => {
+    if (!status) return '—';
+    const key = statusLabelKey('task', status);
+    const label = t(key);
+    return label === key ? status : label;
+  };
 
   return (
     <Card
-      eyebrow="Active Jobs In Progress"
-      title={`Top ${jobs.length}`}
+      eyebrow={t('live_jobs_eyebrow')}
+      title={`${t('live_jobs_top')} ${formatNumber(jobs.length, language)}`}
       headerAction={
         totalCount !== undefined ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('tasks')}
-          >
-            All {totalCount.toLocaleString()}
+          <Button variant="ghost" size="sm" onClick={() => navigate('tasks')}>
+            {t('live_jobs_all')} <span className="ui-num">{formatNumber(totalCount, language)}</span>
           </Button>
         ) : undefined
       }
-      className="active-jobs-card live-desktop-jobs-card"
-      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+      className="live-card-fill"
     >
       {jobs.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: 'var(--sp-6) var(--sp-4)',
-            color: 'var(--text-muted)',
-          }}
-        >
-          <Briefcase size={28} style={{ opacity: 0.35, margin: '0 auto var(--sp-2)', display: 'block' }} />
-          <div style={{ fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            No active tasks in progress
-          </div>
-          <div style={{ fontSize: 'var(--fs-caption)', marginTop: 4, color: 'var(--text-muted)' }}>
-            New dispatches and client tasks will appear here in real time.
-          </div>
-        </div>
+        <EmptyState icon={<Briefcase size={28} />} title={t('live_jobs_empty_title')} body={t('live_jobs_empty_body')} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', flex: 1 }}>
-          {jobs.map((job) => (
-            <div
-              key={job.id}
-              style={{
-                textAlign: 'start',
-                padding: 'var(--sp-3)',
-                borderRadius: 'var(--r-md)',
-                border: '1px solid var(--border-subtle)',
-                backgroundColor: 'var(--bg-surface-elevated)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--sp-2)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <Briefcase size={14} style={{ color: 'var(--text-muted)' }} />
+        <div className="live-list">
+          {jobs.map((job) => {
+            const hasLocation = typeof job.lat === 'number' && typeof job.lng === 'number';
+            const showAmount = LIVE_FABRICATED_FIELDS_TRUSTED && typeof job.amountSAR === 'number';
+            const showProgress = LIVE_FABRICATED_FIELDS_TRUSTED && job.progressPercent > 0;
+            return (
+              <div key={job.id} className="live-job">
+                <div className="live-job__top">
+                  <div className="live-job__icon">
+                    <Briefcase size={14} />
+                  </div>
+                  <div className="live-job__main">
+                    <div className="live-job__row">
+                      <span className="live-job__title" title={job.title}>
+                        {job.title}
+                      </span>
+                      {showAmount && <span className="live-job__amount ui-num">{formatMoney(job.amountSAR, 'ILS', language)}</span>}
+                    </div>
+                    <div className="live-job__meta">
+                      <span className="live-job__id ui-num">{job.jobNumber}</span>
+                      {' · '}
+                      {job.customer} ↔ {job.craftsman}
+                      {job.zone ? ` · ${job.zone}` : ''}
+                    </div>
+                  </div>
                 </div>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--sp-2)' }}>
-                    <span
-                      style={{
-                        fontSize: 'var(--fs-caption)',
-                        fontWeight: 600,
-                        color: 'var(--text-primary)',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                      title={job.title}
-                    >
-                      {job.title}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 'var(--fs-caption)',
-                        fontWeight: 700,
-                        color: 'var(--text-primary)',
-                        flexShrink: 0,
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
-                      {formatMoney(job.amountSAR)}
-                    </span>
-                  </div>
+                {showProgress && <ProgressBar value={job.progressPercent} max={100} size="sm" />}
 
-                  <div
-                    style={{
-                      fontSize: 'var(--fs-micro)',
-                      color: 'var(--text-muted)',
-                      marginTop: 2,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    <span style={{ color: 'var(--text-faint)' }}>{job.jobNumber}</span>
-                    {' · '}{job.customer} ↔ {job.craftsman} · {job.zone}
+                <div className="live-job__foot">
+                  <StatusPill variant={pillVariantFor('task', job.status)} label={statusLabel(job.status)} />
+                  <div className="live-job__actions">
+                    {hasLocation && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        aria-label={t('live_job_show_on_map')}
+                        onClick={() =>
+                          window.dispatchEvent(
+                            new CustomEvent('focus-map-job', { detail: { jobId: job.id, coords: [job.lat, job.lng] } })
+                          )
+                        }
+                      >
+                        <MapPin size={12} />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={t('live_job_open')}
+                      onClick={() => {
+                        if (setSearchQuery) setSearchQuery(job.jobNumber);
+                        navigate('tasks');
+                      }}
+                    >
+                      <ExternalLink size={12} />
+                    </Button>
                   </div>
                 </div>
               </div>
-
-              {job.progressPercent !== undefined && job.progressPercent > 0 && (
-                <ProgressBar value={job.progressPercent} max={100} size="sm" />
-              )}
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 2 }}>
-                <StatusPill
-                  variant={pillVariantFor('task', job.status || 'IN_PROGRESS')}
-                  label={job.status?.replace('_', ' ') || 'ACTIVE'}
-                />
-
-                <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      window.dispatchEvent(
-                        new CustomEvent('focus-map-job', {
-                          detail: {
-                            jobId: job.id,
-                            coords: [job.lat || 31.7683, job.lng || 35.2137],
-                            title: job.title,
-                          },
-                        })
-                      );
-                    }}
-                  >
-                    <MapPin size={12} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      if (setSearchQuery) setSearchQuery(job.jobNumber);
-                      navigate('tasks');
-                    }}
-                  >
-                    <ExternalLink size={12} />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </Card>

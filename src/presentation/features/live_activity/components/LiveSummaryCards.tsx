@@ -1,67 +1,34 @@
 import React from 'react';
-import { Briefcase, Users, AlertTriangle } from 'lucide-react';
+import { Briefcase, Users, AlertTriangle, MapPin } from 'lucide-react';
 import type { LiveActivitySummary } from '../../../../domain/entities/LiveActivity';
+import { KpiCard } from '../../../components/ui';
+import { useLanguage } from '../../../context/LanguageContext';
+import { formatNumber } from '../../../../core/utils/format';
+import { LIVE_FABRICATED_FIELDS_TRUSTED } from '../flags';
 
 interface LiveSummaryCardsProps {
   summary: LiveActivitySummary | null;
+  loading?: boolean;
 }
 
-export const LiveSummaryCards: React.FC<LiveSummaryCardsProps> = ({ summary }) => {
-  const cards = [
-    {
-      label: 'Active jobs',
-      sub: 'In progress',
-      value: summary?.activeJobs.toLocaleString() ?? '—',
-      icon: <Briefcase size={16} />,
-      color: 'var(--text-primary)',
-      bg: 'var(--bg-surface)',
-      border: 'var(--border-color)',
-    },
-    {
-      label: 'Online now',
-      sub: 'Craftsmen',
-      value: summary?.onlineCraftsmen.toLocaleString() ?? '—',
-      icon: <Users size={16} />,
-      color: 'var(--text-primary)',
-      bg: 'var(--bg-surface)',
-      border: 'var(--border-color)',
-    },
-    {
-      label: 'Operational zones',
-      sub: 'Jerusalem districts',
-      value: summary?.busyZonesCount.toLocaleString() ?? '3',
-      icon: <AlertTriangle size={16} />,
-      color: 'var(--text-primary)',
-      bg: 'var(--bg-surface)',
-      border: 'var(--border-color)',
-    },
-  ];
+export const LiveSummaryCards: React.FC<LiveSummaryCardsProps> = ({ summary, loading = false }) => {
+  const { t, language } = useLanguage();
+  const num = (v: number | undefined) => (v === undefined ? '—' : formatNumber(v, language));
 
   return (
-    <div className="live-summary-grid">
-      {cards.map((card, idx) => (
-        <div
-          key={idx}
-          className="live-summary-card"
-          style={{
-            background: card.bg,
-            border: `1px solid ${card.border}`,
-            borderRadius: 'var(--border-radius-md)',
-            padding: '14px 12px',
-            textAlign: 'start',
-          }}
-        >
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-            {card.label}
-          </span>
-          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: card.color, fontFamily: 'var(--font-title)', lineHeight: 1.2, margin: '4px 0' }}>
-            {card.value}
-          </div>
-          <span style={{ fontSize: '0.65rem', color: 'var(--text-disabled)', fontWeight: 500 }}>
-            {card.sub}
-          </span>
-        </div>
-      ))}
+    <div className="ui-kpi-grid ui-kpi-grid--3">
+      <KpiCard icon={<Briefcase size={16} />} label={t('live_kpi_active_jobs')} value={num(summary?.activeJobs)} loading={loading} />
+      <KpiCard icon={<Users size={16} />} label={t('live_kpi_online')} value={num(summary?.onlineCraftsmen)} loading={loading} />
+      <KpiCard
+        icon={<AlertTriangle size={16} />}
+        label={t('live_kpi_sos')}
+        value={num(summary?.sosCount)}
+        tone={summary && summary.sosCount > 0 ? 'danger' : 'default'}
+        loading={loading}
+      />
+      {LIVE_FABRICATED_FIELDS_TRUSTED && (
+        <KpiCard icon={<MapPin size={16} />} label={t('live_kpi_zones')} value={num(summary?.busyZonesCount)} loading={loading} />
+      )}
     </div>
   );
 };

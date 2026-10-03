@@ -8,10 +8,11 @@ import {
   ShieldCheck,
   TrendingUp,
   Flag,
-  MapPin,
 } from 'lucide-react';
 import type { ActivityEvent, ActivityEventType } from '../../../../domain/entities/LiveActivity';
 import { Card, ListItem, IconCircle, Button } from '../../../components/ui';
+import { useLanguage } from '../../../context/LanguageContext';
+import { formatRelativeTime } from '../../../../core/utils/format';
 
 interface LiveFeedProps {
   events: ActivityEvent[];
@@ -43,82 +44,32 @@ const getEventToneAndIcon = (type: ActivityEventType): { icon: React.ReactNode; 
 };
 
 export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePause }) => {
-  const displayEvents = events.slice(0, 50);
+  const { t, language } = useLanguage();
+  const displayEvents = events.filter((e) => !e.isSOS).slice(0, 50);
 
   return (
     <Card
-      eyebrow="Live Activity Feed"
-      title="Last hour · auto-streaming"
+      eyebrow={t('live_feed_eyebrow')}
+      title={t('live_feed_title')}
       headerAction={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              fontSize: 'var(--fs-caption)',
-              fontWeight: 600,
-              color: isPaused ? 'var(--text-muted)' : 'var(--live)',
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                backgroundColor: isPaused ? 'var(--text-muted)' : 'var(--live)',
-              }}
-            />
-            {isPaused ? 'Paused' : '● Live'}
+        <div className="ui-row">
+          <span className={`live-feed__status${isPaused ? ' is-paused' : ''}`}>
+            <span className="live-feed__dot" />
+            {isPaused ? t('live_feed_paused') : t('live_live')}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onTogglePause}
-          >
-            {isPaused ? 'Resume' : 'Pause'}
+          <Button variant="ghost" size="sm" onClick={onTogglePause}>
+            {isPaused ? t('live_feed_resume') : t('live_feed_pause')}
           </Button>
         </div>
       }
-      className="live-feed-card live-desktop-feed-card"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        minHeight: 560,
-        boxSizing: 'border-box',
-      }}
+      className="live-feed"
     >
-      <div
-        className="live-feed-scroll"
-        style={{
-          overflowY: 'auto',
-          flex: 1,
-          maxHeight: 500,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--sp-1)',
-        }}
-      >
+      <div className="live-feed__scroll">
         {displayEvents.length === 0 ? (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 'var(--sp-8) var(--sp-4)',
-              textAlign: 'center',
-              color: 'var(--text-muted)',
-            }}
-          >
-            <Zap size={24} style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-2)' }} />
-            <div style={{ fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Monitoring Operations
-            </div>
-            <div style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', maxWidth: 240, marginTop: 4 }}>
-              Listening for real-time task creations, updates, and dispatches…
-            </div>
+          <div className="live-empty">
+            <Zap size={24} />
+            <div className="live-empty__title">{t('live_feed_empty_title')}</div>
+            <div className="live-empty__body">{t('live_feed_empty_body')}</div>
           </div>
         ) : (
           displayEvents.map((event) => {
@@ -129,30 +80,7 @@ export const LiveFeed: React.FC<LiveFeedProps> = ({ events, isPaused, onTogglePa
                 leading={<IconCircle icon={icon} tone={tone} size={32} />}
                 title={event.title}
                 subtitle={event.subtitle}
-                trailing={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-1)' }}>
-                    <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
-                      {event.timestamp ? new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        window.dispatchEvent(
-                          new CustomEvent('focus-map-job', {
-                            detail: {
-                              eventId: event.id,
-                              title: event.title,
-                            },
-                          })
-                        );
-                      }}
-                      title="Fly map view to location"
-                    >
-                      <MapPin size={12} />
-                    </Button>
-                  </div>
-                }
+                trailing={<span className="live-feed__time">{formatRelativeTime(event.timestamp, language)}</span>}
               />
             );
           })

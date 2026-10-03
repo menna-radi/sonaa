@@ -4,128 +4,60 @@ import type { SuspiciousAlert, AlertSeverity } from '../../../../domain/entities
 import { useNavigation } from '../../../context/NavigationContext';
 import { useLanguage } from '../../../context/LanguageContext';
 import { Card, StatusPill, Button } from '../../../components/ui';
+import { formatNumber } from '../../../../core/utils/format';
 
 interface SuspiciousActivityProps {
   alerts: SuspiciousAlert[];
 }
 
+const severityVariant = (sev: AlertSeverity): 'danger' | 'warning' | 'neutral' => {
+  if (sev === 'high') return 'danger';
+  if (sev === 'medium') return 'warning';
+  return 'neutral';
+};
+
+/** Rendered only when the backend returns alerts. */
 export const SuspiciousActivity: React.FC<SuspiciousActivityProps> = ({ alerts }) => {
   const { navigate } = useNavigation();
-  const { language } = useLanguage();
-  const unresolvedCount = alerts.length;
+  const { t, language } = useLanguage();
 
-  const severityVariant = (sev: AlertSeverity): 'danger' | 'warning' | 'neutral' => {
-    switch (sev) {
-      case 'high':
-        return 'danger';
-      case 'medium':
-        return 'warning';
-      default:
-        return 'neutral';
-    }
-  };
+  if (alerts.length === 0) return null;
 
   return (
     <Card
-      eyebrow="Suspicious Activity"
+      eyebrow={t('live_susp_eyebrow')}
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-          <AlertTriangle size={16} style={{ color: 'var(--danger-text)' }} />
-          <span>{unresolvedCount} alerts unresolved</span>
+        <div className="live-card-title">
+          <AlertTriangle size={16} />
+          <span>
+            <span className="ui-num">{formatNumber(alerts.length, language)}</span> {t('live_susp_unresolved')}
+          </span>
         </div>
       }
-      className="suspicious-activity-card live-desktop-suspicious-card"
-      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+      className="live-card-fill"
     >
-      {alerts.length === 0 ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 120,
-            color: 'var(--text-muted)',
-            fontSize: 'var(--fs-caption)',
-            textAlign: 'center',
-          }}
-        >
-          No suspicious alerts detected
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', flex: 1 }}>
-          {alerts.map((alert) => (
-            <div
-              key={alert.id}
-              style={{
-                backgroundColor: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--r-md)',
-                padding: 'var(--sp-3)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--sp-2)',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--sp-2)' }}>
-                <span
-                  style={{
-                    fontSize: 'var(--fs-caption)',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    flex: 1,
-                  }}
-                >
-                  {alert.title}
-                </span>
-                <StatusPill
-                  variant={severityVariant(alert.severity)}
-                  label={alert.severity.toUpperCase()}
-                />
-              </div>
-
-              <p
-                style={{
-                  fontSize: 'var(--fs-micro)',
-                  color: 'var(--text-muted)',
-                  margin: 0,
-                  lineHeight: 1.4,
-                }}
-              >
-                {alert.description}
-              </p>
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingTop: 'var(--sp-2)',
-                  borderTop: '1px solid var(--border-subtle)',
-                }}
-              >
-                <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-faint)' }}>
-                  {alert.minutesAgo === 0 ? 'Just now' : `${alert.minutesAgo}m ago`}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('reports')}
-                  iconTrailing={
-                    <ArrowRight
-                      size={12}
-                      style={{
-                        transform: language === 'ar' || language === 'he' ? 'scaleX(-1)' : 'none',
-                      }}
-                    />
-                  }
-                >
-                  Investigate
-                </Button>
-              </div>
+      <div className="live-list">
+        {alerts.map((alert) => (
+          <div key={alert.id} className="live-alert">
+            <div className="live-alert__top">
+              <span className="live-alert__title">{alert.title}</span>
+              <StatusPill variant={severityVariant(alert.severity)} label={t(`live_sev_${alert.severity}`)} />
             </div>
-          ))}
-        </div>
-      )}
+            <p className="live-alert__desc">{alert.description}</p>
+            <div className="live-alert__foot">
+              <span>{new Intl.RelativeTimeFormat(language, { numeric: 'auto' }).format(-alert.minutesAgo, 'minute')}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('reports')}
+                iconTrailing={<ArrowRight size={12} className="ui-icon--directional" />}
+              >
+                {t('live_susp_investigate')}
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 };

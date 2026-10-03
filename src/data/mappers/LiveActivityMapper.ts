@@ -3,9 +3,9 @@ import {
   BusyZone,
   ActiveJob,
   SuspiciousAlert,
-  LiveActivitySummary,
 } from '../../domain/entities/LiveActivity';
-import type { LiveActivitySnapshot } from '../../domain/entities/LiveActivity';
+import type { LiveActivitySnapshot, LiveCraftsman } from '../../domain/entities/LiveActivity';
+import { LIVE_FABRICATED_FIELDS_TRUSTED } from '../../presentation/features/live_activity/flags';
 
 // ── Raw API shape (as returned by backend) ───────────────────────────────────
 export interface ApiActivityEventModel {
@@ -20,7 +20,7 @@ export interface ApiActivityEventModel {
 export interface ApiBusyZoneModel {
   zone_name: string;
   active_job_count: number;
-  max_job_capacity: number;
+  max_job_capacity: number | null;
 }
 
 export interface ApiActiveJobModel {
@@ -29,29 +29,75 @@ export interface ApiActiveJobModel {
   job_number: string;
   customer_name: string;
   craftsman_name: string;
-  zone_name: string;
-  amount_sar: number;
-  progress_pct: number;
+  zone_name: string | null;
+  amount_sar?: number;
+  amount?: number;
+  progress_pct?: number;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export interface ApiSuspiciousAlertModel {
-  alert_id: string;
-  alert_title: string;
-  alert_description: string;
+  alert_id?: string;
+  alert_title?: string;
+  alert_description?: string;
+  id?: string;
+  title?: string;
+  subtitle?: string;
+  occurred_at?: string;
   severity: string;
-  minutes_ago: number;
+  minutes_ago?: number;
+}
+
+export interface ApiLiveTaskModel {
+  id: string;
+  displayId?: string | null;
+  title?: string | null;
+  status?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  clientName?: string | null;
+  craftsmanName?: string | null;
+}
+
+export interface ApiLiveCraftsmanModel {
+  id: string;
+  name?: string | null;
+  title?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  rating?: number | null;
 }
 
 export interface ApiLiveSnapshotModel {
-  active_jobs: number;
-  online_craftsmen: number;
-  sos_count: number;
-  busy_zones_count: number;
-  feed_events: ApiActivityEventModel[];
-  busy_zones: ApiBusyZoneModel[];
-  active_job_list: ApiActiveJobModel[];
-  suspicious_alerts: ApiSuspiciousAlertModel[];
+  active_jobs?: number;
+  online_craftsmen?: number;
+  sos_count?: number;
+  busy_zones_count?: number;
+  feed_events?: ApiActivityEventModel[];
+  busy_zones?: ApiBusyZoneModel[];
+  active_job_list?: ApiActiveJobModel[];
+  suspicious_alerts?: ApiSuspiciousAlertModel[];
+  emergencies?: unknown[];
+  activeTasks?: ApiLiveTaskModel[];
+  activeCraftsmen?: ApiLiveCraftsmanModel[];
 }
+
+/** A coordinate counts only when the backend really sent one (null / 0 / NaN are "unknown"). */
+const realCoord = (v: unknown): number | undefined => {
+  if (v === null || v === undefined || v === '') return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) && n !== 0 ? n : undefined;
+};
+
+const emptySnapshot = (): LiveActivitySnapshot => ({
+  summary: { activeJobs: 0, onlineCraftsmen: 0, sosCount: 0, busyZonesCount: 0 },
+  feedEvents: [],
+  busyZones: [],
+  activeJobs: [],
+  suspiciousAlerts: [],
+  craftsmen: [],
+});
 
 // ── Mapper ───────────────────────────────────────────────────────────────────
 export class LiveActivityMapper {
@@ -63,134 +109,120 @@ export class LiveActivityMapper {
       subtitle: model.event_subtitle,
       timestamp: model.occurred_at,
       isSOS: model.is_sos,
-      ageLabel: 'now',
+      ageLabel: '',
     };
   }
 
   static toBusyZone(model: ApiBusyZoneModel): BusyZone {
+    const max = model.max_job_capacity ?? 0;
     return {
       name: model.zone_name,
       activeJobs: model.active_job_count,
-      maxJobs: model.max_job_capacity,
-      fillPercentage: model.max_job_capacity > 0
-        ? Math.round((model.active_job_count / model.max_job_capacity) * 100)
-        : 0,
+      maxJobs: max,
+      fillPercentage: max > 0 ? Math.round((model.active_job_count / max) * 100) : 0,
     };
   }
 
+  /**
+   * `amountSAR` / `progressPercent` come from placeholders on the backend until B17: they are
+   * only mapped when LIVE_FABRICATED_FIELDS_TRUSTED is true; otherwise amount is `null` (never rendered).
+   * The entity types it as `number`, hence the cast.
+   */
   static toActiveJob(model: ApiActiveJobModel): ActiveJob {
+    const trusted = LIVE_FABRICATED_FIELDS_TRUSTED;
+    const amount = model.amount_sar ?? model.amount ?? null;
     return {
       id: model.job_id,
       title: model.job_title,
       jobNumber: model.job_number,
       customer: model.customer_name,
       craftsman: model.craftsman_name,
-      zone: model.zone_name,
-      amountSAR: model.amount_sar,
-      progressPercent: model.progress_pct,
+      zone: model.zone_name ?? '',
+      amountSAR: (trusted ? amount : null) as number,
+      progressPercent: trusted ? model.progress_pct ?? 0 : 0,
+      lat: realCoord(model.lat),
+      lng: realCoord(model.lng),
     };
   }
 
   static toSuspiciousAlert(model: ApiSuspiciousAlertModel): SuspiciousAlert {
+    const occurred = model.occurred_at ? new Date(model.occurred_at).getTime() : NaN;
+    const minutes =
+      model.minutes_ago ?? (Number.isFinite(occurred) ? Math.max(0, Math.round((Date.now() - occurred) / 60000)) : 0);
     return {
-      id: model.alert_id,
-      title: model.alert_title,
-      description: model.alert_description,
+      id: model.alert_id ?? model.id ?? '',
+      title: model.alert_title ?? model.title ?? '',
+      description: model.alert_description ?? model.subtitle ?? '',
       severity: model.severity as SuspiciousAlert['severity'],
-      minutesAgo: model.minutes_ago,
+      minutesAgo: minutes,
     };
   }
 
-  static toSnapshot(model: any): LiveActivitySnapshot {
-    if (!model) {
-      return {
-        summary: { activeJobs: 0, onlineCraftsmen: 0, sosCount: 0, busyZonesCount: 0 },
-        feedEvents: [],
-        busyZones: [],
-        activeJobs: [],
-        suspiciousAlerts: [],
-      };
+  private static toJobFromTask(task: ApiLiveTaskModel, extra?: ApiActiveJobModel): ActiveJob {
+    const base = extra ? LiveActivityMapper.toActiveJob(extra) : null;
+    return {
+      id: task.id,
+      title: task.title ?? base?.title ?? '',
+      jobNumber: task.displayId ?? base?.jobNumber ?? '',
+      customer: task.clientName ?? base?.customer ?? '—',
+      craftsman: task.craftsmanName ?? base?.craftsman ?? '—',
+      zone: base?.zone ?? '',
+      amountSAR: base?.amountSAR ?? (null as unknown as number),
+      progressPercent: base?.progressPercent ?? 0,
+      status: task.status ?? undefined,
+      lat: realCoord(task.lat),
+      lng: realCoord(task.lng),
+    };
+  }
+
+  static toSnapshot(model: ApiLiveSnapshotModel | null | undefined): LiveActivitySnapshot {
+    if (!model) return emptySnapshot();
+
+    const activeTasks = Array.isArray(model.activeTasks) ? model.activeTasks : [];
+    const jobList = Array.isArray(model.active_job_list) ? model.active_job_list : [];
+    const jobById = new Map(jobList.map((j) => [j.job_id, j]));
+
+    // Tasks carry the real status and coordinates; the job list adds zone (and untrusted amount/progress).
+    const activeJobs: ActiveJob[] =
+      activeTasks.length > 0
+        ? activeTasks.map((t) => LiveActivityMapper.toJobFromTask(t, jobById.get(t.id)))
+        : jobList.map(LiveActivityMapper.toActiveJob);
+
+    const busyZones = Array.isArray(model.busy_zones) ? model.busy_zones.map(LiveActivityMapper.toBusyZone) : [];
+    const suspiciousAlerts = Array.isArray(model.suspicious_alerts)
+      ? model.suspicious_alerts.map(LiveActivityMapper.toSuspiciousAlert)
+      : [];
+    const feedEvents = Array.isArray(model.feed_events) ? model.feed_events.map(LiveActivityMapper.toActivityEvent) : [];
+
+    const rawCraftsmen = Array.isArray(model.activeCraftsmen) ? model.activeCraftsmen : [];
+    const craftsmen: LiveCraftsman[] = [];
+    for (const c of rawCraftsmen) {
+      const lat = realCoord(c.lat);
+      const lng = realCoord(c.lng);
+      if (lat === undefined || lng === undefined) continue;
+      craftsmen.push({
+        id: String(c.id),
+        name: c.name ?? '',
+        title: c.title ?? '',
+        lat,
+        lng,
+        rating: typeof c.rating === 'number' ? c.rating : undefined,
+      });
     }
 
     const emergencies = Array.isArray(model.emergencies) ? model.emergencies : [];
-    const activeTasks = Array.isArray(model.activeTasks) ? model.activeTasks : [];
-    const activeCraftsmen = Array.isArray(model.activeCraftsmen) ? model.activeCraftsmen : [];
-
-    const feedEventsFromBackend: ActivityEvent[] = activeTasks.map((t: any) => ({
-      id: `evt-${t.id}`,
-      type: t.status === 'ACCEPTED' ? 'job_posted' : 'job_completed',
-      title: `${t.title || 'Service Job'} (${t.displayId || 'Task'})`,
-      subtitle: `Status: ${t.status || 'IN_PROGRESS'} · Craftsman: ${t.craftsmanName || 'Unassigned'}`,
-      timestamp: t.createdAt || new Date().toISOString(),
-      isSOS: false,
-      ageLabel: 'now',
-    }));
-
-    const rawFeedEvents = (Array.isArray(model.feed_events)
-      ? model.feed_events.map(LiveActivityMapper.toActivityEvent)
-      : feedEventsFromBackend).filter((e: ActivityEvent) => !e.isSOS && e.type !== 'sos_triggered');
-
-    const JERUSALEM_COORDS = [
-      { zone: 'Beit Hanina', lat: 31.8260, lng: 35.2260 },
-      { zone: 'Old City', lat: 31.7767, lng: 35.2345 },
-      { zone: 'Jerusalem Center', lat: 31.7800, lng: 35.2150 },
-      { zone: 'Shuafat', lat: 31.8080, lng: 35.2330 },
-      { zone: 'Sheikh Jarrah', lat: 31.7915, lng: 35.2295 },
-      { zone: 'Silwan', lat: 31.7700, lng: 35.2350 },
-    ];
-
-    const activeJobsFromBackend: ActiveJob[] = activeTasks.map((t: any, idx: number) => {
-      const loc = JERUSALEM_COORDS[idx % JERUSALEM_COORDS.length];
-      const realNumber = t.displayId || (typeof t.id === 'string' && t.id.startsWith('SN-') ? t.id : `SN-${t.id || idx + 1}`);
-      return {
-        id: String(t.id || idx + 1),
-        title: t.title || 'Service Job',
-        jobNumber: realNumber,
-        customer: t.clientName || 'Customer',
-        craftsman: t.craftsmanName || 'Unassigned',
-        zone: t.zone || loc.zone,
-        amountSAR: Number(t.budgetAmount || 350),
-        progressPercent: t.status === 'IN_PROGRESS' ? 65 : t.status === 'ACCEPTED' ? 25 : 10,
-        status: t.status || 'IN_PROGRESS',
-        lat: Number(t.lat) || loc.lat,
-        lng: Number(t.lng) || loc.lng,
-      };
-    });
-
-    const rawActiveJobs = Array.isArray(model.active_job_list) ? model.active_job_list.map((j: any) => {
-      const mapped = LiveActivityMapper.toActiveJob(j);
-      return {
-        ...mapped,
-        lat: Number(j.lat || j.locationLat) || undefined,
-        lng: Number(j.lng || j.locationLng) || undefined,
-      };
-    }) : activeJobsFromBackend;
-    const rawBusyZones = Array.isArray(model.busy_zones) ? model.busy_zones.map(LiveActivityMapper.toBusyZone) : [];
-    const rawSuspicious = Array.isArray(model.suspicious_alerts) ? model.suspicious_alerts.map(LiveActivityMapper.toSuspiciousAlert) : [];
-
-    // Map active craftsmen from backend
-    const craftsmenFromBackend = activeCraftsmen.map((c: any) => ({
-      id: String(c.id || c.craftsmanId),
-      name: String(c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Craftsman'),
-      title: String(c.title || 'Technician'),
-      lat: Number(c.lat || c.latitude || 31.7683),
-      lng: Number(c.lng || c.longitude || 35.2137),
-      rating: Number(c.rating || 5.0),
-      isAvailable: c.isAvailable ?? true,
-    }));
-
     return {
       summary: {
-        activeJobs: model.active_jobs ?? activeTasks.length,
-        onlineCraftsmen: model.online_craftsmen ?? activeCraftsmen.length,
+        activeJobs: model.active_jobs ?? activeJobs.length,
+        onlineCraftsmen: model.online_craftsmen ?? rawCraftsmen.length,
         sosCount: model.sos_count ?? emergencies.length,
-        busyZonesCount: model.busy_zones_count ?? rawBusyZones.length,
+        busyZonesCount: model.busy_zones_count ?? busyZones.length,
       },
-      feedEvents: rawFeedEvents,
-      busyZones: rawBusyZones,
-      activeJobs: rawActiveJobs,
-      suspiciousAlerts: rawSuspicious,
-      craftsmen: craftsmenFromBackend,
+      feedEvents,
+      busyZones,
+      activeJobs,
+      suspiciousAlerts,
+      craftsmen,
     };
   }
 }

@@ -1,75 +1,42 @@
 import React from 'react';
+import { MapPin } from 'lucide-react';
 import type { BusyZone } from '../../../../domain/entities/LiveActivity';
 import { Card, ProgressBar } from '../../../components/ui';
-import { MapPin } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
+import { formatNumber } from '../../../../core/utils/format';
+import { LIVE_FABRICATED_FIELDS_TRUSTED } from '../flags';
 
 interface BusyZonesProps {
   zones: BusyZone[];
 }
 
+/** Hidden until the backend stops deriving zones from placeholders (flag in flags.ts). */
 export const BusyZones: React.FC<BusyZonesProps> = ({ zones }) => {
+  const { t, language } = useLanguage();
+  if (!LIVE_FABRICATED_FIELDS_TRUSTED) return null;
+
   const maxJobs = Math.max(...zones.map((z) => z.activeJobs), 1);
 
   return (
-    <Card
-      eyebrow="Busy Zones"
-      title="Active jobs by zone"
-      className="busy-zones-card live-desktop-busy-zones-card"
-      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-    >
+    <Card eyebrow={t('live_zones_eyebrow')} title={t('live_zones_title')} className="live-card-fill">
       {zones.length === 0 ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 120,
-            color: 'var(--text-muted)',
-            fontSize: 'var(--fs-caption)',
-            textAlign: 'center',
-          }}
-        >
-          All zones normal · No pending load
-        </div>
+        <div className="live-empty">{t('live_zones_empty')}</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', flex: 1 }}>
-          {zones.map((zone) => {
-            const pct = Math.round((zone.activeJobs / maxJobs) * 100);
-            return (
-              <div key={zone.name} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-1)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-1)', minWidth: 0 }}>
-                    <MapPin size={12} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
-                    <span
-                      style={{
-                        fontSize: 'var(--fs-caption)',
-                        fontWeight: 600,
-                        color: 'var(--text-primary)',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                      title={zone.name}
-                    >
-                      {zone.name}
-                    </span>
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 'var(--fs-caption)',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 600,
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {zone.activeJobs}
+        <div className="live-list">
+          {zones.map((zone) => (
+            <div key={zone.name} className="ui-stack ui-stack--tight">
+              <div className="live-zone__row">
+                <span className="live-zone__name">
+                  <MapPin size={12} />
+                  <span className="ui-clamp-1" title={zone.name}>
+                    {zone.name}
                   </span>
-                </div>
-
-                <ProgressBar value={pct} max={100} size="sm" />
+                </span>
+                <span className="live-zone__count ui-num">{formatNumber(zone.activeJobs, language)}</span>
               </div>
-            );
-          })}
+              <ProgressBar value={Math.round((zone.activeJobs / maxJobs) * 100)} max={100} size="sm" />
+            </div>
+          ))}
         </div>
       )}
     </Card>
