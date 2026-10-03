@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { PageHeader, Button, EmptyState, Segmented, Skeleton } from '../../../components/ui';
+import { PageHeader, Button, Segmented, Skeleton } from '../../../components/ui';
 import { formatRelativeTime } from '../../../../core/utils/format';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { getCampaignState } from '../components/campaignState';
 import { CampaignsTable, type CampaignsTab } from '../components/CampaignsTable';
-import { Megaphone, RefreshCw } from 'lucide-react';
+import { AdAnalyticsPage } from './AdAnalyticsPage';
+import { RefreshCw } from 'lucide-react';
 
 const TABS: Array<CampaignsTab | 'Analytics'> = ['Active', 'Scheduled', 'Ended', 'Analytics'];
 
@@ -77,7 +78,7 @@ export const CampaignsPage: React.FC = () => {
         />
       </div>
       {tab === 'Analytics' ? (
-        <EmptyState icon={<Megaphone size={20} />} title={t('coming_soon')} />
+        <AdAnalyticsPage embedded />
       ) : campaignsQ.isLoading ? (
         <Skeleton variant="card" height={320} />
       ) : (

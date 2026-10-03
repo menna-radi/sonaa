@@ -3520,6 +3520,36 @@ export const translations: TranslationDict = {
     en: 'Campaign deleted.',
     ar: 'تم حذف الحملة.',
     he: 'הקמפיין נמחק.'
+  },
+  campaigns_clicks_note: {
+    en: 'Clicks are recorded only when the app reports taps.',
+    ar: 'تُسجَّل النقرات فقط عندما يبلّغ التطبيق عن النقر.',
+    he: 'קליקים נרשמים רק כשהאפליקציה מדווחת על הקשות.'
+  },
+  campaigns_top_title: {
+    en: 'Top campaigns',
+    ar: 'أفضل الحملات',
+    he: 'הקמפיינים המובילים'
+  },
+  campaigns_kpi_impressions: {
+    en: 'Impressions',
+    ar: 'المشاهدات',
+    he: 'חשיפות'
+  },
+  campaigns_kpi_clicks: {
+    en: 'Clicks',
+    ar: 'النقرات',
+    he: 'קליקים'
+  },
+  campaigns_kpi_ctr: {
+    en: 'Overall CTR',
+    ar: 'إجمالي نسبة النقر',
+    he: 'CTR כולל'
+  },
+  campaigns_kpi_active: {
+    en: 'Active campaigns',
+    ar: 'الحملات النشطة',
+    he: 'קמפיינים פעילים'
   }
 };
 
