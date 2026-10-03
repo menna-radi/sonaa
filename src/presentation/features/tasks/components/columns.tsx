@@ -1,179 +1,61 @@
 import React from 'react';
 import type { ColumnDef } from '../../../components/ui/DataTable';
 import type { Task } from '../../../../domain/entities/Task';
-import { StatusPill, pillVariantFor, IconButton, Button } from '../../../components/ui';
-import { formatMoney } from '../../../../core/utils/format';
-import { AlertTriangle, MapPin, Clock, Snowflake, Check, MoreHorizontal } from 'lucide-react';
+import { StatusPill } from '../../../components/ui';
+import { pillVariantFor, statusLabelKey } from '../../../components/ui/status';
+import { formatDateTime, formatMoney, formatRelativeTime } from '../../../../core/utils/format';
 
-export interface TasksColumnsOptions {
-  onFreeze?: (id: string) => void;
-  onUnfreeze?: (id: string) => void;
-  onResolve?: (id: string) => void;
-  onSelect?: (task: Task) => void;
-}
-
-export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Task>[] => [
+export const getTasksColumns = (
+  t: (k: string) => string,
+  language: 'en' | 'ar' | 'he'
+): ColumnDef<Task>[] => [
   {
-    key: 'task',
-    header: 'Task',
-    render: (t) => {
-      const isUrgent = t.isEmergency || t.status === 'DISPUTED';
-      return (
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--sp-2)', minWidth: 180 }}>
-          {isUrgent && (
-            <AlertTriangle
-              size={15}
-              style={{
-                color: t.isEmergency ? 'var(--danger)' : 'var(--warning)',
-                flexShrink: 0,
-                marginTop: 2,
-              }}
-            />
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            <span
-              style={{
-                fontWeight: 600,
-                fontSize: 'var(--fs-caption)',
-                color: 'var(--text-primary)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-              title={t.title}
-            >
-              {t.title}
-            </span>
-            <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-faint)' }}>
-              {t.displayId}
-            </span>
-          </div>
-        </div>
-      );
-    },
+    key: 'job',
+    header: t('tasks_col_job'),
+    render: (task) => (
+      <span className="task-cell">
+        <bdi className="ui-num task-cell__id">{task.displayId}</bdi>
+        <span className="task-cell__title" title={task.title}>
+          {task.title}
+        </span>
+      </span>
+    ),
   },
   {
     key: 'customer',
-    header: 'Customer',
-    hideOnTablet: true,
-    render: (t) => (
-      <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)', fontWeight: 500 }}>
-        {t.customerName || '—'}
-      </span>
-    ),
+    header: t('tasks_col_customer'),
+    render: (task) => <span>{task.customerName || '—'}</span>,
   },
   {
     key: 'craftsman',
-    header: 'Craftsman',
-    render: (t) => (
-      <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-secondary)' }}>
-        {t.craftsmanName || '—'}
-      </span>
-    ),
+    header: t('tasks_col_craftsman'),
+    render: (task) => <span>{task.craftsmanName || '—'}</span>,
   },
   {
-    key: 'zone',
-    header: 'Zone',
-    hideOnTablet: true,
-    render: (t) => (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <MapPin size={12} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
-        <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)' }}>
-          {t.address || '—'}
-        </span>
-      </div>
-    ),
+    key: 'category',
+    header: t('tasks_col_category'),
+    render: (task) => <span>{task.category || '—'}</span>,
   },
   {
-    key: 'budget',
-    header: 'Budget',
+    key: 'amount',
+    header: t('billing_col_amount'),
     align: 'end',
-    render: (t) => (
-      <span
-        style={{
-          fontVariantNumeric: 'tabular-nums',
-          fontWeight: 600,
-          fontSize: 'var(--fs-caption)',
-          color: 'var(--text-primary)',
-        }}
-      >
-        {t.amount ? formatMoney(t.amount) : 'Open price'}
-      </span>
-    ),
-  },
-  {
-    key: 'eta',
-    header: 'ETA',
-    render: (t) => {
-      if (t.isEmergency) {
-        return (
-          <span style={{ fontSize: 'var(--fs-micro)', fontWeight: 700, color: 'var(--danger-text)' }}>
-            NOW
-          </span>
-        );
-      }
-      if (!t.startedAt && !t.acceptedAt) return <span style={{ color: 'var(--text-faint)' }}>—</span>;
-      return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Clock size={12} style={{ color: 'var(--text-faint)' }} />
-          <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-secondary)' }}>{t.startedAt || t.acceptedAt || ''}</span>
-        </div>
-      );
-    },
+    render: (task) => <bdi className="ui-num">{formatMoney(task.amount, 'ILS', language)}</bdi>,
   },
   {
     key: 'status',
-    header: 'Status',
-    render: (t) => {
-      const variant = pillVariantFor('task', t.status);
-      const label = t.status.replace('_', ' ').toUpperCase();
-      return <StatusPill variant={variant} label={label} pulse={t.isEmergency} />;
-    },
+    header: t('billing_col_status'),
+    render: (task) => (
+      <StatusPill variant={pillVariantFor('task', task.status)} label={t(statusLabelKey('task', task.status))} />
+    ),
   },
   {
-    key: 'actions',
-    header: 'Actions',
-    align: 'end',
-    render: (t) => {
-      const isFrozen = t.status === 'FROZEN';
-      return (
-        <div
-          style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-1)', justifyContent: 'flex-end' }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {isFrozen ? (
-            <IconButton
-              aria-label="Unfreeze task"
-              icon={<Snowflake size={14} style={{ color: 'var(--info)' }} />}
-              size="sm"
-              onClick={() => options.onUnfreeze?.(t.id)}
-            />
-          ) : (
-            <IconButton
-              aria-label="Freeze task"
-              icon={<Snowflake size={14} style={{ color: 'var(--text-muted)' }} />}
-              size="sm"
-              onClick={() => options.onFreeze?.(t.id)}
-            />
-          )}
-
-          {t.status === 'DISPUTED' && (
-            <IconButton
-              aria-label="Resolve dispute"
-              icon={<Check size={14} style={{ color: 'var(--success)' }} />}
-              size="sm"
-              onClick={() => options.onResolve?.(t.id)}
-            />
-          )}
-
-          <IconButton
-            aria-label="More options"
-            icon={<MoreHorizontal size={14} />}
-            size="sm"
-            onClick={() => options.onSelect?.(t)}
-          />
-        </div>
-      );
-    },
+    key: 'created',
+    header: t('tasks_col_created'),
+    render: (task) => (
+      <span title={task.createdAt ? formatDateTime(task.createdAt, language) : undefined}>
+        {task.createdAt ? formatRelativeTime(task.createdAt, language) : '—'}
+      </span>
+    ),
   },
 ];

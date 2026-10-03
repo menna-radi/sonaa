@@ -1,171 +1,157 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../../context/LanguageContext';
+import { Button, Card, Drawer, EmptyState, ErrorState, KeyValueList, ProofViewer, Skeleton, StatusPill } from '../../../components/ui';
+import { pillVariantFor, statusLabelKey } from '../../../components/ui/status';
+import { useConfirm } from '../../../components/ui/ConfirmDialog';
+import { formatDateTime, formatMoney, formatRelativeTime } from '../../../../core/utils/format';
 import type { Task } from '../../../../domain/entities/Task';
-import { Drawer, StatusPill, pillVariantFor, Button, ConfirmDialog, useToast } from '../../../components/ui';
-import { formatMoney } from '../../../../core/utils/format';
-import { useNavigation } from '../../../context/NavigationContext';
-import { Snowflake, MessageSquare, MapPin, User, Wrench, DollarSign, Clock } from 'lucide-react';
+import { useTasks } from '../hooks/useTasks';
+import { useTaskDetail } from '../hooks/useTaskDetail';
+import { DispatchBackupModal } from './DispatchBackupModal';
+import { Snowflake } from 'lucide-react';
+
+const DISPATCHABLE: Task['status'][] = ['PENDING', 'ACCEPTED', 'PRE_CHAT_PENDING', 'CHAT_OPEN', 'AGREEMENT_PENDING', 'IN_PROGRESS'];
 
 interface TaskDetailDrawerProps {
   task: Task | null;
-  isOpen: boolean;
   onClose: () => void;
-  onFreeze?: (id: string) => Promise<void> | void;
-  onUnfreeze?: (id: string) => Promise<void> | void;
+  onOpenDisputes: () => void;
 }
 
-export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
-  task,
-  isOpen,
-  onClose,
-  onFreeze,
-  onUnfreeze,
-}) => {
-  const { navigate } = useNavigation();
-  const { success } = useToast();
-  const [freezeConfirmOpen, setFreezeConfirmOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({ task, onClose, onOpenDisputes }) => {
+  const { t, language } = useLanguage();
+  const confirm = useConfirm();
+  const { mutations } = useTasks();
+  const detailQ = useTaskDetail(task?.id);
+  const [dispatchOpen, setDispatchOpen] = useState(false);
 
-  if (!task) return null;
+  const detail = detailQ.data ?? null;
+  const view = detail?.task ?? task;
+  const busy = mutations.freeze.isPending || mutations.unfreeze.isPending;
 
-  const isFrozen = task.status === 'FROZEN';
-
-  const handleToggleFreeze = async () => {
-    setLoading(true);
-    try {
-      if (isFrozen) {
-        await onUnfreeze?.(task.id);
-        success(`Task ${task.displayId} unfrozen.`);
-      } else {
-        await onFreeze?.(task.id);
-        success(`Task ${task.displayId} frozen.`);
-      }
-      setFreezeConfirmOpen(false);
-    } finally {
-      setLoading(false);
-    }
+  const handleFreezeToggle = async () => {
+    if (!view) return;
+    const frozen = view.status === 'FROZEN';
+    const ok = await confirm({
+      title: frozen ? t('tasks_unfreeze_title') : t('tasks_freeze_title'),
+      body: frozen ? t('tasks_unfreeze_body') : t('tasks_freeze_body'),
+      tone: frozen ? 'default' : 'warning',
+    });
+    if (!ok) return;
+    if (frozen) mutations.unfreeze.mutate(view.id);
+    else mutations.freeze.mutate(view.id);
   };
+
+  const timeline: Array<[string, string | undefined]> = detail
+    ? [
+        [t('tasks_timeline_created'), detail.task.createdAt],
+        [t('tasks_timeline_accepted'), detail.task.acceptedAt],
+        [t('tasks_timeline_started'), detail.task.startedAt],
+        [t('tasks_timeline_completed'), detail.task.completedAt],
+      ]
+    : [];
 
   return (
     <>
       <Drawer
-        isOpen={isOpen}
+        isOpen={!!task}
         onClose={onClose}
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-            <span>{task.displayId}</span>
-            <StatusPill
-              variant={pillVariantFor('task', task.status)}
-              label={task.status.replace('_', ' ').toUpperCase()}
-            />
-          </div>
+        title={view ? `${view.displayId} · ${view.title}` : t('tasks_details_title')}
+        subtitle={
+          view ? (
+            <StatusPill variant={pillVariantFor('task', view.status)} label={t(statusLabelKey('task', view.status))} />
+          ) : undefined
         }
-        subtitle={task.title}
-        showBackOnMobile
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', padding: 'var(--sp-2) 0' }}>
-          {/* Key Facts Grid */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: 'var(--sp-3)',
-              backgroundColor: 'var(--bg-surface-elevated)',
-              padding: 'var(--sp-3)',
-              borderRadius: 'var(--r-md)',
-              border: '1px solid var(--border-subtle)',
-            }}
-          >
+        {!view ? (
+          <EmptyState title={t('empty_tasks')} />
+        ) : detailQ.isLoading ? (
+          <Skeleton variant="card" height={320} />
+        ) : detailQ.isError ? (
+          <ErrorState title={t('status_error_title')} message={detailQ.error.message} onRetry={() => detailQ.refetch()} retryLabel={t('btn_retry')} />
+        ) : (
+          <div className="ui-stack">
+            <KeyValueList
+              items={[
+                { label: t('tasks_col_customer'), value: detail?.customer ? `${detail.customer.name}${detail.customer.phone ? ` · ${detail.customer.phone}` : ''}` : view.customerName },
+                {
+                  label: t('tasks_col_craftsman'),
+                  value: detail?.craftsman
+                    ? `${detail.craftsman.name}${detail.craftsman.phone ? ` · ${detail.craftsman.phone}` : ''}`
+                    : (view.craftsmanName ?? '—'),
+                },
+                { label: t('tasks_col_category'), value: view.category || '—' },
+                { label: t('billing_col_amount'), value: <bdi className="ui-num">{formatMoney(view.amount, 'ILS', language)}</bdi> },
+                {
+                  label: t('tasks_col_created'),
+                  value: (
+                    <span title={view.createdAt ? formatDateTime(view.createdAt, language) : undefined}>
+                      {view.createdAt ? formatRelativeTime(view.createdAt, language) : '—'}
+                    </span>
+                  ),
+                },
+              ]}
+            />
             <div>
-              <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-muted)' }}>Customer</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                <User size={14} style={{ color: 'var(--text-secondary)' }} />
-                <strong style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)' }}>
-                  {task.customerName || '—'}
-                </strong>
+              <div className="ui-eyebrow">{t('tasks_timeline_title')}</div>
+              <div className="task-timeline">
+                {timeline.map(([label, at]) => (
+                  <div key={label} className="ui-row ui-row--between">
+                    <span className="ui-caption">{label}</span>
+                    <bdi className="ui-num ui-caption">{at ? formatDateTime(at, language) : '—'}</bdi>
+                  </div>
+                ))}
               </div>
             </div>
-
-            <div>
-              <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-muted)' }}>Craftsman</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                <Wrench size={14} style={{ color: 'var(--text-secondary)' }} />
-                <strong style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)' }}>
-                  {task.craftsmanName || 'Unassigned'}
-                </strong>
+            {(detail?.workProof.imageUrls.length ?? 0) > 0 && (
+              <div>
+                <div className="ui-eyebrow">{t('tasks_work_proof')}</div>
+                <div className="task-proof-row">
+                  {(detail?.workProof.imageUrls ?? []).map((src) => (
+                    <ProofViewer key={src} src={src} alt={view.title} size={64} />
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <div>
-              <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-muted)' }}>Location / Zone</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                <MapPin size={14} style={{ color: 'var(--text-secondary)' }} />
-                <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)' }}>
-                  {task.address || 'Jerusalem'}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-muted)' }}>Budget</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                <DollarSign size={14} style={{ color: 'var(--text-secondary)' }} />
-                <strong style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
-                  {task.amount ? formatMoney(task.amount, 'ILS') : 'Open'}
-                </strong>
-              </div>
+            )}
+            {(detail?.cancel.reason || detail?.cancel.note) && (
+              <Card title={t('tasks_cancel_title')}>
+                <p className="ui-caption">
+                  {[detail?.cancel.reason, detail?.cancel.note].filter(Boolean).join(' · ')}
+                </p>
+              </Card>
+            )}
+            {view.hasDispute && (
+              <Card
+                title={t('sec_pending_disputes')}
+                actions={
+                  <Button size="sm" variant="outline" onClick={onOpenDisputes}>
+                    {t('disputes_open')}
+                  </Button>
+                }
+              >
+                <p className="ui-caption">{t('disputes_open_body')}</p>
+              </Card>
+            )}
+            <div className="task-drawer-actions">
+              <Button
+                size="sm"
+                variant={view.status === 'FROZEN' ? 'primary' : 'outline'}
+                icon={<Snowflake size={14} />}
+                disabled={busy}
+                onClick={() => void handleFreezeToggle()}
+              >
+                {view.status === 'FROZEN' ? t('tasks_unfreeze') : t('tasks_freeze')}
+              </Button>
+              {DISPATCHABLE.includes(view.status) && (
+                <Button size="sm" variant="outline" disabled={busy} onClick={() => setDispatchOpen(true)}>
+                  {t('tasks_dispatch')}
+                </Button>
+              )}
             </div>
           </div>
-
-          {/* Action Tools */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
-            <span
-              style={{
-                fontSize: 'var(--fs-micro)',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.6px',
-                color: 'var(--text-muted)',
-              }}
-            >
-              Moderation Tools
-            </span>
-
-            <Button
-              variant={isFrozen ? 'primary' : 'outline'}
-              iconLeading={<Snowflake size={14} />}
-              onClick={() => setFreezeConfirmOpen(true)}
-            >
-              {isFrozen ? 'Unfreeze Task' : 'Freeze Task'}
-            </Button>
-
-            <Button
-              variant="outline"
-              iconLeading={<MessageSquare size={14} />}
-              onClick={() => {
-                onClose();
-                navigate('chat');
-              }}
-            >
-              Open Task Chatroom
-            </Button>
-          </div>
-        </div>
+        )}
       </Drawer>
-
-      <ConfirmDialog
-        isOpen={freezeConfirmOpen}
-        title={isFrozen ? `Unfreeze Task ${task.displayId}?` : `Freeze Task ${task.displayId}?`}
-        description={
-          isFrozen
-            ? 'Unfreezing will restore payment processing and communication channels for this task.'
-            : 'Freezing will halt in-flight funds, disable craftsman messaging, and place this task under administrative review.'
-        }
-        confirmLabel={isFrozen ? 'Unfreeze Task' : 'Freeze Task'}
-        confirmVariant={isFrozen ? 'primary' : 'danger'}
-        isLoading={loading}
-        onConfirm={handleToggleFreeze}
-        onCancel={() => setFreezeConfirmOpen(false)}
-      />
+      <DispatchBackupModal task={view} isOpen={dispatchOpen} onClose={() => setDispatchOpen(false)} />
     </>
   );
 };

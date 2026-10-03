@@ -4015,6 +4015,206 @@ export const translations: TranslationDict = {
     en: 'Type BAN to confirm',
     ar: 'اكتب BAN للتأكيد',
     he: 'הקלד BAN לאישור'
+  },
+  tasks_seg_tasks: {
+    en: 'Tasks',
+    ar: 'المهام',
+    he: 'משימות'
+  },
+  tasks_seg_disputes: {
+    en: 'Disputes',
+    ar: 'النزاعات',
+    he: 'סכסוכים'
+  },
+  tasks_filter_all: {
+    en: 'All',
+    ar: 'الكل',
+    he: 'הכל'
+  },
+  tasks_filter_live: {
+    en: 'Live',
+    ar: 'نشطة',
+    he: 'חי'
+  },
+  tasks_filter_emergency: {
+    en: 'Emergency',
+    ar: 'طوارئ',
+    he: 'חירום'
+  },
+  tasks_filter_disputed: {
+    en: 'Disputed',
+    ar: 'متنازع عليها',
+    he: 'שנוי במחלוקת'
+  },
+  tasks_filter_done: {
+    en: 'Done',
+    ar: 'منجزة',
+    he: 'בוצע'
+  },
+  tasks_filter_cancelled: {
+    en: 'Cancelled',
+    ar: 'ملغاة',
+    he: 'מבוטל'
+  },
+  tasks_filter_frozen: {
+    en: 'Frozen',
+    ar: 'مجمدة',
+    he: 'מוקפא'
+  },
+  tasks_search_ph: {
+    en: 'Search title, ID or customer…',
+    ar: 'ابحث بالعنوان أو الرقم أو العميل…',
+    he: 'חפש כותרת, מספר או לקוח…'
+  },
+  empty_tasks: {
+    en: 'No tasks found',
+    ar: 'لا توجد مهام',
+    he: 'לא נמצאו משימות'
+  },
+  tasks_col_job: {
+    en: 'Job',
+    ar: 'المهمة',
+    he: 'משימה'
+  },
+  tasks_col_customer: {
+    en: 'Customer',
+    ar: 'العميل',
+    he: 'לקוח'
+  },
+  tasks_col_craftsman: {
+    en: 'Craftsman',
+    ar: 'الحرفي',
+    he: 'בעל מקצוע'
+  },
+  tasks_col_category: {
+    en: 'Category',
+    ar: 'الفئة',
+    he: 'קטגוריה'
+  },
+  tasks_col_created: {
+    en: 'Created',
+    ar: 'أُنشئت',
+    he: 'נוצר'
+  },
+  tasks_kpi_open: {
+    en: 'Open now',
+    ar: 'مفتوحة الآن',
+    he: 'פתוח כעת'
+  },
+  tasks_kpi_emergency: {
+    en: 'Emergency',
+    ar: 'طوارئ',
+    he: 'חירום'
+  },
+  tasks_kpi_disputed: {
+    en: 'Disputed',
+    ar: 'متنازع عليها',
+    he: 'שנוי במחלוקת'
+  },
+  tasks_kpi_completed: {
+    en: 'Completed',
+    ar: 'منجزة',
+    he: 'בוצע'
+  },
+  tasks_details_title: {
+    en: 'Task details',
+    ar: 'تفاصيل المهمة',
+    he: 'פרטי משימה'
+  },
+  tasks_timeline_title: {
+    en: 'Timeline',
+    ar: 'الجدول الزمني',
+    he: 'ציר זמן'
+  },
+  tasks_timeline_created: {
+    en: 'Created',
+    ar: 'أُنشئت',
+    he: 'נוצר'
+  },
+  tasks_timeline_accepted: {
+    en: 'Accepted',
+    ar: 'قُبِلت',
+    he: 'התקבל'
+  },
+  tasks_timeline_started: {
+    en: 'Started',
+    ar: 'بدأت',
+    he: 'התחיל'
+  },
+  tasks_timeline_completed: {
+    en: 'Completed',
+    ar: 'اكتملت',
+    he: 'הושלם'
+  },
+  tasks_work_proof: {
+    en: 'Work proof',
+    ar: 'إثبات العمل',
+    he: 'הוכחת עבודה'
+  },
+  tasks_cancel_title: {
+    en: 'Cancellation',
+    ar: 'الإلغاء',
+    he: 'ביטול'
+  },
+  disputes_open: {
+    en: 'Open disputes',
+    ar: 'فتح النزاعات',
+    he: 'פתח סכסוכים'
+  },
+  disputes_open_body: {
+    en: 'This task has an open dispute. Resolve it from the Disputes tab.',
+    ar: 'هذه المهمة عليها نزاع مفتوح. حله من تبويب النزاعات.',
+    he: 'למשימה זו יש סכסוך פתוח. פתור אותו מלשונית הסכסוכים.'
+  },
+  tasks_freeze: {
+    en: 'Freeze',
+    ar: 'تجميد',
+    he: 'הקפא'
+  },
+  tasks_unfreeze: {
+    en: 'Unfreeze',
+    ar: 'إلغاء التجميد',
+    he: 'הפשר'
+  },
+  tasks_freeze_title: {
+    en: 'Freeze this task?',
+    ar: 'تجميد هذه المهمة؟',
+    he: 'להקפיא משימה זו?'
+  },
+  tasks_freeze_body: {
+    en: 'The task is paused while it is investigated.',
+    ar: 'تُوقف المهمة مؤقتًا أثناء التحقيق فيها.',
+    he: 'המשימה מושהית בזמן בדיקתה.'
+  },
+  tasks_unfreeze_title: {
+    en: 'Unfreeze this task?',
+    ar: 'إلغاء تجميد هذه المهمة؟',
+    he: 'להפשיר משימה זו?'
+  },
+  tasks_unfreeze_body: {
+    en: 'The task resumes from its previous state.',
+    ar: 'تستأنف المهمة من حالتها السابقة.',
+    he: 'המשימה ממשיכה ממצבה הקודם.'
+  },
+  tasks_dispatch: {
+    en: 'Dispatch backup',
+    ar: 'إرسال بديل',
+    he: 'שלח גיבוי'
+  },
+  tasks_dispatch_title: {
+    en: 'Dispatch a backup craftsman',
+    ar: 'إرسال حرفي بديل',
+    he: 'שלח בעל מקצוע גיבוי'
+  },
+  tasks_emergency_title: {
+    en: 'Emergency in progress',
+    ar: 'طوارئ جارية',
+    he: 'חירום מתרחש'
+  },
+  tasks_emergency_open: {
+    en: 'Open',
+    ar: 'فتح',
+    he: 'פתח'
   }
 };
 

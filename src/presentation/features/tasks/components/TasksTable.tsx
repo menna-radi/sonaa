@@ -1,197 +1,112 @@
 import React from 'react';
-import type { Task, TaskFilter } from '../../../../domain/entities/Task';
-import {
-  Card,
-  SearchInput,
-  Segmented,
-  DataTable,
-  EmptyState,
-  StatusPill,
-  pillVariantFor,
-} from '../../../components/ui';
-import { getTasksColumns } from './columns';
+import { useLanguage } from '../../../context/LanguageContext';
+import { Card, DataTable, EmptyState, ErrorState, SearchInput, Segmented } from '../../../components/ui';
+import { StatusPill } from '../../../components/ui';
+import { pillVariantFor, statusLabelKey } from '../../../components/ui/status';
 import { formatMoney } from '../../../../core/utils/format';
-import { CheckSquare, AlertTriangle, MapPin } from 'lucide-react';
+import type { Task, TaskFilter } from '../../../../domain/entities/Task';
+import type { TasksResult } from '../../../../domain/repositories/TaskRepository';
+import { getTasksColumns } from './columns';
+import { ClipboardList } from 'lucide-react';
 
 interface TasksTableProps {
-  tasks: Task[];
-  loading?: boolean;
-  selectedTask: Task | null;
-  onSelectTask: (task: Task) => void;
-  searchTerm: string;
+  rows: Task[];
+  total: number;
+  loading: boolean;
+  error: Error | null;
+  onRetry: () => void;
+  filter: TaskFilter;
+  onFilterChange: (filter: TaskFilter) => void;
+  counts: TasksResult['counts'];
+  search: string;
   onSearchChange: (q: string) => void;
-  activeFilter: TaskFilter;
-  onFilterChange: (f: TaskFilter) => void;
-  filterCounts: {
-    all: number;
-    live: number;
-    emergency: number;
-    disputed: number;
-    completed: number;
-  };
-  onFreeze?: (id: string) => void;
-  onUnfreeze?: (id: string) => void;
-  onResolve?: (id: string) => void;
+  page: number;
+  limit: number;
+  onPageChange: (page: number) => void;
+  onSelect: (task: Task) => void;
 }
 
+const FILTERS: TaskFilter[] = ['all', 'live', 'emergency', 'disputed', 'done', 'cancelled', 'frozen'];
+
 export const TasksTable: React.FC<TasksTableProps> = ({
-  tasks,
-  loading = false,
-  selectedTask,
-  onSelectTask,
-  searchTerm,
-  onSearchChange,
-  activeFilter,
+  rows,
+  total,
+  loading,
+  error,
+  onRetry,
+  filter,
   onFilterChange,
-  filterCounts,
-  onFreeze,
-  onUnfreeze,
-  onResolve,
+  counts,
+  search,
+  onSearchChange,
+  page,
+  limit,
+  onPageChange,
+  onSelect,
 }) => {
-  const columns = getTasksColumns({
-    onFreeze,
-    onUnfreeze,
-    onResolve,
-    onSelect: onSelectTask,
-  });
+  const { t, language } = useLanguage();
+  const columns = getTasksColumns(t, language);
+  const totalPages = Math.max(1, Math.ceil(total / Math.max(1, limit)));
 
-  const filterTabs = [
-    { value: 'all', label: 'All', count: filterCounts.all },
-    { value: 'live', label: 'Live', count: filterCounts.live },
-    { value: 'emergency', label: 'Emergency', count: filterCounts.emergency, tone: 'danger' as const },
-    { value: 'disputed', label: 'Disputed', count: filterCounts.disputed },
-    { value: 'completed', label: 'Completed', count: filterCounts.completed },
-  ];
-
-  const renderMobileRow = (t: Task) => {
-    const isUrgent = t.isEmergency || t.status === 'DISPUTED';
-    const isSelected = selectedTask?.id === t.id;
-
-    return (
-      <div
-        key={t.id}
-        onClick={() => onSelectTask(t)}
-        style={{
-          padding: 'var(--sp-3)',
-          borderRadius: 'var(--r-md)',
-          border: '1px solid var(--border-subtle)',
-          backgroundColor: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--sp-2)',
-          cursor: 'pointer',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--sp-2)', minWidth: 0 }}>
-            {isUrgent && (
-              <AlertTriangle
-                size={16}
-                style={{
-                  color: t.isEmergency ? 'var(--danger)' : 'var(--warning)',
-                  flexShrink: 0,
-                  marginTop: 2,
-                }}
-              />
-            )}
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <span
-                style={{
-                  fontWeight: 600,
-                  fontSize: 'var(--fs-caption)',
-                  color: 'var(--text-primary)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {t.title}
-              </span>
-              <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-faint)' }}>{t.displayId}</span>
-            </div>
-          </div>
-
-          <span
-            style={{
-              fontSize: 'var(--fs-caption)',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {t.amount ? formatMoney(t.amount, 'ILS') : 'Open'}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--fs-micro)', color: 'var(--text-muted)' }}>
-            <MapPin size={12} style={{ color: 'var(--text-faint)' }} />
-            <span>{t.address} · {t.customerName}</span>
-          </div>
-
-          <StatusPill
-            variant={pillVariantFor('task', t.status)}
-            label={t.status.replace('_', ' ').toUpperCase()}
-            pulse={t.isEmergency}
-          />
-        </div>
-      </div>
-    );
+  const countFor = (f: TaskFilter): number | undefined => {
+    if (!counts) return undefined;
+    return counts[f];
   };
 
   return (
-    <Card
-      padding="none"
-      className="tasks-table-card"
-      style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
-    >
-      {/* Controls Header */}
-      <div
-        style={{
-          padding: 'var(--sp-4)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--sp-3)',
-          borderBottom: '1px solid var(--border-subtle)',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
-          <Segmented
-            value={activeFilter}
-            onChange={(val) => onFilterChange(val as TaskFilter)}
-            items={filterTabs}
-          />
-          <div style={{ width: '100%', maxWidth: 300 }}>
-            <SearchInput
-              value={searchTerm}
-              onChange={onSearchChange}
-              placeholder="Search by ID, customer, title…"
-            />
-          </div>
+    <div className="ui-stack">
+      <div className="ui-toolbar">
+        <Segmented
+          value={filter}
+          onChange={(v) => onFilterChange(v as TaskFilter)}
+          items={FILTERS.map((f) => ({ value: f, label: t(`tasks_filter_${f}`), count: countFor(f) }))}
+        />
+        <div className="ui-toolbar__grow">
+          <SearchInput value={search} onChange={onSearchChange} placeholder={t('tasks_search_ph')} />
         </div>
       </div>
-
-      {/* Table Content */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <DataTable
-          columns={columns}
-          rows={tasks}
-          rowKey={(t) => t.id}
-          selectedKey={selectedTask?.id}
-          onRowClick={onSelectTask}
-          rowTone={(t) => (t.isEmergency || t.status === 'DISPUTED' ? 'alert' : undefined)}
-          loading={loading}
-          mobile={renderMobileRow}
-          empty={
-            <EmptyState
-              icon={<CheckSquare size={32} />}
-              title="No tasks match the filter"
-              description="Adjust your search keywords or toggle between the filter tabs to view tasks."
-            />
-          }
-        />
-      </div>
-    </Card>
+      <Card padding="none">
+        {error ? (
+          <ErrorState title={t('status_error_title')} message={error.message} onRetry={onRetry} retryLabel={t('btn_retry')} />
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={rows}
+            rowKey={(task) => task.id}
+            onRowClick={onSelect}
+            rowTone={(task) => (task.isEmergency || task.status === 'DISPUTED' ? 'alert' : undefined)}
+            loading={loading}
+            empty={<EmptyState icon={<ClipboardList size={20} />} title={t('empty_tasks')} />}
+            pagination={{ page, totalPages, totalItems: total, pageSize: limit, onPageChange }}
+            mobile={(task: Task) => (
+              <div className="task-card" onClick={() => onSelect(task)} role="button" tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelect(task);
+                  }
+                }}
+              >
+                <div className="task-card__top">
+                  <span className="task-cell">
+                    <bdi className="ui-num task-cell__id">{task.displayId}</bdi>
+                    <span className="task-cell__title">{task.title}</span>
+                  </span>
+                  <StatusPill variant={pillVariantFor('task', task.status)} label={t(statusLabelKey('task', task.status))} />
+                </div>
+                <div className="task-card__bottom">
+                  <span className="ui-caption">
+                    {task.customerName}
+                    {task.craftsmanName ? ` · ${task.craftsmanName}` : ''}
+                  </span>
+                  <bdi className="ui-num">{formatMoney(task.amount, 'ILS', language)}</bdi>
+                </div>
+              </div>
+            )}
+          />
+        )}
+      </Card>
+    </div>
   );
 };
 

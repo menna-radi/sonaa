@@ -1,64 +1,54 @@
 import React from 'react';
 import { KpiCard } from '../../../components/ui';
-import { Activity, AlertTriangle, Scale, Snowflake, CheckCircle } from 'lucide-react';
+import { formatNumber } from '../../../../core/utils/format';
+import { useLanguage } from '../../../context/LanguageContext';
+import type { TasksResult } from '../../../../domain/repositories/TaskRepository';
+import { Activity, AlertTriangle, Scale, CheckCircle } from 'lucide-react';
 
 interface TasksKpisProps {
-  metrics: {
-    activeTasks: number;
-    emergency: number;
-    disputed: number;
-    frozen: number;
-    completedToday: number;
-  };
+  counts: TasksResult['counts'];
   loading?: boolean;
 }
 
-export const TasksKpis: React.FC<TasksKpisProps> = ({ metrics, loading = false }) => {
+export const TasksKpis: React.FC<TasksKpisProps> = ({ counts, loading = false }) => {
+  const { t, language } = useLanguage();
+
   return (
-    <div
-      className="tasks-kpis-grid"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: 'var(--sp-3)',
-        width: '100%',
-      }}
-    >
-      <KpiCard
-        icon={<Activity size={16} />}
-        label="Active tasks"
-        value={metrics.activeTasks}
-        loading={loading}
-      />
-
-      <KpiCard
-        icon={<AlertTriangle size={16} />}
-        label="Emergency alerts"
-        value={metrics.emergency}
-        tone={metrics.emergency > 0 ? 'danger' : 'default'}
-        loading={loading}
-      />
-
-      <KpiCard
-        icon={<Scale size={16} />}
-        label="Disputed"
-        value={metrics.disputed}
-        loading={loading}
-      />
-
-      <KpiCard
-        icon={<Snowflake size={16} />}
-        label="Frozen"
-        value={metrics.frozen}
-        loading={loading}
-      />
-
-      <KpiCard
-        icon={<CheckCircle size={16} />}
-        label="Completed today"
-        value={metrics.completedToday}
-        loading={loading}
-      />
+    <div className="ui-kpi-grid ui-kpi-grid--4">
+      {counts?.live !== undefined && (
+        <KpiCard
+          icon={<Activity size={16} />}
+          label={t('tasks_kpi_open')}
+          value={formatNumber(counts.live, language)}
+          loading={loading}
+        />
+      )}
+      {counts?.emergency !== undefined && (
+        <KpiCard
+          icon={<AlertTriangle size={16} />}
+          label={t('tasks_kpi_emergency')}
+          value={formatNumber(counts.emergency, language)}
+          tone={counts.emergency > 0 ? 'danger' : 'default'}
+          loading={loading}
+        />
+      )}
+      {counts?.disputed !== undefined && (
+        <KpiCard
+          icon={<Scale size={16} />}
+          label={t('tasks_kpi_disputed')}
+          value={formatNumber(counts.disputed, language)}
+          tone={counts.disputed > 0 ? 'danger' : 'default'}
+          loading={loading}
+        />
+      )}
+      {counts?.done !== undefined && (
+        <KpiCard
+          icon={<CheckCircle size={16} />}
+          label={t('tasks_kpi_completed')}
+          value={formatNumber(counts.done, language)}
+          loading={loading}
+        />
+      )}
     </div>
   );
 };

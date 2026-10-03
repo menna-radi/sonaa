@@ -1,0 +1,13 @@
+/* Tasks & Disputes feature styles (no inline layouts; runtime values stay inline). */
+.task-cell { display: flex; flex-direction: column; min-width: 0; }
+.task-cell__title { font-weight: 600; font-size: var(--fs-caption); color: var(--text-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task-cell__id { font-size: var(--fs-micro); color: var(--text-faint); }
+.task-card { display: flex; flex-direction: column; gap: var(--sp-2); }
+.task-card__top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-2); }
+.task-card__bottom { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); }
+.task-timeline { display: flex; flex-direction: column; gap: var(--sp-1); }
+.task-proof-row { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.task-drawer-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.task-drawer-actions > * { min-height: 44px; }
+.dispatch-option { display: flex; align-items: center; gap: var(--sp-2); width: 100%; text-align: start; padding: var(--sp-2) var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-card); color: var(--text-strong); cursor: pointer; min-height: 44px; }
+.dispatch-option.is-selected { border-color: var(--text-strong); font-weight: 600; }

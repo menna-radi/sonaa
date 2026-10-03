@@ -1,145 +1,138 @@
 import React, { useState } from 'react';
-import { useTasks } from '../hooks/useTasks';
-import type { Task } from '../../../../domain/entities/Task';
-import { PageHeader, Button, AlertBanner } from '../../../components/ui';
+import { useLanguage } from '../../../context/LanguageContext';
+import { PageHeader, Button, EmptyState, Segmented, Skeleton, ErrorState } from '../../../components/ui';
+import { formatRelativeTime } from '../../../../core/utils/format';
+import { toCsv, downloadCsv } from '../../../../core/utils/csv';
+import { useTasks, TASKS_PAGE_SIZE } from '../hooks/useTasks';
+import type { Task, TaskFilter } from '../../../../domain/entities/Task';
 import { TasksKpis } from '../components/TasksKpis';
 import { TasksTable } from '../components/TasksTable';
 import { EmergencyBanner } from '../components/EmergencyBanner';
 import { TaskDetailDrawer } from '../components/TaskDetailDrawer';
-import { SlidersHorizontal, Download, AlertTriangle } from 'lucide-react';
+import { Download, RefreshCw, ClipboardList } from 'lucide-react';
+import '../tasks.css';
+
+type PageSegment = 'tasks' | 'disputes';
+
+function readSegment(): PageSegment {
+  try {
+    if (sessionStorage.getItem('tasks_tab') === 'disputes') {
+      sessionStorage.removeItem('tasks_tab');
+      return 'disputes';
+    }
+  } catch {
+    // storage unavailable — default to tasks
+  }
+  return 'tasks';
+}
 
 export const TasksPage: React.FC = () => {
+  const { t, language } = useLanguage();
   const q = useTasks();
+  const [segment, setSegment] = useState<PageSegment>(readSegment);
+  const [selected, setSelected] = useState<Task | null>(null);
 
-  // Bridge (T-F062): old table shape over the new server-driven hook; T-F063 rewrites this page.
-  const tasks = q.rows;
-  const loading = q.loading;
-  const error = q.error ? q.error.message : null;
-  const searchTerm = q.search;
-  const setSearchTerm = q.setSearch;
-  const activeFilter = q.filter;
-  const setActiveFilter = q.setFilter;
-  const metrics = {
-    activeTasks: q.counts?.live ?? 0,
-    emergency: q.counts?.emergency ?? 0,
-    disputed: q.counts?.disputed ?? 0,
-    frozen: q.counts?.frozen ?? 0,
-    completedToday: q.counts?.done ?? 0,
+  const openTask = (task: Task) => {
+    setSelected(task);
   };
-  const filterCounts = {
-    all: q.counts?.all ?? 0,
-    live: q.counts?.live ?? 0,
-    emergency: q.counts?.emergency ?? 0,
-    disputed: q.counts?.disputed ?? 0,
-    completed: q.counts?.done ?? 0,
+
+  const closeTask = () => {
+    setSelected(null);
   };
-  const handleFreeze = (id: string) => q.mutations.freeze.mutate(id);
-  const handleUnfreeze = (id: string) => q.mutations.unfreeze.mutate(id);
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  // Identify first active emergency task for the sticky emergency banner
-  const emergencyTask = tasks.find((t) => t.isEmergency) ?? null;
-
-  const handleSelectTask = (task: Task) => {
-    setSelectedTask(task);
-    setDrawerOpen(true);
-  };
+  const openDisputes = () => setSegment('disputes');
+  const emergencyTask = q.rows.find((row) => row.isEmergency) ?? null;
 
   const handleExport = () => {
-    let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
-    csvContent += 'TaskID,Title,Customer,Craftsman,Zone,AmountSAR,Status\n';
-    tasks.forEach((t) => {
-      csvContent += `"${t.displayId}","${t.title}","${t.customerName}","${t.craftsmanName ?? ''}","${t.address}","${t.amount}","${t.status}"\n`;
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `sonaa_tasks_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const rows: (string | number | null)[][] = [
+      ['ID', 'Title', 'Customer', 'Craftsman', 'Amount (ILS)', 'Status', 'Created'],
+      ...q.rows.map((row) => [
+        row.displayId,
+        row.title,
+        row.customerName,
+        row.craftsmanName,
+        row.amount,
+        row.status,
+        row.createdAt,
+      ]),
+    ];
+    downloadCsv('sonaa_tasks.csv', toCsv(rows));
   };
 
   return (
-    <div
-      className="tasks-page"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--sp-4)',
-        width: '100%',
-        minHeight: '100%',
-        position: 'relative',
-      }}
-    >
+    <div className="ui-page">
       <PageHeader
-        title="Tasks Operations"
-        subtitle="Monitor live tasks, freeze suspicious activity, resolve disputes"
+        title={t('tasks_title')}
+        subtitle={t('tasks_subtitle')}
+        meta={q.dataUpdatedAt ? `${t('updated')} ${formatRelativeTime(q.dataUpdatedAt, language)}` : undefined}
         actions={
-          <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
+          <>
+            <Button variant="outline" size="sm" icon={<Download size={14} />} onClick={handleExport}>
+              {t('btn_export_csv')}
+            </Button>
             <Button
               variant="outline"
               size="sm"
-              iconLeading={<SlidersHorizontal size={14} />}
-              onClick={() => {}}
+              icon={<RefreshCw size={14} />}
+              loading={q.isFetching}
+              onClick={() => q.refetch()}
             >
-              Filters
+              {t('btn_refresh')}
             </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              iconLeading={<Download size={14} />}
-              onClick={handleExport}
-            >
-              Export
-            </Button>
-          </div>
+          </>
         }
       />
-
-      {error && (
-        <AlertBanner
-          title="Tasks Telemetry Error"
-          body={error}
-          icon={<AlertTriangle size={18} />}
-        />
-      )}
-
-      {/* 5 KPI Metric Cards */}
-      <TasksKpis metrics={metrics} loading={loading} />
-
-      {/* Main Filtered Tasks Table */}
-      <div style={{ flex: 1, minHeight: 400 }}>
-        <TasksTable
-          tasks={tasks}
-          loading={loading}
-          selectedTask={selectedTask}
-          onSelectTask={handleSelectTask}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          filterCounts={filterCounts}
-          onFreeze={handleFreeze}
-          onUnfreeze={handleUnfreeze}
+      <div>
+        <Segmented
+          value={segment}
+          onChange={(v) => setSegment(v as PageSegment)}
+          items={[
+            { value: 'tasks', label: t('tasks_seg_tasks') },
+            { value: 'disputes', label: t('tasks_seg_disputes') },
+          ]}
         />
       </div>
-
-      {/* Sticky Emergency Banner if an emergency is active */}
-      {emergencyTask && (
-        <EmergencyBanner emergencyTask={emergencyTask} />
+      {segment === 'disputes' ? (
+        <EmptyState icon={<ClipboardList size={20} />} title={t('coming_soon')} />
+      ) : q.error && q.rows.length === 0 ? (
+        <ErrorState
+          title={t('status_error_title')}
+          message={q.error.message}
+          onRetry={() => q.refetch()}
+          retryLabel={t('btn_retry')}
+        />
+      ) : q.loading ? (
+        <div className="ui-stack">
+          <div className="ui-kpi-grid ui-kpi-grid--4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} variant="card" height={120} />
+            ))}
+          </div>
+          <Skeleton variant="card" height={320} />
+        </div>
+      ) : (
+        <>
+          <TasksKpis counts={q.counts} loading={false} />
+          <EmergencyBanner task={emergencyTask} onOpen={openTask} />
+          <TasksTable
+            rows={q.rows}
+            total={q.total}
+            loading={false}
+            error={null}
+            onRetry={() => q.refetch()}
+            filter={q.filter}
+            onFilterChange={(f: TaskFilter) => q.setFilter(f)}
+            counts={q.counts}
+            search={q.search}
+            onSearchChange={q.setSearch}
+            page={q.page}
+            limit={TASKS_PAGE_SIZE}
+            onPageChange={q.setPage}
+            onSelect={openTask}
+          />
+        </>
       )}
-
-      {/* Slide-over Task Detail Drawer */}
-      <TaskDetailDrawer
-        task={selectedTask}
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onFreeze={handleFreeze}
-        onUnfreeze={handleUnfreeze}
-      />
+      <TaskDetailDrawer task={selected} onClose={closeTask} onOpenDisputes={openDisputes} />
     </div>
   );
 };
