@@ -14,3 +14,6 @@
 /* Target picker */
 .offer-target-chip { border: 1px solid var(--border); background: var(--surface-card); color: var(--text-strong); border-radius: var(--radius-full); padding: 6px 14px; font-size: var(--fs-small); cursor: pointer; min-height: 36px; }
 .offer-target-chip--active { border-color: var(--text-strong); font-weight: 700; }
+
+/* Campaign pages */
+.campaign-preview { min-width: 0; }

@@ -3596,6 +3596,96 @@ export const translations: TranslationDict = {
     ar: 'الحملات النشطة',
     he: 'קמפיינים פעילים'
   },
+  campaigns_create_title: {
+    en: 'New campaign',
+    ar: 'حملة جديدة',
+    he: 'קמפיין חדש'
+  },
+  campaigns_create_subtitle: {
+    en: 'Create a home-screen banner campaign',
+    ar: 'إنشاء حملة بانر للشاشة الرئيسية',
+    he: 'צור קמפיין באנר למסך הבית'
+  },
+  campaigns_form_title: {
+    en: 'Campaign details',
+    ar: 'تفاصيل الحملة',
+    he: 'פרטי קמפיין'
+  },
+  campaigns_budget_reference: {
+    en: 'Internal budget (reference only)',
+    ar: 'الميزانية الداخلية (للمرجع فقط)',
+    he: 'תקציב פנימי (לעיון בלבד)'
+  },
+  campaigns_field_name: {
+    en: 'Campaign name',
+    ar: 'اسم الحملة',
+    he: 'שם קמפיין'
+  },
+  campaigns_field_placement: {
+    en: 'Placement',
+    ar: 'الموضع',
+    he: 'מיקום'
+  },
+  campaigns_field_image: {
+    en: 'Image',
+    ar: 'الصورة',
+    he: 'תמונה'
+  },
+  campaigns_field_description: {
+    en: 'Description',
+    ar: 'الوصف',
+    he: 'תיאור'
+  },
+  campaigns_field_cta: {
+    en: 'Button text',
+    ar: 'نص الزر',
+    he: 'טקסט כפתור'
+  },
+  campaigns_field_link: {
+    en: 'Link',
+    ar: 'الرابط',
+    he: 'קישור'
+  },
+  campaigns_field_start: {
+    en: 'Starts',
+    ar: 'يبدأ',
+    he: 'מתחיל'
+  },
+  campaigns_field_end: {
+    en: 'Ends',
+    ar: 'ينتهي',
+    he: 'מסתיים'
+  },
+  campaigns_field_duration: {
+    en: 'Duration presets',
+    ar: 'مدد جاهزة',
+    he: 'משכים מוכנים'
+  },
+  campaigns_edit_title: {
+    en: 'Edit campaign',
+    ar: 'تعديل الحملة',
+    he: 'ערוך קמפיין'
+  },
+  campaigns_launch: {
+    en: 'Launch campaign',
+    ar: 'إطلاق الحملة',
+    he: 'השק קמפיין'
+  },
+  campaigns_back: {
+    en: 'Back',
+    ar: 'رجوع',
+    he: 'חזרה'
+  },
+  campaigns_uploading: {
+    en: 'Uploading image…',
+    ar: 'جارٍ رفع الصورة…',
+    he: 'מעלה תמונה…'
+  },
+  campaigns_upload_wait: {
+    en: 'Wait for the image upload to finish.',
+    ar: 'انتظر انتهاء رفع الصورة.',
+    he: 'המתן לסיום העלאת התמונה.'
+  },
   sidebar_theme: {
     en: 'Theme',
     ar: 'المظهر',
