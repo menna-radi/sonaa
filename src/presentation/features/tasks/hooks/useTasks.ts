@@ -1,136 +1,89 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
-import { Task } from '../../../../domain/entities/Task';
+import { queryKeys } from '../../../../core/query/queryKeys';
+import { unwrap } from '../../../../core/query/unwrap';
+import { useAdminMutation } from '../../../../core/query/useAdminMutation';
+import type { TaskFilter } from '../../../../domain/entities/Task';
 
-import { useNavigation } from '../../../../presentation/context/NavigationContext';
+const LIMIT = 20;
+export const TASKS_PAGE_SIZE = LIMIT;
 
-export type TaskFilterType = 'all' | 'live' | 'emergency' | 'disputed' | 'completed';
-
-export const useTasks = () => {
+export const useTasks = (initialFilter: TaskFilter = 'all') => {
   const { dependencies } = useDependencies();
   const { taskRepository } = dependencies;
-  const { searchQuery, setSearchQuery } = useNavigation();
+  const qc = useQueryClient();
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<TaskFilterType>('all');
+  const [filter, setFilterState] = useState<TaskFilter>(initialFilter);
+  const [page, setPage] = useState(1);
+  const [search, setSearchState] = useState('');
 
-  const fetchTasks = useCallback(async (isSilent = false) => {
-    if (!isSilent) setLoading(true);
-    setError(null);
-    try {
-      const result = await taskRepository.getTasks();
-      if (result.success) {
-        setTasks(result.data);
-      } else {
-        if (!isSilent) setError(result.error.message || 'Failed to fetch tasks.');
-      }
-    } catch (err: unknown) {
-      if (!isSilent) setError(err instanceof Error ? err.message : 'Failed to fetch tasks.');
-    } finally {
-      if (!isSilent) setLoading(false);
-    }
-  }, [taskRepository]);
-
-  useEffect(() => {
-    fetchTasks(false);
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.hidden) return;
-      fetchTasks(true);
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [fetchTasks]);
-
-  const handleFreeze = useCallback(async (id: string) => {
-    try {
-      const result = await taskRepository.freezeTask(id);
-      if (result.success) {
-        setTasks((prev) => prev.map((t) => (t.id === result.data.id ? result.data : t)));
-      } else {
-        setError(result.error.message || 'Failed to freeze task.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to freeze task.');
-    }
-  }, [taskRepository]);
-
-  const handleUnfreeze = useCallback(async (id: string) => {
-    try {
-      const result = await taskRepository.unfreezeTask(id);
-      if (result.success) {
-        setTasks((prev) => prev.map((t) => (t.id === result.data.id ? result.data : t)));
-      } else {
-        setError(result.error.message || 'Failed to unfreeze task.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to unfreeze task.');
-    }
-  }, [taskRepository]);
-
-  // Dynamic calculations with baseline offsets to match Figma design numbers perfectly
-  const emergencyCount = tasks.filter((t) => t.status === 'emergency').length;
-  const disputedCount = tasks.filter((t) => t.status === 'disputed').length;
-  const frozenCount = tasks.filter((t) => t.status === 'frozen').length;
-  const completedCount = tasks.filter((t) => t.status === 'completed').length;
-  const activeCount = tasks.filter((t) => t.status !== 'completed').length;
-  const metrics = {
-    activeTasks: activeCount,
-    emergency: emergencyCount,
-    disputed: disputedCount,
-    frozen: frozenCount,
-    completedToday: completedCount
-  };
-
-  // Filter & Search logic
-  const filteredTasks = tasks.filter((task) => {
-    // 1. Search filter
-    if (searchQuery.trim() !== '') {
-      const term = searchQuery.toLowerCase();
-      const matchId = task.jobNumber.toLowerCase().includes(term);
-      const matchCustomer = task.customer.toLowerCase().includes(term);
-      const matchTitle = task.title.toLowerCase().includes(term);
-      if (!matchId && !matchCustomer && !matchTitle) {
-        return false;
-      }
-    }
-
-    // 2. Status tab filter
-    switch (activeFilter) {
-      case 'live':
-        return task.status !== 'completed';
-      case 'emergency':
-        return task.status === 'emergency';
-      case 'disputed':
-        return task.status === 'disputed';
-      case 'completed':
-        return task.status === 'completed';
-      case 'all':
-      default:
-        return true;
-    }
+  const query = useQuery({
+    queryKey: queryKeys.tasks.list({ status: filter, page, search }),
+    queryFn: () =>
+      taskRepository.getTasks({ status: filter, q: search || undefined, page, limit: LIMIT }).then(unwrap),
+    staleTime: 30000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
   });
 
-  const filterCounts = {
-    all: tasks.length,
-    live: activeCount,
-    emergency: emergencyCount,
-    disputed: disputedCount,
-    completed: completedCount,
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: queryKeys.tasks.all });
+    void qc.invalidateQueries({ queryKey: queryKeys.disputes.all });
+    void qc.invalidateQueries({ queryKey: queryKeys.counts });
   };
 
+  const setFilter = (next: TaskFilter) => {
+    setFilterState(next);
+    setPage(1);
+  };
+
+  const setSearch = (next: string) => {
+    setSearchState(next);
+    setPage(1);
+  };
+
+  const freezeMutation = useAdminMutation({
+    mutationFn: (id: string) => taskRepository.freezeTask(id).then(unwrap),
+    invalidate: [queryKeys.tasks.all, queryKeys.disputes.all, queryKeys.counts],
+    successKey: 'toast_task_frozen',
+  });
+  const unfreezeMutation = useAdminMutation({
+    mutationFn: (id: string) => taskRepository.unfreezeTask(id).then(unwrap),
+    invalidate: [queryKeys.tasks.all, queryKeys.disputes.all, queryKeys.counts],
+    successKey: 'toast_task_unfrozen',
+  });
+  const dispatchMutation = useAdminMutation({
+    mutationFn: ({ id, craftsmanProfileId }: { id: string; craftsmanProfileId: string }) =>
+      taskRepository.dispatchBackup(id, craftsmanProfileId).then(unwrap),
+    invalidate: [queryKeys.tasks.all, queryKeys.disputes.all, queryKeys.counts],
+    successKey: 'toast_backup_dispatched',
+  });
+
   return {
-    tasks: filteredTasks,
-    loading,
-    error,
-    searchTerm: searchQuery,
-    setSearchTerm: setSearchQuery,
-    activeFilter,
-    setActiveFilter,
-    metrics,
-    filterCounts,
-    handleFreeze,
-    handleUnfreeze,
-    refresh: useCallback(() => { fetchTasks(false); }, [fetchTasks]),
+    rows: query.data?.items ?? [],
+    total: query.data?.total ?? 0,
+    counts: query.data?.counts,
+    loading: query.isLoading,
+    isFetching: query.isFetching,
+    dataUpdatedAt: query.dataUpdatedAt,
+    error: query.error,
+    refetch: () => {
+      invalidate();
+      return query.refetch();
+    },
+    filter,
+    setFilter,
+    page,
+    setPage,
+    search,
+    setSearch,
+    mutations: {
+      freeze: freezeMutation,
+      unfreeze: unfreezeMutation,
+      dispatchBackup: dispatchMutation,
+    },
   };
 };
+
+export default useTasks;

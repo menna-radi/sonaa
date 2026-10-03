@@ -1,56 +1,130 @@
-import { Task } from '../../domain/entities/Task';
-import type { TaskRepository } from '../../domain/repositories/TaskRepository';
+import type {
+  TaskRepository,
+  TasksQuery,
+  TasksResult,
+} from '../../domain/repositories/TaskRepository';
+import type { Task, TaskDetail, TaskFilter } from '../../domain/entities/Task';
 import { Result, ok, fail } from '../../core/result/Result';
 import { NotFoundError } from '../../core/errors/AppError';
 
-const SEED_TASKS: Task[] = [
-  { id: 't1', title: 'AC unit installation', jobNumber: '#SN-2418', customer: 'Mona Al-Harbi', craftsman: 'Mohammed Z.', zone: 'Shuafat', amountSAR: 720, eta: '12 min', status: 'in_progress' },
-  { id: 't2', title: 'Bathroom pipe burst', jobNumber: '#SN-2417', customer: 'Lina Al-Qahtani', craftsman: 'Yousef H.', zone: 'Beit Hanina', amountSAR: 480, eta: 'NOW', status: 'emergency' },
-  { id: 't3', title: 'Ceiling lights install', jobNumber: '#SN-2415', customer: 'Saad Al-Dawsari', craftsman: 'Khalid Q.', zone: 'Old City', amountSAR: 350, eta: '4 min', status: 'in_progress' },
-  { id: 't4', title: 'Wall painting · 2 rooms', jobNumber: '#SN-2412', customer: 'Omar Al-Ghamdi', craftsman: 'Hassan M.', zone: 'Sheikh Jarrah', amountSAR: 1500, eta: '—', status: 'disputed' },
-  { id: 't5', title: 'Generator maintenance', jobNumber: '#SN-2410', customer: 'Faisal Al-Shamri', craftsman: 'Saif G.', zone: 'Silwan', amountSAR: 900, eta: '18 min', status: 'in_progress' },
-  { id: 't6', title: 'Smart lock installation', jobNumber: '#SN-2408', customer: 'Reem Al-Anzi', craftsman: 'Bandar O.', zone: 'Beit Hanina', amountSAR: 900, eta: '—', status: 'frozen' },
-  { id: 't7', title: 'Kitchen sink unclog', jobNumber: '#SN-2405', customer: 'Nadia Al-Saud', craftsman: 'Mohammed Z.', zone: 'Old City', amountSAR: 280, eta: 'Done', status: 'completed' },
-];
+const seed = (
+  id: string,
+  displayId: string,
+  title: string,
+  status: Task['status'],
+  extra: Partial<Task> = {}
+): Task => ({
+  id,
+  displayId,
+  title,
+  status,
+  isEmergency: false,
+  customerName: 'Mona Al-Harbi',
+  craftsmanName: 'Mohammed Z.',
+  category: 'Electrician',
+  address: 'Jerusalem',
+  amount: 500,
+  budgetType: 'SPECIFIC',
+  distributionType: 'DIRECT',
+  createdAt: '2026-09-20T10:00:00.000Z',
+  hasDispute: status === 'DISPUTED',
+  offersCount: 2,
+  ...extra,
+});
 
 export class MockTaskRepository implements TaskRepository {
-  private tasks: Task[] = [...SEED_TASKS];
+  private tasks: Task[] = [
+    seed('t1', 'SN-0001', 'AC unit installation', 'IN_PROGRESS'),
+    seed('t2', 'SN-0002', 'Bathroom pipe burst', 'ACCEPTED', { isEmergency: true, amount: 480 }),
+    seed('t3', 'SN-0003', 'Ceiling lights install', 'WORK_SUBMITTED'),
+    seed('t4', 'SN-0004', 'Wall painting, 2 rooms', 'DISPUTED', { amount: 1500 }),
+    seed('t5', 'SN-0005', 'Generator maintenance', 'FROZEN', { amount: 900 }),
+    seed('t6', 'SN-0006', 'Smart lock installation', 'RATING_PENDING', { amount: 900 }),
+    seed('t7', 'SN-0007', 'Kitchen sink unclog', 'CLOSED', { craftsmanName: null, amount: 280 }),
+    seed('t8', 'SN-0008', 'Cancelled wiring job', 'CANCELLED', { cancelReason: 'reason_1', cancelNote: null }),
+  ];
 
-  public async getTasks(): Promise<Result<Task[]>> {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return ok([...this.tasks]);
+  private async delay(): Promise<void> {
+    await new Promise((r) => setTimeout(r, 200));
   }
 
-  public async freezeTask(id: string): Promise<Result<Task>> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const idx = this.tasks.findIndex((t) => t.id === id || t.jobNumber === id);
-    if (idx === -1) {
-      return fail(new NotFoundError(`Task with id ${id} not found`));
+  private matches(task: Task, filter: TaskFilter, q?: string): boolean {
+    if (filter === 'live' && !['ACCEPTED', 'PRE_CHAT_PENDING', 'CHAT_OPEN', 'AGREEMENT_PENDING', 'IN_PROGRESS', 'WORK_SUBMITTED'].includes(task.status)) {
+      return false;
     }
-    const updated: Task = {
-      ...this.tasks[idx],
-      status: 'frozen'
-    };
-    this.tasks[idx] = updated;
-    return ok(updated);
-  }
-
-  public async unfreezeTask(id: string): Promise<Result<Task>> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const idx = this.tasks.findIndex((t) => t.id === id || t.jobNumber === id);
-    if (idx === -1) {
-      return fail(new NotFoundError(`Task with id ${id} not found`));
+    if (filter === 'emergency' && !task.isEmergency) return false;
+    if (filter === 'disputed' && task.status !== 'DISPUTED') return false;
+    if (filter === 'done' && !['RATING_PENDING', 'CLOSED', 'COMPLETED'].includes(task.status)) return false;
+    if (filter === 'cancelled' && !['CANCELLED', 'REJECTED'].includes(task.status)) return false;
+    if (filter === 'frozen' && task.status !== 'FROZEN') return false;
+    if (q) {
+      const needle = q.trim().toLowerCase();
+      if (!`${task.title} ${task.displayId} ${task.customerName}`.toLowerCase().includes(needle)) return false;
     }
-    const updated: Task = {
-      ...this.tasks[idx],
-      status: 'in_progress'
-    };
-    this.tasks[idx] = updated;
-    return ok(updated);
+    return true;
   }
 
-  public async dispatchBackup(_id: string): Promise<Result<boolean>> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+  public async getTasks(q: TasksQuery): Promise<Result<TasksResult>> {
+    await this.delay();
+    const rows = this.tasks.filter((t) => this.matches(t, q.status, q.q));
+    const counts = {
+      all: this.tasks.length,
+      live: this.tasks.filter((t) => this.matches(t, 'live')).length,
+      emergency: this.tasks.filter((t) => this.matches(t, 'emergency')).length,
+      disputed: this.tasks.filter((t) => this.matches(t, 'disputed')).length,
+      done: this.tasks.filter((t) => this.matches(t, 'done')).length,
+      cancelled: this.tasks.filter((t) => this.matches(t, 'cancelled')).length,
+      frozen: this.tasks.filter((t) => this.matches(t, 'frozen')).length,
+    };
+    return ok({
+      items: rows.slice((q.page - 1) * q.limit, q.page * q.limit).map((t) => ({ ...t })),
+      total: rows.length,
+      counts,
+    });
+  }
+
+  public async getTask(id: string): Promise<Result<TaskDetail>> {
+    await this.delay();
+    const task = this.tasks.find((t) => t.id === id);
+    if (!task) return fail(new NotFoundError('Task not found'));
+    return ok({
+      task: { ...task },
+      customer: { id: 'cust-1', name: task.customerName, phone: '+972541111111' },
+      craftsman: task.craftsmanName
+        ? { id: 'craft-1', name: task.craftsmanName, phone: '+972542222222', title: task.category }
+        : null,
+      offers: [],
+      agreement: null,
+      workProof: { imageUrls: [] },
+      dispute: task.hasDispute ? { id: 'd-1' } : null,
+      emergency: task.isEmergency ? { id: 'e-1' } : null,
+      commission: null,
+      cancel: { reason: task.cancelReason ?? null, note: task.cancelNote ?? null },
+    });
+  }
+
+  public async freezeTask(id: string): Promise<Result<boolean>> {
+    await this.delay();
+    const task = this.tasks.find((t) => t.id === id);
+    if (!task) return fail(new NotFoundError('Task not found'));
+    task.status = 'FROZEN';
+    return ok(true);
+  }
+
+  public async unfreezeTask(id: string): Promise<Result<boolean>> {
+    await this.delay();
+    const task = this.tasks.find((t) => t.id === id);
+    if (!task) return fail(new NotFoundError('Task not found'));
+    task.status = 'IN_PROGRESS';
+    return ok(true);
+  }
+
+  public async dispatchBackup(id: string, craftsmanProfileId: string): Promise<Result<boolean>> {
+    await this.delay();
+    const task = this.tasks.find((t) => t.id === id);
+    if (!task) return fail(new NotFoundError('Task not found'));
+    task.status = 'IN_PROGRESS';
+    task.craftsmanName = `Craftsman ${craftsmanProfileId.slice(0, 4)}`;
     return ok(true);
   }
 }

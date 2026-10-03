@@ -1,6 +1,5 @@
 import React from 'react';
-import type { Task } from '../../../../domain/entities/Task';
-import type { TaskFilterType } from '../hooks/useTasks';
+import type { Task, TaskFilter } from '../../../../domain/entities/Task';
 import {
   Card,
   SearchInput,
@@ -21,8 +20,8 @@ interface TasksTableProps {
   onSelectTask: (task: Task) => void;
   searchTerm: string;
   onSearchChange: (q: string) => void;
-  activeFilter: TaskFilterType;
-  onFilterChange: (f: TaskFilterType) => void;
+  activeFilter: TaskFilter;
+  onFilterChange: (f: TaskFilter) => void;
   filterCounts: {
     all: number;
     live: number;
@@ -65,7 +64,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({
   ];
 
   const renderMobileRow = (t: Task) => {
-    const isUrgent = t.status === 'emergency' || t.status === 'disputed';
+    const isUrgent = t.isEmergency || t.status === 'DISPUTED';
     const isSelected = selectedTask?.id === t.id;
 
     return (
@@ -89,7 +88,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({
               <AlertTriangle
                 size={16}
                 style={{
-                  color: t.status === 'emergency' ? 'var(--danger)' : 'var(--warning)',
+                  color: t.isEmergency ? 'var(--danger)' : 'var(--warning)',
                   flexShrink: 0,
                   marginTop: 2,
                 }}
@@ -108,7 +107,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({
               >
                 {t.title}
               </span>
-              <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-faint)' }}>{t.jobNumber}</span>
+              <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-faint)' }}>{t.displayId}</span>
             </div>
           </div>
 
@@ -120,20 +119,20 @@ export const TasksTable: React.FC<TasksTableProps> = ({
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {t.amountSAR ? formatMoney(t.amountSAR) : 'Open'}
+            {t.amount ? formatMoney(t.amount, 'ILS') : 'Open'}
           </span>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--fs-micro)', color: 'var(--text-muted)' }}>
             <MapPin size={12} style={{ color: 'var(--text-faint)' }} />
-            <span>{t.zone} · {t.customer}</span>
+            <span>{t.address} · {t.customerName}</span>
           </div>
 
           <StatusPill
             variant={pillVariantFor('task', t.status)}
             label={t.status.replace('_', ' ').toUpperCase()}
-            pulse={t.status === 'emergency'}
+            pulse={t.isEmergency}
           />
         </div>
       </div>
@@ -159,7 +158,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
           <Segmented
             value={activeFilter}
-            onChange={(val) => onFilterChange(val as any)}
+            onChange={(val) => onFilterChange(val as TaskFilter)}
             items={filterTabs}
           />
           <div style={{ width: '100%', maxWidth: 300 }}>
@@ -180,7 +179,7 @@ export const TasksTable: React.FC<TasksTableProps> = ({
           rowKey={(t) => t.id}
           selectedKey={selectedTask?.id}
           onRowClick={onSelectTask}
-          rowTone={(t) => (t.status === 'emergency' || t.status === 'disputed' ? 'alert' : undefined)}
+          rowTone={(t) => (t.isEmergency || t.status === 'DISPUTED' ? 'alert' : undefined)}
           loading={loading}
           mobile={renderMobileRow}
           empty={

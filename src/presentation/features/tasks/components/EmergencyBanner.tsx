@@ -26,7 +26,7 @@ export const EmergencyBanner: React.FC<EmergencyBannerProps> = ({
       if (onDispatchBackup) {
         await onDispatchBackup(emergencyTask.id);
       }
-      success(`Emergency backup dispatched for task ${emergencyTask.jobNumber}`);
+      success(`Emergency backup dispatched for task ${emergencyTask.displayId}`);
     } finally {
       setDispatching(false);
       setConfirmOpen(false);
@@ -63,7 +63,7 @@ export const EmergencyBanner: React.FC<EmergencyBannerProps> = ({
               </span>
             </div>
           }
-          body={`${emergencyTask.title} · ${emergencyTask.zone} · Customer: ${emergencyTask.customer}`}
+          body={`${emergencyTask.title} · ${emergencyTask.address} · Customer: ${emergencyTask.customerName}`}
           actions={
             <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
               <Button
@@ -89,7 +89,7 @@ export const EmergencyBanner: React.FC<EmergencyBannerProps> = ({
 
       <ConfirmDialog
         isOpen={confirmOpen}
-        title={`Dispatch Emergency Backup for ${emergencyTask.jobNumber}?`}
+        title={`Dispatch Emergency Backup for ${emergencyTask.displayId}?`}
         description="This will instantly trigger priority SOS broadcast to all vetted craftsmen operating within a 5km radius of this location."
         confirmLabel="Dispatch Responders"
         confirmVariant="danger"

@@ -27,17 +27,17 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
 
   if (!task) return null;
 
-  const isFrozen = task.status === 'frozen';
+  const isFrozen = task.status === 'FROZEN';
 
   const handleToggleFreeze = async () => {
     setLoading(true);
     try {
       if (isFrozen) {
         await onUnfreeze?.(task.id);
-        success(`Task ${task.jobNumber} unfrozen.`);
+        success(`Task ${task.displayId} unfrozen.`);
       } else {
         await onFreeze?.(task.id);
-        success(`Task ${task.jobNumber} frozen.`);
+        success(`Task ${task.displayId} frozen.`);
       }
       setFreezeConfirmOpen(false);
     } finally {
@@ -52,7 +52,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
         onClose={onClose}
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-            <span>{task.jobNumber}</span>
+            <span>{task.displayId}</span>
             <StatusPill
               variant={pillVariantFor('task', task.status)}
               label={task.status.replace('_', ' ').toUpperCase()}
@@ -80,7 +80,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                 <User size={14} style={{ color: 'var(--text-secondary)' }} />
                 <strong style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)' }}>
-                  {task.customer || '—'}
+                  {task.customerName || '—'}
                 </strong>
               </div>
             </div>
@@ -90,7 +90,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                 <Wrench size={14} style={{ color: 'var(--text-secondary)' }} />
                 <strong style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)' }}>
-                  {task.craftsman || 'Unassigned'}
+                  {task.craftsmanName || 'Unassigned'}
                 </strong>
               </div>
             </div>
@@ -100,7 +100,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                 <MapPin size={14} style={{ color: 'var(--text-secondary)' }} />
                 <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)' }}>
-                  {task.zone || 'Jerusalem'}
+                  {task.address || 'Jerusalem'}
                 </span>
               </div>
             </div>
@@ -110,7 +110,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                 <DollarSign size={14} style={{ color: 'var(--text-secondary)' }} />
                 <strong style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
-                  {task.amountSAR ? formatMoney(task.amountSAR) : 'Open'}
+                  {task.amount ? formatMoney(task.amount, 'ILS') : 'Open'}
                 </strong>
               </div>
             </div>
@@ -154,7 +154,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
 
       <ConfirmDialog
         isOpen={freezeConfirmOpen}
-        title={isFrozen ? `Unfreeze Task ${task.jobNumber}?` : `Freeze Task ${task.jobNumber}?`}
+        title={isFrozen ? `Unfreeze Task ${task.displayId}?` : `Freeze Task ${task.displayId}?`}
         description={
           isFrozen
             ? 'Unfreezing will restore payment processing and communication channels for this task.'

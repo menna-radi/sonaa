@@ -9,25 +9,38 @@ import { TaskDetailDrawer } from '../components/TaskDetailDrawer';
 import { SlidersHorizontal, Download, AlertTriangle } from 'lucide-react';
 
 export const TasksPage: React.FC = () => {
-  const {
-    tasks,
-    loading,
-    error,
-    searchTerm,
-    setSearchTerm,
-    activeFilter,
-    setActiveFilter,
-    metrics,
-    filterCounts,
-    handleFreeze,
-    handleUnfreeze,
-  } = useTasks();
+  const q = useTasks();
+
+  // Bridge (T-F062): old table shape over the new server-driven hook; T-F063 rewrites this page.
+  const tasks = q.rows;
+  const loading = q.loading;
+  const error = q.error ? q.error.message : null;
+  const searchTerm = q.search;
+  const setSearchTerm = q.setSearch;
+  const activeFilter = q.filter;
+  const setActiveFilter = q.setFilter;
+  const metrics = {
+    activeTasks: q.counts?.live ?? 0,
+    emergency: q.counts?.emergency ?? 0,
+    disputed: q.counts?.disputed ?? 0,
+    frozen: q.counts?.frozen ?? 0,
+    completedToday: q.counts?.done ?? 0,
+  };
+  const filterCounts = {
+    all: q.counts?.all ?? 0,
+    live: q.counts?.live ?? 0,
+    emergency: q.counts?.emergency ?? 0,
+    disputed: q.counts?.disputed ?? 0,
+    completed: q.counts?.done ?? 0,
+  };
+  const handleFreeze = (id: string) => q.mutations.freeze.mutate(id);
+  const handleUnfreeze = (id: string) => q.mutations.unfreeze.mutate(id);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Identify first active emergency task for the sticky emergency banner
-  const emergencyTask = tasks.find((t) => t.status === 'emergency') ?? null;
+  const emergencyTask = tasks.find((t) => t.isEmergency) ?? null;
 
   const handleSelectTask = (task: Task) => {
     setSelectedTask(task);
@@ -38,7 +51,7 @@ export const TasksPage: React.FC = () => {
     let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
     csvContent += 'TaskID,Title,Customer,Craftsman,Zone,AmountSAR,Status\n';
     tasks.forEach((t) => {
-      csvContent += `"${t.jobNumber}","${t.title}","${t.customer}","${t.craftsman}","${t.zone}","${t.amountSAR}","${t.status}"\n`;
+      csvContent += `"${t.displayId}","${t.title}","${t.customerName}","${t.craftsmanName ?? ''}","${t.address}","${t.amount}","${t.status}"\n`;
     });
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');

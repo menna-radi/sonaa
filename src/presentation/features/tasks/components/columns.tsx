@@ -17,14 +17,14 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
     key: 'task',
     header: 'Task',
     render: (t) => {
-      const isUrgent = t.status === 'emergency' || t.status === 'disputed';
+      const isUrgent = t.isEmergency || t.status === 'DISPUTED';
       return (
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--sp-2)', minWidth: 180 }}>
           {isUrgent && (
             <AlertTriangle
               size={15}
               style={{
-                color: t.status === 'emergency' ? 'var(--danger)' : 'var(--warning)',
+                color: t.isEmergency ? 'var(--danger)' : 'var(--warning)',
                 flexShrink: 0,
                 marginTop: 2,
               }}
@@ -45,7 +45,7 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
               {t.title}
             </span>
             <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-faint)' }}>
-              {t.jobNumber}
+              {t.displayId}
             </span>
           </div>
         </div>
@@ -58,7 +58,7 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
     hideOnTablet: true,
     render: (t) => (
       <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-primary)', fontWeight: 500 }}>
-        {t.customer || '—'}
+        {t.customerName || '—'}
       </span>
     ),
   },
@@ -67,7 +67,7 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
     header: 'Craftsman',
     render: (t) => (
       <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-secondary)' }}>
-        {t.craftsman || '—'}
+        {t.craftsmanName || '—'}
       </span>
     ),
   },
@@ -79,7 +79,7 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <MapPin size={12} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
         <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)' }}>
-          {t.zone || 'Jerusalem'}
+          {t.address || '—'}
         </span>
       </div>
     ),
@@ -97,7 +97,7 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
           color: 'var(--text-primary)',
         }}
       >
-        {t.amountSAR ? formatMoney(t.amountSAR) : 'Open price'}
+        {t.amount ? formatMoney(t.amount) : 'Open price'}
       </span>
     ),
   },
@@ -105,18 +105,18 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
     key: 'eta',
     header: 'ETA',
     render: (t) => {
-      if (t.status === 'emergency') {
+      if (t.isEmergency) {
         return (
           <span style={{ fontSize: 'var(--fs-micro)', fontWeight: 700, color: 'var(--danger-text)' }}>
             NOW
           </span>
         );
       }
-      if (!t.eta) return <span style={{ color: 'var(--text-faint)' }}>—</span>;
+      if (!t.startedAt && !t.acceptedAt) return <span style={{ color: 'var(--text-faint)' }}>—</span>;
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <Clock size={12} style={{ color: 'var(--text-faint)' }} />
-          <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-secondary)' }}>{t.eta}</span>
+          <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-secondary)' }}>{t.startedAt || t.acceptedAt || ''}</span>
         </div>
       );
     },
@@ -127,7 +127,7 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
     render: (t) => {
       const variant = pillVariantFor('task', t.status);
       const label = t.status.replace('_', ' ').toUpperCase();
-      return <StatusPill variant={variant} label={label} pulse={t.status === 'emergency'} />;
+      return <StatusPill variant={variant} label={label} pulse={t.isEmergency} />;
     },
   },
   {
@@ -135,7 +135,7 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
     header: 'Actions',
     align: 'end',
     render: (t) => {
-      const isFrozen = t.status === 'frozen';
+      const isFrozen = t.status === 'FROZEN';
       return (
         <div
           style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-1)', justifyContent: 'flex-end' }}
@@ -157,7 +157,7 @@ export const getTasksColumns = (options: TasksColumnsOptions = {}): ColumnDef<Ta
             />
           )}
 
-          {t.status === 'disputed' && (
+          {t.status === 'DISPUTED' && (
             <IconButton
               aria-label="Resolve dispute"
               icon={<Check size={14} style={{ color: 'var(--success)' }} />}

@@ -2691,6 +2691,21 @@ export const translations: TranslationDict = {
     ar: 'تم حظر الحرفي.',
     he: 'בעל המקצוע נחסם.'
   },
+  toast_task_frozen: {
+    en: 'Task frozen.',
+    ar: 'تم تجميد المهمة.',
+    he: 'המשימה הוקפאה.'
+  },
+  toast_task_unfrozen: {
+    en: 'Task unfrozen.',
+    ar: 'تم إلغاء تجميد المهمة.',
+    he: 'המשימה הופשרה.'
+  },
+  toast_backup_dispatched: {
+    en: 'Backup craftsman dispatched.',
+    ar: 'تم إرسال حرفي بديل.',
+    he: 'נשלח בעל מקצוע גיבוי.'
+  },
   subscribers_filter_all: {
     en: 'All',
     ar: 'الكل',
