@@ -11,3 +11,7 @@
 .task-drawer-actions > * { min-height: 44px; }
 .dispatch-option { display: flex; align-items: center; gap: var(--sp-2); width: 100%; text-align: start; padding: var(--sp-2) var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-card); color: var(--text-strong); cursor: pointer; min-height: 44px; }
 .dispatch-option.is-selected { border-color: var(--text-strong); font-weight: 600; }
+
+/* Dispute resolution */
+.dispute-radio { display: flex; align-items: flex-start; gap: var(--sp-3); width: 100%; text-align: start; padding: var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-card); color: var(--text-strong); cursor: pointer; min-height: 44px; }
+.dispute-radio.is-selected { border-color: var(--text-strong); border-width: 2px; }

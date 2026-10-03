@@ -1,22 +1,21 @@
-import { Result } from '../../core/result/Result';
+import type { Dispute, DisputeResolution, DisputeStatus } from '../entities/Dispute';
+import type { Result } from '../../core/result/Result';
 
-export interface Dispute {
-  id: string;
-  jobId: string;
-  customerName: string;
-  craftsmanName: string;
-  amount: number;
-  reason: string;
-  status: 'pending' | 'resolved';
-  createdAt: string;
-  description: string;
+export type { Dispute };
+
+export interface DisputesQuery {
+  status: DisputeStatus | 'ALL';
+  page: number;
+  limit: number;
+}
+
+export interface DisputesResult {
+  items: Dispute[];
+  total: number;
+  counts?: { pending: number; resolved: number };
 }
 
 export interface DisputeRepository {
-  getDisputes(): Promise<Result<Dispute[]>>;
-  resolveDispute(
-    id: string,
-    resolution: 'refund_customer' | 'pay_craftsman' | 'split_split',
-    notes: string
-  ): Promise<Result<boolean>>;
+  getDisputes(q: DisputesQuery): Promise<Result<DisputesResult>>;
+  resolveDispute(id: string, resolution: DisputeResolution, notes?: string): Promise<Result<boolean>>;
 }

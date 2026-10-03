@@ -1,64 +1,94 @@
-import { DisputeRepository, Dispute } from '../../domain/repositories/DisputeRepository';
+import type {
+  DisputeRepository,
+  DisputesQuery,
+  DisputesResult,
+} from '../../domain/repositories/DisputeRepository';
+import type { Dispute, DisputeReason, DisputeResolution } from '../../domain/entities/Dispute';
 import { Result, ok, fail } from '../../core/result/Result';
 import { apiClient } from '../../core/network/apiClient';
 import { API_ENDPOINTS } from '../../core/config/apiEndpoints';
 import { AppError } from '../../core/errors/AppError';
 
-interface ApiDisputeDTO {
+const REASONS: DisputeReason[] = ['SERVICE_QUALITY', 'OVERCHARGING', 'NO_SHOW', 'SAFETY_CONCERN', 'OTHER'];
+
+interface RawDispute {
   id: string;
-  taskId: string;
-  reason: string;
-  status: 'pending' | 'resolved';
-  createdAt: string;
+  taskId?: string;
+  reason?: string;
   description?: string;
+  status?: string;
+  resolution?: string;
+  adminNotes?: string | null;
+  createdAt?: string;
+  resolvedAt?: string | null;
   task?: {
-    title: string;
-    amountSar: number;
-    customer?: {
-      firstName: string;
-      lastName: string;
-    };
-    craftsman?: {
-      firstName: string;
-      lastName: string;
-    };
+    id?: string;
+    displayId?: string;
+    title?: string;
+    budgetAmount?: number | string;
+    customerProfile?: { firstName?: string; lastName?: string } | null;
+    craftsmanProfile?: { firstName?: string; lastName?: string } | null;
+  } | null;
+}
+
+const num = (v: unknown): number => {
+  const n = typeof v === 'string' || typeof v === 'number' ? Number(v) : NaN;
+  return Number.isFinite(n) ? n : 0;
+};
+
+function mapDispute(d: RawDispute): Dispute {
+  const reason: DisputeReason = (REASONS as string[]).includes(d.reason || '')
+    ? (d.reason as DisputeReason)
+    : 'OTHER';
+  const customer = d.task?.customerProfile
+    ? `${d.task.customerProfile.firstName ?? ''} ${d.task.customerProfile.lastName ?? ''}`.trim()
+    : '';
+  const craftsman = d.task?.craftsmanProfile
+    ? `${d.task.craftsmanProfile.firstName ?? ''} ${d.task.craftsmanProfile.lastName ?? ''}`.trim()
+    : null;
+  return {
+    id: d.id,
+    taskId: d.taskId || d.task?.id || '',
+    taskDisplayId: d.task?.displayId || d.task?.id || d.id.slice(0, 8),
+    taskTitle: d.task?.title || '',
+    customerName: customer,
+    craftsmanName: craftsman || null,
+    reason,
+    description: d.description || '',
+    status: d.status === 'RESOLVED' ? 'RESOLVED' : 'PENDING',
+    resolution:
+      d.resolution === 'REFUND_CLIENT' || d.resolution === 'PAY_CRAFTSMAN'
+        ? d.resolution
+        : undefined,
+    adminNotes: d.adminNotes ?? undefined,
+    amount: num(d.task?.budgetAmount),
+    createdAt: d.createdAt || '',
+    resolvedAt: d.resolvedAt ?? undefined,
   };
 }
 
-interface PaginatedDisputesResponse {
-  results: ApiDisputeDTO[];
-  totalResults: number;
-}
-
 export class ApiDisputeRepository implements DisputeRepository {
-  public async getDisputes(): Promise<Result<Dispute[]>> {
+  public async getDisputes(q: DisputesQuery): Promise<Result<DisputesResult>> {
     try {
-      const response = await apiClient.get<any>(API_ENDPOINTS.admin.disputes);
-      
-      const mapped: Dispute[] = (response.items || []).map((d: any) => {
-        const customerObj = d.task?.customerProfile || d.task?.customer;
-        const craftsmanObj = d.task?.craftsmanProfile || d.task?.craftsman;
-        const customerName = customerObj 
-          ? `${customerObj.firstName} ${customerObj.lastName}`.trim()
-          : 'Customer';
-        const craftsmanName = craftsmanObj
-          ? `${craftsmanObj.firstName} ${craftsmanObj.lastName}`.trim()
-          : 'Craftsman';
-          
-        return {
-          id: d.id,
-          jobId: d.task?.displayId || `#JOB-${d.taskId.substring(0, 4)}`,
-          customerName,
-          craftsmanName,
-          amount: Number(d.task?.budgetAmount || d.task?.amountSar || 0),
-          reason: d.reason,
-          status: d.status,
-          createdAt: new Date(d.createdAt).toLocaleDateString(),
-          description: d.description || d.reason,
-        };
+      const response = await apiClient.get<{
+        items?: RawDispute[];
+        total?: number;
+        page?: number;
+        limit?: number;
+        counts?: { pending: number; resolved: number };
+      }>(API_ENDPOINTS.admin.disputes, {
+        page: q.page,
+        limit: q.limit,
+        ...(q.status === 'ALL' ? {} : { status: q.status }),
       });
-
-      return ok(mapped);
+      const rawItems = Array.isArray(response) ? (response as unknown as RawDispute[]) : response.items || [];
+      let items = rawItems.map(mapDispute);
+      if (q.status !== 'ALL') {
+        items = items.filter((d) => d.status === q.status);
+      }
+      const total = Array.isArray(response) ? items.length : response.total ?? items.length;
+      const counts = !Array.isArray(response) && response.counts ? response.counts : undefined;
+      return ok({ items, total, counts });
     } catch (error) {
       return fail(error as AppError);
     }
@@ -66,18 +96,13 @@ export class ApiDisputeRepository implements DisputeRepository {
 
   public async resolveDispute(
     id: string,
-    resolution: 'refund_customer' | 'pay_craftsman' | 'split_split',
-    notes: string
+    resolution: DisputeResolution,
+    notes?: string
   ): Promise<Result<boolean>> {
     try {
-      const resolutionMap: Record<string, string> = {
-        refund_customer: 'REFUND_CLIENT',
-        pay_craftsman: 'PAY_CRAFTSMAN',
-        split_split: 'SPLIT_PAYMENT',
-      };
-      await apiClient.post<void>(API_ENDPOINTS.admin.resolveDispute(id), {
-        resolution: resolutionMap[resolution] || 'REFUND_CLIENT',
-        notes,
+      await apiClient.post(API_ENDPOINTS.admin.resolveDispute(id), {
+        resolution,
+        ...(notes ? { notes } : {}),
       });
       return ok(true);
     } catch (error) {

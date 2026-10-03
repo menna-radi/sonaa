@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { PageHeader, Button, EmptyState, Segmented, Skeleton, ErrorState } from '../../../components/ui';
+import { PageHeader, Button, Segmented, Skeleton, ErrorState } from '../../../components/ui';
 import { formatRelativeTime } from '../../../../core/utils/format';
 import { toCsv, downloadCsv } from '../../../../core/utils/csv';
 import { useTasks, TASKS_PAGE_SIZE } from '../hooks/useTasks';
+import { useDisputes } from '../hooks/useDisputes';
 import type { Task, TaskFilter } from '../../../../domain/entities/Task';
+import type { Dispute } from '../../../../domain/entities/Dispute';
 import { TasksKpis } from '../components/TasksKpis';
 import { TasksTable } from '../components/TasksTable';
+import { DisputesTab } from '../components/DisputesTab';
+import { ResolveDisputeModal } from '../components/ResolveDisputeModal';
 import { EmergencyBanner } from '../components/EmergencyBanner';
 import { TaskDetailDrawer } from '../components/TaskDetailDrawer';
-import { Download, RefreshCw, ClipboardList } from 'lucide-react';
+import { Download, RefreshCw } from 'lucide-react';
 import '../tasks.css';
 
 type PageSegment = 'tasks' | 'disputes';
@@ -31,6 +35,9 @@ export const TasksPage: React.FC = () => {
   const q = useTasks();
   const [segment, setSegment] = useState<PageSegment>(readSegment);
   const [selected, setSelected] = useState<Task | null>(null);
+  const [resolving, setResolving] = useState<Dispute | null>(null);
+  const pendingDisputes = useDisputes({ status: 'PENDING', page: 1, limit: 100 });
+  const selectedDispute = selected ? pendingDisputes.rows.find((d) => d.taskId === selected.id) ?? null : null;
 
   const openTask = (task: Task) => {
     setSelected(task);
@@ -93,7 +100,7 @@ export const TasksPage: React.FC = () => {
         />
       </div>
       {segment === 'disputes' ? (
-        <EmptyState icon={<ClipboardList size={20} />} title={t('coming_soon')} />
+        <DisputesTab />
       ) : q.error && q.rows.length === 0 ? (
         <ErrorState
           title={t('status_error_title')}
@@ -132,7 +139,14 @@ export const TasksPage: React.FC = () => {
           />
         </>
       )}
-      <TaskDetailDrawer task={selected} onClose={closeTask} onOpenDisputes={openDisputes} />
+      <TaskDetailDrawer
+        task={selected}
+        dispute={selectedDispute}
+        onResolveDispute={setResolving}
+        onClose={closeTask}
+        onOpenDisputes={openDisputes}
+      />
+      <ResolveDisputeModal dispute={resolving} onClose={() => setResolving(null)} />
     </div>
   );
 };

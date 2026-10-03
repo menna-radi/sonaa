@@ -4215,6 +4215,111 @@ export const translations: TranslationDict = {
     en: 'Open',
     ar: 'فتح',
     he: 'פתח'
+  },
+  dispute_reason_service_quality: {
+    en: 'Service quality',
+    ar: 'جودة الخدمة',
+    he: 'איכות שירות'
+  },
+  dispute_reason_overcharging: {
+    en: 'Overcharging',
+    ar: 'تقاضي زائد',
+    he: 'גביית יתר'
+  },
+  dispute_reason_no_show: {
+    en: 'No show',
+    ar: 'عدم الحضور',
+    he: 'אי הופעה'
+  },
+  dispute_reason_safety_concern: {
+    en: 'Safety concern',
+    ar: 'مخاوف تتعلق بالسلامة',
+    he: 'חשש בטיחותי'
+  },
+  dispute_reason_other: {
+    en: 'Other',
+    ar: 'أخرى',
+    he: 'אחר'
+  },
+  disputes_filter_pending: {
+    en: 'Pending',
+    ar: 'معلقة',
+    he: 'ממתין'
+  },
+  disputes_filter_resolved: {
+    en: 'Resolved',
+    ar: 'محلولة',
+    he: 'נפתר'
+  },
+  disputes_filter_all: {
+    en: 'All',
+    ar: 'الكل',
+    he: 'הכל'
+  },
+  disputes_col_task: {
+    en: 'Task',
+    ar: 'المهمة',
+    he: 'משימה'
+  },
+  disputes_col_parties: {
+    en: 'Customer ↔ Craftsman',
+    ar: 'العميل ↔ الحرفي',
+    he: 'לקוח ↔ בעל מקצוע'
+  },
+  disputes_col_reason: {
+    en: 'Reason',
+    ar: 'السبب',
+    he: 'סיבה'
+  },
+  disputes_col_opened: {
+    en: 'Opened',
+    ar: 'فُتح',
+    he: 'נפתח'
+  },
+  empty_disputes: {
+    en: 'No disputes found',
+    ar: 'لا توجد نزاعات',
+    he: 'לא נמצאו סכסוכים'
+  },
+  disputes_resolve: {
+    en: 'Resolve',
+    ar: 'حل',
+    he: 'פתור'
+  },
+  disputes_resolve_title: {
+    en: 'Resolve this dispute?',
+    ar: 'حل هذا النزاع؟',
+    he: 'לפתור סכסוך זה?'
+  },
+  disputes_refund_client: {
+    en: 'Refund customer',
+    ar: 'استرداد للعميل',
+    he: 'החזר ללקוח'
+  },
+  disputes_refund_consequence: {
+    en: 'The task is cancelled and the amount returns to the customer.',
+    ar: 'تُلغى المهمة ويعود المبلغ إلى العميل.',
+    he: 'המשימה מבוטלת והסכום חוזר ללקוח.'
+  },
+  disputes_pay_craftsman: {
+    en: 'Pay craftsman',
+    ar: 'الدفع للحرفي',
+    he: 'שלם לבעל מקצוע'
+  },
+  disputes_pay_consequence: {
+    en: 'The task completes and the craftsman is paid.',
+    ar: 'تكتمل المهمة ويُدفع للحرفي.',
+    he: 'המשימה מושלמת ובעל המקצוע מקבל תשלום.'
+  },
+  disputes_notes: {
+    en: 'Notes (optional)',
+    ar: 'ملاحظات (اختياري)',
+    he: 'הערות (אופציונלי)'
+  },
+  toast_dispute_resolved: {
+    en: 'Dispute resolved.',
+    ar: 'تم حل النزاع.',
+    he: 'הסכסוך נפתר.'
   }
 };
 

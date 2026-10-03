@@ -5,6 +5,7 @@ import { pillVariantFor, statusLabelKey } from '../../../components/ui/status';
 import { useConfirm } from '../../../components/ui/ConfirmDialog';
 import { formatDateTime, formatMoney, formatRelativeTime } from '../../../../core/utils/format';
 import type { Task } from '../../../../domain/entities/Task';
+import type { Dispute } from '../../../../domain/entities/Dispute';
 import { useTasks } from '../hooks/useTasks';
 import { useTaskDetail } from '../hooks/useTaskDetail';
 import { DispatchBackupModal } from './DispatchBackupModal';
@@ -16,9 +17,11 @@ interface TaskDetailDrawerProps {
   task: Task | null;
   onClose: () => void;
   onOpenDisputes: () => void;
+  dispute?: Dispute | null;
+  onResolveDispute?: (dispute: Dispute) => void;
 }
 
-export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({ task, onClose, onOpenDisputes }) => {
+export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({ task, onClose, onOpenDisputes, dispute, onResolveDispute }) => {
   const { t, language } = useLanguage();
   const confirm = useConfirm();
   const { mutations } = useTasks();
@@ -124,12 +127,22 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({ task, onClos
               <Card
                 title={t('sec_pending_disputes')}
                 actions={
-                  <Button size="sm" variant="outline" onClick={onOpenDisputes}>
-                    {t('disputes_open')}
-                  </Button>
+                  dispute && onResolveDispute ? (
+                    <Button size="sm" variant="primary" onClick={() => onResolveDispute(dispute)}>
+                      {t('disputes_resolve')}
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={onOpenDisputes}>
+                      {t('disputes_open')}
+                    </Button>
+                  )
                 }
               >
-                <p className="ui-caption">{t('disputes_open_body')}</p>
+                <p className="ui-caption">
+                  {dispute
+                    ? `${dispute.taskDisplayId} · ${t(`dispute_reason_${dispute.reason.toLowerCase()}`)}`
+                    : t('disputes_open_body')}
+                </p>
               </Card>
             )}
             <div className="task-drawer-actions">
