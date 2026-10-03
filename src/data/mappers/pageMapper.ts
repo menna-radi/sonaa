@@ -3,6 +3,8 @@ export interface Page<T> {
   total: number;
   page: number;
   limit: number;
+  /** Aggregate totals when the endpoint provides them (e.g. commission ledger). */
+  totals?: { due: number; paid: number };
 }
 
 export function toPage<R, T>(
