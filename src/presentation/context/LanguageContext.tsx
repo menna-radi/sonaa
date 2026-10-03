@@ -107,6 +107,11 @@ export const translations: TranslationDict = {
     ar: 'نظرة عامة',
     he: 'סקירה כללית'
   },
+  nav_overview: {
+    en: 'Overview',
+    ar: 'نظرة عامة',
+    he: 'סקירה כללית'
+  },
   
   // Sidebar
   sec_operations: {
@@ -123,6 +128,11 @@ export const translations: TranslationDict = {
     en: 'Insights',
     ar: 'الرؤى والتحليلات',
     he: 'תובנות'
+  },
+  sec_system: {
+    en: 'System',
+    ar: 'النظام',
+    he: 'מערכת'
   },
   nav_live_activity: {
     en: 'Live Activity',
@@ -5122,7 +5132,35 @@ export const translations: TranslationDict = {
   audit_action_SUBSCRIBER_CANCELLED: { en: 'Subscriber cancelled', ar: 'تم إلغاء اشتراك المشترك', he: 'מנוי בוטל' },
   audit_action_SUBSCRIBER_EXTENDED: { en: 'Subscriber extended', ar: 'تم تمديد اشتراك المشترك', he: 'מנוי הוארך' },
   audit_action_FREE_TASKS_UPDATED: { en: 'Free tasks updated', ar: 'تم تحديث المهام المجانية', he: 'משימות החינם עודכנו' },
-  audit_action_BILLING_MODEL_SWITCHED: { en: 'Billing model switched', ar: 'تم تبديل نموذج الفوترة', he: 'מודל החיוב הוחלף' }
+  audit_action_BILLING_MODEL_SWITCHED: { en: 'Billing model switched', ar: 'تم تبديل نموذج الفوترة', he: 'מודל החיוב הוחלף' },
+
+  theme_system: { en: 'System default', ar: 'افتراضي حسب النظام', he: 'ברירת מחדל של המערכת' },
+  theme_light: { en: 'Light', ar: 'فاتح', he: 'בהיר' },
+  theme_dark: { en: 'Dark', ar: 'داكن', he: 'כהה' },
+
+  search_ph_default: { en: 'Search...', ar: 'بحث...', he: 'חיפוש...' },
+  search_ph_overview: { en: 'Search operations...', ar: 'بحث في العمليات...', he: 'חיפוש פעולות...' },
+  search_ph_live_activity: { en: 'Search live activity...', ar: 'بحث في النشاط المباشر...', he: 'חיפוש פעילות בזמן אמת...' },
+  search_ph_craftsmen: { en: 'Search craftsmen by name or phone...', ar: 'بحث عن حرفي بالاسم أو الهاتف...', he: 'חיפוש בעלי מקצוע לפי שם או טלפון...' },
+  search_ph_tasks: { en: 'Search tasks or disputes...', ar: 'بحث في المهام والنزاعات...', he: 'חיפוש משימות או מחלוקות...' },
+  search_ph_chat: { en: 'Search chat rooms or users...', ar: 'بحث في المحادثات أو المستخدمين...', he: 'חיפוש צ׳אטים או משתמשים...' },
+  search_ph_verification: { en: 'Search verification queue...', ar: 'بحث في طابور التوثيق...', he: 'חיפוש בתור האימות...' },
+  search_ph_reports: { en: 'Search reports and complaints...', ar: 'بحث في البلاغات والشكاوى...', he: 'חיפוש דיوוחים ותלונות...' },
+  search_ph_payments: { en: 'Search payouts and transactions...', ar: 'بحث في المدفوعات والتحويلات...', he: 'חיפוש תשלומים והעברות...' },
+  search_ph_analytics: { en: 'Search analytics...', ar: 'بحث في التحليلات...', he: 'חיפוש ניתוחים...' },
+  search_ph_broadcast: { en: 'Search broadcasts by title...', ar: 'بحث في الإشعارات الجماعية بالعنوان...', he: 'חיפוש הודעות תפוצה לפי כותרת...' },
+  search_ph_notifications: { en: 'Search admin notifications...', ar: 'بحث في إشعارات الإدارة...', he: 'חיפוש התראות מנהל...' },
+  search_ph_ads: { en: 'Search advertisements...', ar: 'بحث في الإعلانات...', he: 'חיפוש מודעות...' },
+  search_ph_campaigns: { en: 'Search campaigns...', ar: 'بحث في الحملات...', he: 'חיפוש קמפיינים...' },
+  search_ph_scheduled: { en: 'Search scheduled campaigns...', ar: 'بحث في الحملات المجدولة...', he: 'חיפוש קמפיינים מתוזמנים...' },
+  search_ph_expired: { en: 'Search expired campaigns...', ar: 'بحث في الحملات المنتهية...', he: 'חיפוש קמפיינים שפגו...' },
+  search_ph_promotions: { en: 'Search promotions...', ar: 'بحث في العروض الترويجية...', he: 'חיפוש מבצעים...' },
+  search_ph_ad_analytics: { en: 'Search ad analytics...', ar: 'بحث في تحليلات الإعلانات...', he: 'חיפוש ניתוחי מודעות...' },
+  search_ph_settings: { en: 'Search settings and audit...', ar: 'بحث في الإعدادات وسجل التدقيق...', he: 'חיפוש הגדרות ויומן ביקורת...' },
+  search_ph_create_ad: { en: 'Search templates or assets...', ar: 'بحث في القوالب أو الأصول...', he: 'חיפוש תבניות או נכסים...' },
+  search_ph_service_management: { en: 'Search categories and services...', ar: 'بحث في التصنيفات والخدمات...', he: 'חיפוש קטגוריות ושירותים...' },
+  search_ph_billing: { en: 'Search subscribers or receipts...', ar: 'بحث في المشتركين أو الإيصالات...', he: 'חיפוש מנויים או קבלות...' },
+  search_ph_users: { en: 'Search users by name, phone or email...', ar: 'بحث عن مستخدم بالاسم أو الهاتف أو البريد...', he: 'חיפוש משתמשים לפי שם, טלפון או דוא״ל...' }
 };
 
 

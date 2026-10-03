@@ -171,6 +171,14 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
     }
   };
 
+  const currentSearchPlaceholder = (() => {
+    const pagePh = t(`search_ph_${currentPage}`);
+    if (pagePh && pagePh !== `search_ph_${currentPage}`) return pagePh;
+    const defaultPh = t('search_ph_default');
+    if (defaultPh && defaultPh !== 'search_ph_default') return defaultPh;
+    return isMobile ? 'Search…' : 'Search users, tasks, transactions... (⌘K)';
+  })();
+
   return (
     <header
       className={`top-header hd${isMobile ? ' is-mobile' : ''}`}
@@ -193,11 +201,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           <input
             ref={searchInputRef}
             type="text"
-            placeholder={
-              isMobile
-                ? t('search_placeholder_short') || 'Search…'
-                : t('search_placeholder') || 'Search users, tasks, transactions... (⌘K)'
-            }
+            placeholder={currentSearchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="hd-search-input"

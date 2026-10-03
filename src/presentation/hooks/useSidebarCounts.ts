@@ -16,25 +16,48 @@ export function useSidebarCounts() {
   return useQuery<SidebarCounts>({
     queryKey: ['sidebarCounts'],
     queryFn: async () => {
-      const [metricsRes, reportsRes, notifsRes, receiptsRes, commissionRes, withdrawalsRes] =
-        await Promise.allSettled([
-          dependencies.metricRepository.getMetrics(),
-          dependencies.metricRepository.getPendingReports(),
-          dependencies.notificationRepository.getNotifications(),
-          dependencies.billingRepository.getRequests({ status: 'PENDING_VERIFICATION', page: 1, limit: 1 }),
-          dependencies.billingRepository.getCommissionPayments({ status: 'PENDING', page: 1, limit: 1 }),
-          dependencies.paymentRepository.getWithdrawals({ status: 'PENDING', page: 1, limit: 1 }),
-        ]);
+      // 1. Try GET /admin/counts (opt B10)
+      try {
+        const countsRes = await dependencies.countsRepository.getCounts();
+        if (countsRes.success && countsRes.data) {
+          return countsRes.data;
+        }
+      } catch {
+        // Fall back to cheap count queries
+      }
+
+      // 2. Cheap count queries (limit: 1 totals, no overview-stats, no heavy lists)
+      const [
+        verificationRes,
+        reportsRes,
+        disputesRes,
+        notifsRes,
+        receiptsRes,
+        commissionRes,
+        withdrawalsRes,
+      ] = await Promise.allSettled([
+        dependencies.verificationRepository.getVerificationQueue(),
+        dependencies.safetyReportRepository.getSafetyReports({ status: 'PENDING', page: 1, limit: 1 }),
+        dependencies.disputeRepository.getDisputes({ status: 'PENDING', page: 1, limit: 1 }),
+        dependencies.notificationRepository.getNotifications(),
+        dependencies.billingRepository.getRequests({ status: 'PENDING_VERIFICATION', page: 1, limit: 1 }),
+        dependencies.billingRepository.getCommissionPayments({ status: 'PENDING', page: 1, limit: 1 }),
+        dependencies.paymentRepository.getWithdrawals({ status: 'PENDING', page: 1, limit: 1 }),
+      ]);
 
       let verification = 0;
-      if (metricsRes.status === 'fulfilled' && metricsRes.value.success) {
-        const vMetric = metricsRes.value.data.find((m) => m.id === 'verification');
-        verification = vMetric ? Number(vMetric.value) || 0 : 0;
+      if (verificationRes.status === 'fulfilled' && verificationRes.value.success) {
+        verification = Array.isArray(verificationRes.value.data) ? verificationRes.value.data.length : 0;
       }
 
       let reports = 0;
       if (reportsRes.status === 'fulfilled' && reportsRes.value.success) {
-        reports = reportsRes.value.data.length || 0;
+        reports = reportsRes.value.data.total ?? reportsRes.value.data.items?.length ?? 0;
+      }
+
+      let disputes = 0;
+      if (disputesRes.status === 'fulfilled' && disputesRes.value.success) {
+        disputes = disputesRes.value.data.total ?? disputesRes.value.data.items?.length ?? 0;
       }
 
       let notifications = 0;
@@ -42,8 +65,6 @@ export function useSidebarCounts() {
         notifications = notifsRes.value.data.filter((n) => !n.isRead).length || 0;
       }
 
-      // NOTE (T-F030): PaymentRepository is not refactored yet (T-F038), so the
-      // payments badge counts locally-filtered pending withdrawals.
       let billing = 0;
       if (receiptsRes.status === 'fulfilled' && receiptsRes.value.success) {
         billing += receiptsRes.value.data.total || 0;
@@ -60,7 +81,7 @@ export function useSidebarCounts() {
       return {
         verification,
         reports,
-        disputes: 0,
+        disputes,
         billing,
         notifications,
         payments,
@@ -71,3 +92,5 @@ export function useSidebarCounts() {
     refetchIntervalInBackground: false,
   });
 }
+
+export default useSidebarCounts;
