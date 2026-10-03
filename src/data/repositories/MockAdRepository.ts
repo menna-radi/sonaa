@@ -38,7 +38,7 @@ export class MockAdRepository implements AdRepository {
 
   public async updateAd(
     id: string,
-    data: { name?: string; budget?: number; placement?: string; status?: 'Active' | 'Paused' } & AdCreativeDetails
+    data: { name?: string; budget?: number; placement?: string; status?: 'Active' | 'Paused' | 'Ended' } & AdCreativeDetails
   ): Promise<Result<Campaign>> {
     const idx = this.campaigns.findIndex(c => c.id === id);
     if (idx !== -1) {
@@ -51,7 +51,7 @@ export class MockAdRepository implements AdRepository {
     return ok(this.campaigns[0]);
   }
 
-  public async updateAdStatus(id: string, status: 'Active' | 'Paused'): Promise<Result<Campaign>> {
+  public async updateAdStatus(id: string, status: 'Active' | 'Paused' | 'Ended'): Promise<Result<Campaign>> {
     const updated = this.campaigns.find(c => c.id === id);
     if (updated) {
       updated.status = status;
@@ -87,8 +87,8 @@ export class MockAdRepository implements AdRepository {
       subtitle: data.subtitle,
       buttonText: 'Claim Offer',
       imageUrl: data.imageUrl,
-      bannerType: (data.bannerType as any) || 'PROMO',
-      placement: (data.placement as any) || 'TOP',
+      bannerType: data.bannerType === 'EMERGENCY_SOS' ? 'EMERGENCY_SOS' : 'PROMO',
+      placement: data.placement === 'FEATURED' ? 'FEATURED' : 'TOP',
       isActive: true,
       createdAt: new Date().toLocaleDateString()
     };
@@ -109,7 +109,7 @@ export class MockAdRepository implements AdRepository {
     });
   }
 
-  public async deletePromotion(_id: string): Promise<Result<boolean>> {
+  public async deletePromotion(): Promise<Result<boolean>> {
     return ok(true);
   }
 }
