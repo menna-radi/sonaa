@@ -13,3 +13,11 @@
 .audit-diff__grid { display: grid; grid-template-columns: minmax(80px, auto) minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-1) var(--sp-3); align-items: start; max-width: 100%; }
 .audit-diff__key { color: var(--text-strong); font-weight: 600; word-break: break-word; }
 .audit-diff__val { color: var(--text-muted); word-break: break-word; }
+.settings-pw-form { max-width: 420px; }
+.settings-theme { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-3); padding: var(--sp-4); text-align: start; border: 2px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--surface-base); color: inherit; cursor: pointer; transition: border-color var(--transition-fast), background var(--transition-fast); }
+.settings-theme:hover { border-color: var(--border-strong); }
+.settings-theme--selected { border-color: var(--primary); background: var(--surface-sunken); }
+.settings-theme > .ui-row { width: 100%; flex-wrap: nowrap; }
+.settings-theme__icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--surface-sunken); color: var(--on-surface); }
+.settings-theme--selected .settings-theme__icon { background: var(--primary); color: var(--on-primary); }
+.settings-theme__check { color: var(--primary); }

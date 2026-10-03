@@ -678,30 +678,52 @@ export const translations: TranslationDict = {
     he: 'הגדרות'
   },
   settings_page_subtitle: {
-    en: 'Roles · security · platform configuration',
-    ar: 'الأدوار · الأمن والحماية · تهيئة المنصة',
-    he: 'תפקידים · אבטחה · תצורת פלטפורמה'
+    en: 'Team · platform · audit log · security · appearance',
+    ar: 'الفريق · المنصة · سجل التدقيق · الأمن والحماية · المظهر',
+    he: 'צוות · פלטפורמה · יומן ביקורת · אבטחה · מראה'
   },
-  settings_tab_roles: {
-    en: 'Roles & Permissions',
-    ar: 'الأدوار والصلاحيات',
-    he: 'תפקידים והרשאות'
-  },
+  settings_tab_team: { en: 'Team', ar: 'الفريق', he: 'צוות' },
+  settings_tab_audit: { en: 'Audit log', ar: 'سجل التدقيق', he: 'יומן ביקורת' },
+  settings_tab_appearance: { en: 'Appearance', ar: 'المظهر', he: 'מראה' },
   settings_tab_security: {
     en: 'Security',
     ar: 'الأمن والحماية',
     he: 'אבטחה'
   },
-  settings_tab_notifications: {
-    en: 'Notification preferences',
-    ar: 'تفضيلات الإشعارات',
-    he: 'העדפות התראות'
-  },
   settings_tab_platform: {
-    en: 'Platform configuration',
-    ar: 'تهيئة المنصة',
-    he: 'תצורת פלטפורמה'
+    en: 'Platform',
+    ar: 'المنصة',
+    he: 'פלטפורמה'
   },
+  settings_platform_verify_title: { en: 'Craftsman verification', ar: 'التحقق من الحرفيين', he: 'אימות בעלי מקצוע' },
+  settings_platform_verify_label: { en: 'Auto-verify craftsmen when all 5 steps are complete', ar: 'التحقق التلقائي من الحرفي عند اكتمال الخطوات الخمس', he: 'אימות אוטומטי של בעל מקצוע עם השלמת כל 5 השלבים' },
+  settings_platform_verify_help: { en: 'ON: craftsmen are approved as soon as they submit. OFF: they wait in the verification queue for manual review.', ar: 'مفعّل: تتم الموافقة على الحرفي فور الإرسال. معطّل: ينتظر في طابور التحقق للمراجعة اليدوية.', he: 'פעיל: בעל המקצוע מאושר מיד עם השליחה. כבוי: ממתין בתור האימות לבדיקה ידנית.' },
+  settings_platform_toast_saved: { en: 'Platform setting saved', ar: 'تم حفظ إعداد المنصة', he: 'הגדרת הפלטפורמה נשמרה' },
+  settings_platform_billing_title: { en: 'Billing parameters', ar: 'معايير الفوترة', he: 'פרמטרי חיוב' },
+  settings_platform_billing_edit: { en: 'Edit in Billing', ar: 'تعديل في الفوترة', he: 'עריכה בחיוב' },
+  settings_platform_commission_rate: { en: 'Commission rate', ar: 'نسبة العمولة', he: 'שיעור עמלה' },
+  settings_platform_currency: { en: 'Currency: ILS (₪)', ar: 'العملة: شيكل (₪)', he: 'מטבע: שקל (₪)' },
+  settings_security_title: { en: 'Change password', ar: 'تغيير كلمة المرور', he: 'שינוי סיסמה' },
+  settings_security_subtitle: { en: 'Update the password of your own admin account', ar: 'تحديث كلمة مرور حسابك كمشرف', he: 'עדכון הסיסמה של חשבון המנהל שלך' },
+  settings_security_old: { en: 'Current password', ar: 'كلمة المرور الحالية', he: 'סיסמה נוכחית' },
+  settings_security_new: { en: 'New password', ar: 'كلمة المرور الجديدة', he: 'סיסמה חדשה' },
+  settings_security_confirm: { en: 'Confirm new password', ar: 'تأكيد كلمة المرور الجديدة', he: 'אימות סיסמה חדשה' },
+  settings_security_submit: { en: 'Change password', ar: 'تغيير كلمة المرور', he: 'שינוי סיסמה' },
+  settings_security_toast_changed: { en: 'Password changed', ar: 'تم تغيير كلمة المرور', he: 'הסיסמה שונתה' },
+  settings_appearance_theme_title: { en: 'Theme', ar: 'السمة', he: 'ערכת נושא' },
+  settings_appearance_theme_subtitle: { en: 'Choose how the dashboard looks', ar: 'اختر مظهر لوحة التحكم', he: 'בחרו את מראה לוח הבקרה' },
+  settings_appearance_language_title: { en: 'Language', ar: 'اللغة', he: 'שפה' },
+  settings_appearance_language_subtitle: { en: 'Interface language and reading direction', ar: 'لغة الواجهة واتجاه القراءة', he: 'שפת הממשק וכיוון הקריאה' },
+  settings_theme_system: { en: 'System default', ar: 'تلقائي حسب النظام', he: 'ברירת מחדל של המערכת' },
+  settings_theme_light: { en: 'Light', ar: 'نهاري', he: 'בהיר' },
+  settings_theme_dark: { en: 'Dark', ar: 'ليلي', he: 'כהה' },
+  settings_theme_system_desc: { en: 'Follows your operating system preference.', ar: 'يتبع إعدادات نظام التشغيل لديك.', he: 'עוקב אחר העדפת מערכת ההפעלה שלך.' },
+  settings_theme_light_desc: { en: 'Light surfaces with high-contrast text.', ar: 'أسطح فاتحة مع نص عالي التباين.', he: 'משטחים בהירים עם טקסט בניגודיות גבוהה.' },
+  settings_theme_dark_desc: { en: 'Dark surfaces that reduce eye strain.', ar: 'أسطح داكنة تقلل إجهاد العين.', he: 'משטחים כהים שמפחיתים עומס על העיניים.' },
+  settings_theme_resolved: { en: 'Currently', ar: 'الحالي', he: 'כרגע' },
+  settings_lang_en: { en: 'English', ar: 'English', he: 'English' },
+  settings_lang_ar: { en: 'العربية', ar: 'العربية', he: 'العربية' },
+  settings_lang_he: { en: 'עברית', ar: 'עברית', he: 'עברית' },
 
   broadcast_title: {
     en: 'Broadcast',

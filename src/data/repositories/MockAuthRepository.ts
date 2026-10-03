@@ -13,18 +13,6 @@ export class MockAuthRepository implements AuthRepository {
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
   };
 
-  private mockAdmins: User[] = [
-    { id: 'u1', name: 'Sarah Jenkins', email: 'sarah.j@sonaa.ps', role: 'Super Admin', avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80' },
-    { id: 'u2', name: 'Mike Ross', email: 'mike.r@sonaa.ps', role: 'Super Admin', avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80' },
-    { id: 'u3', name: 'John Doe', email: 'john.d@sonaa.ps', role: 'Operations Lead', avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&q=80' },
-    { id: 'u4', name: 'Rachel Zane', email: 'rachel.z@sonaa.ps', role: 'Operations Lead', avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80' },
-    { id: 'u5', name: 'Emma Watson', email: 'emma.w@sonaa.ps', role: 'Moderator', avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&q=80' },
-    { id: 'u6', name: 'Harvey Specter', email: 'harvey.s@sonaa.ps', role: 'Moderator', avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80' },
-    { id: 'u7', name: 'Donna Paulsen', email: 'donna.p@sonaa.ps', role: 'Finance', avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80' },
-    { id: 'u8', name: 'Louis Litt', email: 'louis.l@sonaa.ps', role: 'Finance', avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=100&q=80' },
-    { id: 'u9', name: 'Jessica Pearson', email: 'jessica.p@sonaa.ps', role: 'Support Agent', avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80' }
-  ];
-
   public async login(email: string, password: string): Promise<Result<User>> {
     await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate delay
     
@@ -53,22 +41,14 @@ export class MockAuthRepository implements AuthRepository {
     return ok(this.mockUser);
   }
 
-  public async getAdmins(): Promise<Result<User[]>> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return ok(this.mockAdmins);
-  }
-
-  public async createAdmin(name: string, email: string, role: string, avatarUrl?: string): Promise<Result<User>> {
+  public async changePassword(oldPassword: string): Promise<Result<void>> {
     await new Promise((resolve) => setTimeout(resolve, 400));
-    const newAdmin: User = {
-      id: `u-${Date.now()}`,
-      name,
-      email,
-      role,
-      avatarUrl: avatarUrl || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 900000)}?auto=format&fit=crop&w=100&q=80`,
-    };
-    this.mockAdmins.push(newAdmin);
-    return ok(newAdmin);
+    if (oldPassword !== 'admin123') {
+      return fail(new ValidationError('Current password is incorrect', [
+        { field: 'oldPassword', message: 'Current password is incorrect' }
+      ]));
+    }
+    return ok(undefined);
   }
 }
 export default MockAuthRepository;
