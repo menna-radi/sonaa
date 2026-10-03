@@ -7,6 +7,17 @@ export interface CraftsmanVerifications {
   insurance: boolean;
 }
 
+export type AccountStatus = 'ACTIVE' | 'SUSPENDED' | 'BLOCKED';
+
+export interface CraftsmanBilling {
+  freeTasksRemaining: number;
+  billingModel: 'SUBSCRIPTION' | 'COMMISSION' | null;
+  commissionLocked: boolean;
+  subscriptionStatus: 'ACTIVE' | 'CANCELLED' | 'EXPIRED';
+  subscriptionExpiryDate?: string;
+  commissionDue?: number;
+}
+
 export interface Craftsman {
   id: string;
   name: string;
@@ -16,14 +27,14 @@ export interface Craftsman {
   reviewsCount: number;
   jobsCount: number;
   trustScore: number;
-  status: 'online' | 'offline' | 'busy' | 'flagged' | 'suspended';
+  status: 'online' | 'offline' | 'busy' | 'flagged' | 'suspended' | 'banned';
+  accountStatus: AccountStatus;
+  billing: CraftsmanBilling | null;
   isAvailable: boolean;
+  isVerifiedId: boolean;
   joinedDate: string;
   idNumber: string;
   responseTimeMin: number;
   verifications: CraftsmanVerifications;
-  earnings30Days: number;
-  earningsChangePct: number;
-  earningsSparkline: number[];
 }
 export default Craftsman;

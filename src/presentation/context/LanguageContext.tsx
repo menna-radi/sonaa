@@ -2676,6 +2676,21 @@ export const translations: TranslationDict = {
     ar: 'تم رفض دفعة العمولة.',
     he: 'תשלום העמלה נדחה.'
   },
+  toast_craftsman_suspended: {
+    en: 'Craftsman suspended.',
+    ar: 'تم إيقاف الحرفي.',
+    he: 'בעל המקצוע הושהה.'
+  },
+  toast_craftsman_unsuspended: {
+    en: 'Craftsman reactivated.',
+    ar: 'تمت إعادة تفعيل الحرفي.',
+    he: 'בעל המקצוע הופעל מחדש.'
+  },
+  toast_craftsman_banned: {
+    en: 'Craftsman banned.',
+    ar: 'تم حظر الحرفي.',
+    he: 'בעל המקצוע נחסם.'
+  },
   subscribers_filter_all: {
     en: 'All',
     ar: 'الكل',

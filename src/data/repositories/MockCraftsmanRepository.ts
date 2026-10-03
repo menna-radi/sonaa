@@ -1,48 +1,59 @@
-import { CraftsmanRepository } from '../../domain/repositories/CraftsmanRepository';
+import {
+  CraftsmanRepository,
+  CraftsmenQuery,
+  CraftsmenResult,
+} from '../../domain/repositories/CraftsmanRepository';
 import { Craftsman } from '../../domain/entities/Craftsman';
 import { Result, ok, fail } from '../../core/result/Result';
 import { NotFoundError } from '../../core/errors/AppError';
 
+const base = (
+  id: string,
+  name: string,
+  trade: string,
+  extra: Partial<Craftsman> = {}
+): Craftsman => ({
+  id,
+  name,
+  trade,
+  rating: 4.5,
+  reviewsCount: 100,
+  jobsCount: 120,
+  trustScore: 0.9,
+  status: 'online',
+  accountStatus: 'ACTIVE',
+  billing: {
+    freeTasksRemaining: 0,
+    billingModel: 'SUBSCRIPTION',
+    commissionLocked: false,
+    subscriptionStatus: 'ACTIVE',
+    subscriptionExpiryDate: '2027-01-01T00:00:00.000Z',
+  },
+  isAvailable: true,
+  isVerifiedId: true,
+  joinedDate: '2023-01-01T00:00:00.000Z',
+  idNumber: '+972540000000',
+  responseTimeMin: 15,
+  verifications: {
+    nationalId: true,
+    selfieMatch: true,
+    tradeLicense: true,
+    bankIban: true,
+    backgroundCheck: true,
+    insurance: true,
+  },
+  ...extra,
+});
+
 export class MockCraftsmanRepository implements CraftsmanRepository {
   private craftsmen: Craftsman[] = [
-    {
-      id: '1',
-      name: 'Ahmad Al-Otaibi',
-      trade: 'Electrician',
-      rating: 4.9,
-      reviewsCount: 234,
-      jobsCount: 412,
-      trustScore: 98,
-      status: 'online',
-      isAvailable: true,
-      joinedDate: 'Mar 2023',
-      idNumber: 'CR-1001',
-      responseTimeMin: 2,
-      verifications: {
-        nationalId: true,
-        selfieMatch: true,
-        tradeLicense: true,
-        bankIban: true,
-        backgroundCheck: true,
-        insurance: false,
-      },
-      earnings30Days: 18420,
-      earningsChangePct: 12.4,
-      earningsSparkline: [20, 25, 22, 28, 30, 27, 35, 38, 42],
-    },
-    {
-      id: '2',
-      name: 'Mohammed Al-Zahrani',
-      trade: 'Plumber',
+    base('1', 'Ahmad Al-Otaibi', 'Electrician', { rating: 4.9, trustScore: 0.98 }),
+    base('2', 'Mohammed Al-Zahrani', 'Plumber', {
       rating: 4.8,
-      reviewsCount: 187,
-      jobsCount: 318,
-      trustScore: 95,
+      trustScore: 0.95,
       status: 'offline',
       isAvailable: false,
-      joinedDate: 'Jan 2023',
-      idNumber: 'CR-1002',
-      responseTimeMin: 5,
+      isVerifiedId: false,
       verifications: {
         nationalId: true,
         selfieMatch: true,
@@ -51,120 +62,91 @@ export class MockCraftsmanRepository implements CraftsmanRepository {
         backgroundCheck: true,
         insurance: true,
       },
-      earnings30Days: 12150,
-      earningsChangePct: -3.2,
-      earningsSparkline: [18, 16, 17, 19, 15, 14, 15, 13, 12],
-    },
-    {
-      id: '3',
-      name: 'Saif Al-Qahtani',
-      trade: 'HVAC Technician',
+    }),
+    base('3', 'Saif Al-Qahtani', 'HVAC Technician', {
       rating: 4.7,
-      reviewsCount: 142,
-      jobsCount: 256,
-      trustScore: 92,
-      status: 'busy',
-      isAvailable: true,
-      joinedDate: 'Jun 2023',
-      idNumber: 'CR-1003',
-      responseTimeMin: 12,
-      verifications: {
-        nationalId: true,
-        selfieMatch: true,
-        tradeLicense: true,
-        bankIban: false,
-        backgroundCheck: true,
-        insurance: false,
+      trustScore: 0.92,
+      accountStatus: 'SUSPENDED',
+      status: 'suspended',
+      billing: {
+        freeTasksRemaining: 0,
+        billingModel: 'COMMISSION',
+        commissionLocked: true,
+        subscriptionStatus: 'EXPIRED',
       },
-      earnings30Days: 9800,
-      earningsChangePct: 8.7,
-      earningsSparkline: [10, 12, 11, 13, 12, 14, 15, 16, 18],
-    },
-    {
-      id: '4',
-      name: 'Khalid Al-Ghamdi',
-      trade: 'Carpenter',
+    }),
+    base('4', 'Khalid Al-Ghamdi', 'Carpenter', {
       rating: 4.5,
-      reviewsCount: 98,
-      jobsCount: 174,
-      trustScore: 88,
+      trustScore: 0.88,
       status: 'flagged',
       isAvailable: false,
-      joinedDate: 'Aug 2023',
-      idNumber: 'CR-1004',
-      responseTimeMin: 22,
-      verifications: {
-        nationalId: true,
-        selfieMatch: false,
-        tradeLicense: false,
-        bankIban: true,
-        backgroundCheck: false,
-        insurance: false,
-      },
-      earnings30Days: 6200,
-      earningsChangePct: -14.5,
-      earningsSparkline: [12, 11, 10, 8, 9, 7, 8, 6, 5],
-    }
+    }),
   ];
 
-  public async getCraftsmen(): Promise<Result<Craftsman[]>> {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return ok([...this.craftsmen]);
+  private async delay(): Promise<void> {
+    await new Promise((r) => setTimeout(r, 200));
   }
 
-  public async suspendCraftsman(id: string, _reason?: string): Promise<Result<Craftsman>> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const idx = this.craftsmen.findIndex((c) => c.id === id);
-    if (idx === -1) {
-      return fail(new NotFoundError(`Craftsman with ID ${id} not found`));
-    }
-    this.craftsmen[idx] = {
-      ...this.craftsmen[idx],
-      status: 'suspended',
+  public async getCraftsmen(q: CraftsmenQuery): Promise<Result<CraftsmenResult>> {
+    await this.delay();
+    const needle = (q.q || '').trim().toLowerCase();
+    const rows = this.craftsmen.filter((c) => {
+      if (q.status === 'verified' && !c.isVerifiedId) return false;
+      if (q.status === 'pending' && c.isVerifiedId) return false;
+      if (q.status === 'suspended' && c.accountStatus === 'ACTIVE') return false;
+      if (needle && !`${c.name} ${c.trade} ${c.id}`.toLowerCase().includes(needle)) return false;
+      return true;
+    });
+    const counts = {
+      all: this.craftsmen.length,
+      verified: this.craftsmen.filter((c) => c.isVerifiedId).length,
+      pending: this.craftsmen.filter((c) => !c.isVerifiedId).length,
+      suspended: this.craftsmen.filter((c) => c.accountStatus !== 'ACTIVE').length,
     };
-    return ok(this.craftsmen[idx]);
+    return ok({
+      items: rows.slice((q.page - 1) * q.limit, q.page * q.limit).map((c) => ({ ...c })),
+      total: rows.length,
+      counts,
+    });
   }
 
-  public async unsuspendCraftsman(id: string): Promise<Result<Craftsman>> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const idx = this.craftsmen.findIndex((c) => c.id === id);
-    if (idx === -1) {
-      return fail(new NotFoundError(`Craftsman with ID ${id} not found`));
-    }
-    this.craftsmen[idx] = {
-      ...this.craftsmen[idx],
-      status: 'online',
-    };
-    return ok(this.craftsmen[idx]);
+  private find(id: string): Craftsman | undefined {
+    return this.craftsmen.find((c) => c.id === id);
   }
 
-  public async banCraftsman(id: string): Promise<Result<Craftsman>> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const idx = this.craftsmen.findIndex((c) => c.id === id);
-    if (idx === -1) {
-      return fail(new NotFoundError(`Craftsman with ID ${id} not found`));
-    }
-    this.craftsmen[idx] = {
-      ...this.craftsmen[idx],
-      status: 'suspended', // Or flagged/inactive mapping
-    };
-    return ok(this.craftsmen[idx]);
+  public async suspendCraftsman(id: string): Promise<Result<boolean>> {
+    await this.delay();
+    const c = this.find(id);
+    if (!c) return fail(new NotFoundError('Craftsman not found'));
+    c.accountStatus = 'SUSPENDED';
+    c.status = 'suspended';
+    return ok(true);
   }
 
-  public async toggleVerificationItem(id: string, itemKey: string, approved: boolean): Promise<Result<Craftsman>> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const idx = this.craftsmen.findIndex((c) => c.id === id);
-    if (idx === -1) {
-      return fail(new NotFoundError(`Craftsman with ID ${id} not found`));
-    }
-    this.craftsmen[idx] = {
-      ...this.craftsmen[idx],
-      verifications: {
-        ...this.craftsmen[idx].verifications,
-        [itemKey]: approved,
-      },
-    };
-    return ok(this.craftsmen[idx]);
+  public async unsuspendCraftsman(id: string): Promise<Result<boolean>> {
+    await this.delay();
+    const c = this.find(id);
+    if (!c) return fail(new NotFoundError('Craftsman not found'));
+    c.accountStatus = 'ACTIVE';
+    c.status = c.isAvailable ? 'online' : 'offline';
+    return ok(true);
+  }
+
+  public async banCraftsman(id: string): Promise<Result<boolean>> {
+    await this.delay();
+    const c = this.find(id);
+    if (!c) return fail(new NotFoundError('Craftsman not found'));
+    c.accountStatus = 'BLOCKED';
+    c.status = 'banned';
+    return ok(true);
+  }
+
+  public async toggleVerificationItem(id: string, itemKey: string, approved: boolean): Promise<Result<boolean>> {
+    await this.delay();
+    const c = this.find(id);
+    if (!c) return fail(new NotFoundError('Craftsman not found'));
+    c.verifications = { ...c.verifications, [itemKey]: approved };
+    return ok(true);
   }
 }
 export default MockCraftsmanRepository;

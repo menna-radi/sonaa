@@ -1,209 +1,147 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Craftsman } from '../../../../domain/entities/Craftsman';
 export type { Craftsman };
-
+import type { CraftsmanStatusFilter } from '../../../../domain/repositories/CraftsmanRepository';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
-import { useEffect } from 'react';
+import { queryKeys } from '../../../../core/query/queryKeys';
+import { unwrap } from '../../../../core/query/unwrap';
+import { useAdminMutation } from '../../../../core/query/useAdminMutation';
 
-import { useNavigation } from '../../../../presentation/context/NavigationContext';
+const LIMIT = 20;
+
+function readInitialSearch(): string {
+  try {
+    const v = sessionStorage.getItem('craftsmen_search');
+    if (v) {
+      sessionStorage.removeItem('craftsmen_search');
+      return v;
+    }
+  } catch {
+    // storage unavailable — fall through to empty search
+  }
+  return '';
+}
 
 export const useCraftsmen = () => {
   const { dependencies } = useDependencies();
   const { craftsmanRepository } = dependencies;
-  const { searchQuery, setSearchQuery } = useNavigation();
+  const qc = useQueryClient();
 
-  const [craftsmen, setCraftsmen] = useState<Craftsman[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'verified' | 'pending' | 'suspended'>('all');
+  const [tab, setTabState] = useState<CraftsmanStatusFilter>('all');
+  const [page, setPage] = useState(1);
+  const [search, setSearchState] = useState(readInitialSearch);
   const [selectedId, setSelectedId] = useState<string>('');
 
-  const fetchCraftsmen = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await craftsmanRepository.getCraftsmen();
-      if (result.success) {
-        setCraftsmen(result.data);
-        if (result.data.length > 0) {
-          setSelectedId(result.data[0].id);
-        }
-      } else {
-        setError(result.error.message || 'Failed to fetch craftsmen.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch craftsmen.');
-    } finally {
-      setLoading(false);
-    }
-  }, [craftsmanRepository]);
+  const query = useQuery({
+    queryKey: queryKeys.craftsmen.list({ status: tab, page, search }),
+    queryFn: () =>
+      craftsmanRepository.getCraftsmen({ q: search || undefined, status: tab, page, limit: LIMIT }).then(unwrap),
+    staleTime: 30000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+  });
 
-  useEffect(() => {
-    fetchCraftsmen();
-  }, [fetchCraftsmen]);
+  const rows = query.data?.items ?? [];
+  const total = query.data?.total ?? 0;
+  const counts = query.data?.counts ?? { all: 0, verified: 0, pending: 0, suspended: 0 };
 
-  // Filter and search logic
-  const filteredCraftsmen = useMemo(() => {
-    return craftsmen.filter(craftsman => {
-      // 1. Search filter
-      const matchesSearch =
-        craftsman.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        craftsman.trade.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        craftsman.idNumber.toLowerCase().includes(searchQuery.toLowerCase());
+  // Suspended-tab safety net: server counts (pre-B12) may disagree with the
+  // account statuses on the page — then filter the page client-side.
+  const clientSuspended = rows.filter((c) => c.accountStatus !== 'ACTIVE');
+  const suspendedMismatch = tab === 'suspended' && counts.suspended !== clientSuspended.length;
+  const visibleRows = tab === 'suspended' && suspendedMismatch ? clientSuspended : rows;
 
-      if (!matchesSearch) return false;
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: queryKeys.craftsmen.all });
+    void qc.invalidateQueries({ queryKey: queryKeys.counts });
+  };
 
-      // 2. Tab filter
-      if (activeTab === 'verified') {
-        const isVerified =
-          craftsman.verifications.nationalId ||
-          (craftsman.verifications.selfieMatch && craftsman.verifications.bankIban);
-        return isVerified && craftsman.status !== 'suspended';
-      }
-      if (activeTab === 'pending') {
-        const isVerified =
-          craftsman.verifications.nationalId ||
-          (craftsman.verifications.selfieMatch && craftsman.verifications.bankIban);
-        return !isVerified && craftsman.status !== 'suspended';
-      }
-      if (activeTab === 'suspended') {
-        return craftsman.status === 'suspended';
-      }
+  const setTab = (next: CraftsmanStatusFilter) => {
+    setTabState(next);
+    setPage(1);
+  };
 
-      return true; // 'all'
-    });
-  }, [craftsmen, searchQuery, activeTab]);
+  const setSearch = (next: string) => {
+    setSearchState(next);
+    setPage(1);
+  };
 
-  // Tab counts
-  const tabCounts = useMemo(() => {
-    let allCount = 0;
-    let verifiedCount = 0;
-    let pendingCount = 0;
-    let suspendedCount = 0;
+  const suspendMutation = useAdminMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      craftsmanRepository.suspendCraftsman(id, reason).then(unwrap),
+    invalidate: [queryKeys.craftsmen.all, queryKeys.counts],
+    successKey: 'toast_craftsman_suspended',
+  });
+  const unsuspendMutation = useAdminMutation({
+    mutationFn: (id: string) => craftsmanRepository.unsuspendCraftsman(id).then(unwrap),
+    invalidate: [queryKeys.craftsmen.all, queryKeys.counts],
+    successKey: 'toast_craftsman_unsuspended',
+  });
+  const banMutation = useAdminMutation({
+    mutationFn: (id: string) => craftsmanRepository.banCraftsman(id).then(unwrap),
+    invalidate: [queryKeys.craftsmen.all, queryKeys.counts],
+    successKey: 'toast_craftsman_banned',
+  });
+  const verifyMutation = useAdminMutation({
+    mutationFn: ({ id, itemKey, approved }: { id: string; itemKey: string; approved: boolean }) =>
+      craftsmanRepository.toggleVerificationItem(id, itemKey, approved).then(unwrap),
+    invalidate: [queryKeys.craftsmen.all, queryKeys.counts],
+    silentError: true,
+  });
 
-    craftsmen.forEach(c => {
-      allCount++;
-      const isVerified =
-        c.verifications.nationalId ||
-        (c.verifications.selfieMatch && c.verifications.bankIban);
+  const mutations = {
+    suspend: suspendMutation,
+    unsuspend: unsuspendMutation,
+    ban: banMutation,
+    toggleVerification: verifyMutation,
+  };
 
-      if (c.status === 'suspended') {
-        suspendedCount++;
-      } else if (isVerified) {
-        verifiedCount++;
-      } else {
-        pendingCount++;
-      }
-    });
-
-    return {
-      all: allCount,
-      verified: verifiedCount,
-      pending: pendingCount,
-      suspended: suspendedCount,
-    };
-  }, [craftsmen]);
-
-  // Selected craftsman details
-  const selectedCraftsman = useMemo(() => {
-    return craftsmen.find(c => c.id === selectedId) || craftsmen[0] || null;
-  }, [craftsmen, selectedId]);
-
-  // Actions
-  const suspendCraftsman = useCallback(async (id: string, reason?: string) => {
-    setError(null);
-    try {
-      const result = await craftsmanRepository.suspendCraftsman(id, reason);
-      if (result.success) {
-        setCraftsmen(prev =>
-          prev.map(c => (c.id === id ? result.data : c))
-        );
-      } else {
-        setError(result.error.message || 'Failed to suspend craftsman.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to suspend craftsman.');
-    }
-  }, [craftsmanRepository]);
-
-  const unsuspendCraftsman = useCallback(async (id: string) => {
-    setError(null);
-    try {
-      const result = await craftsmanRepository.unsuspendCraftsman(id);
-      if (result.success) {
-        setCraftsmen(prev =>
-          prev.map(c => (c.id === id ? result.data : c))
-        );
-      } else {
-        setError(result.error.message || 'Failed to unsuspend craftsman.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to unsuspend craftsman.');
-    }
-  }, [craftsmanRepository]);
-
-  const banCraftsman = useCallback(async (id: string) => {
-    setError(null);
-    try {
-      const result = await craftsmanRepository.banCraftsman(id);
-      if (result.success) {
-        setCraftsmen(prev =>
-          prev.map(c => (c.id === id ? result.data : c))
-        );
-      } else {
-        setError(result.error.message || 'Failed to ban craftsman.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to ban craftsman.');
-    }
-  }, [craftsmanRepository]);
-
-  const flagCraftsman = useCallback(async (id: string) => {
-    setCraftsmen(prev =>
-      prev.map(c => (c.id === id ? { ...c, status: 'flagged' } : c))
-    );
-  }, []);
-
-  const unflagCraftsman = useCallback(async (id: string) => {
-    setCraftsmen(prev =>
-      prev.map(c => (c.id === id ? { ...c, status: 'online' } : c))
-    );
-  }, []);
-
-  const approveVerification = useCallback(async (id: string, key: keyof Craftsman['verifications'], approved: boolean = true) => {
-    setError(null);
-    try {
-      const result = await craftsmanRepository.toggleVerificationItem(id, key, approved);
-      if (result.success) {
-        setCraftsmen(prev =>
-          prev.map(c => (c.id === id ? result.data : c))
-        );
-      } else {
-        setError(result.error.message || 'Failed to update verification item.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to update verification item.');
-    }
-  }, [craftsmanRepository]);
+  const selectedCraftsman = visibleRows.find((c) => c.id === selectedId) || visibleRows[0] || null;
 
   return {
-    craftsmen: filteredCraftsmen,
-    loading,
-    error,
-    searchQuery,
-    setSearchQuery,
-    activeTab,
-    setActiveTab,
+    rows: visibleRows,
+    total,
+    counts,
+    suspendedMismatch,
+    loading: query.isLoading,
+    isFetching: query.isFetching,
+    dataUpdatedAt: query.dataUpdatedAt,
+    error: query.error,
+    refetch: query.refetch,
+    page,
+    setPage,
+    search,
+    setSearch,
+    tab,
+    setTab,
+    mutations,
+    // ---- Deprecated aliases (removed in T-F061) ----
+    craftsmen: visibleRows,
+    searchQuery: search,
+    setSearchQuery: setSearch,
+    activeTab: tab,
+    setActiveTab: setTab,
     selectedId,
     setSelectedId,
     selectedCraftsman,
-    tabCounts,
-    suspendCraftsman,
-    unsuspendCraftsman,
-    banCraftsman,
-    flagCraftsman,
-    unflagCraftsman,
-    approveVerification,
-    refresh: fetchCraftsmen,
+    tabCounts: counts,
+    refresh: () => {
+      invalidate();
+    },
+    suspendCraftsman: async (id: string, reason?: string): Promise<void> => {
+      await suspendMutation.mutateAsync({ id, reason });
+    },
+    unsuspendCraftsman: async (id: string): Promise<void> => {
+      await unsuspendMutation.mutateAsync(id);
+    },
+    banCraftsman: async (id: string): Promise<void> => {
+      await banMutation.mutateAsync(id);
+    },
+    approveVerification: async (id: string, key: keyof Craftsman['verifications'], approved = true): Promise<void> => {
+      await verifyMutation.mutateAsync({ id, itemKey: key, approved });
+    },
   };
 };
+
+export default useCraftsmen;

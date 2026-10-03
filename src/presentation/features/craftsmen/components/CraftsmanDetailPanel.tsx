@@ -10,10 +10,8 @@ import {
   ConfirmDialog,
   useToast,
 } from '../../../components/ui';
-import { Sparkline } from '../../../components/charts';
 import { CraftsmanActions } from './CraftsmanActions';
-import { formatMoney } from '../../../../core/utils/format';
-import { MoreHorizontal, Copy, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Copy } from 'lucide-react';
 
 interface CraftsmanDetailPanelProps {
   craftsman: Craftsman | null;
@@ -73,8 +71,8 @@ export const CraftsmanDetailPanel: React.FC<CraftsmanDetailPanelProps> = ({
       await onToggleVerification(craftsman.id, confirmKey, !current);
       success(`${confirmKey} status updated for ${craftsman.name}.`);
       setConfirmKey(null);
-    } catch (err: any) {
-      error(err?.message || 'Failed to update verification status.');
+    } catch (err: unknown) {
+      error(err instanceof Error ? err.message : 'Failed to update verification status.');
     } finally {
       setToggleLoading(false);
     }
@@ -214,26 +212,6 @@ export const CraftsmanDetailPanel: React.FC<CraftsmanDetailPanelProps> = ({
           })}
         </div>
       </div>
-
-      {/* 4. Earnings Card (Render ONLY if API provides real earnings) */}
-      {typeof craftsman.earnings30Days === 'number' && (
-        <Card variant="inverse" style={{ padding: 'var(--sp-3)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <span style={{ fontSize: 'var(--fs-caption)', opacity: 0.8 }}>Earnings · Last 30 days</span>
-            <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--success)', fontWeight: 700 }}>
-              {craftsman.earningsChangePct ? `+${craftsman.earningsChangePct}%` : ''}
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <span style={{ fontSize: 'var(--fs-card-title)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-              {formatMoney(craftsman.earnings30Days)}
-            </span>
-            {craftsman.earningsSparkline && (
-              <Sparkline data={craftsman.earningsSparkline} color="var(--on-inverse)" width={100} height={24} />
-            )}
-          </div>
-        </Card>
-      )}
 
       {/* 5. Actions Row */}
       <div style={{ marginTop: 'auto', paddingTop: 'var(--sp-3)', borderTop: '1px solid var(--border-subtle)' }}>

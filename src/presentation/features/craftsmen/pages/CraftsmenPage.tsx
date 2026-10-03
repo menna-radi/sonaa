@@ -88,7 +88,7 @@ export const CraftsmenPage: React.FC = () => {
       {error && (
         <AlertBanner
           title="Craftsmen Data Error"
-          body={error}
+          body={error.message}
           icon={<AlertTriangle size={18} />}
         />
       )}
