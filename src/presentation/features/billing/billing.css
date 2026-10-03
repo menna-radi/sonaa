@@ -16,3 +16,13 @@
 /* Subscriber modals */
 .billing-chip { border: 1px solid var(--border); background: var(--surface-card); color: var(--text-strong); border-radius: var(--radius-full); padding: 6px 14px; font-size: var(--fs-small); cursor: pointer; min-height: 36px; }
 .billing-chip--active { border-color: var(--text-strong); font-weight: 700; }
+
+/* Plans */
+.billing-plan-price { font-size: var(--fs-card-title); font-weight: 700; color: var(--text-strong); }
+.billing-plan-features { margin: 0; padding-inline-start: var(--sp-4); display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-small); color: var(--text-body); }
+.billing-plan-form { display: grid; gap: var(--sp-4); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 768px) { .billing-plan-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.billing-plan-preview { min-width: 0; }
+.billing-switch { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-small); color: var(--text-strong); cursor: pointer; min-height: 36px; }
+.billing-switch input { width: 18px; height: 18px; accent-color: var(--text-strong); }
+.billing-switch__track { display: none; }

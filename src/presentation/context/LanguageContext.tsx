@@ -2806,6 +2806,121 @@ export const translations: TranslationDict = {
     ar: 'تم تحديث المهام المجانية.',
     he: 'משימות חינם עודכנו.'
   },
+  plans_new: {
+    en: 'New plan',
+    ar: 'باقة جديدة',
+    he: 'חבילה חדשה'
+  },
+  plans_edit: {
+    en: 'Edit plan',
+    ar: 'تعديل الباقة',
+    he: 'ערוך חבילה'
+  },
+  plans_delete_title: {
+    en: 'Delete this plan?',
+    ar: 'حذف هذه الباقة؟',
+    he: 'למחוק חבילה זו?'
+  },
+  plans_delete_body: {
+    en: 'Prefer Deactivate: hiding keeps history for existing subscribers. Delete removes the plan permanently.',
+    ar: 'يُفضَّل التعطيل: الإخفاء يحافظ على السجل للمشتركين الحاليين. الحذف يزيل الباقة نهائيًا.',
+    he: 'עדיף לבטל הפעלה: הסתרה שומרת היסטוריה למנויים קיימים. מחיקה מסירה את החבילה לצמיתות.'
+  },
+  plans_deactivate: {
+    en: 'Deactivate',
+    ar: 'تعطيل',
+    he: 'בטל הפעלה'
+  },
+  plans_activate: {
+    en: 'Activate',
+    ar: 'تفعيل',
+    he: 'הפעל'
+  },
+  plans_popular: {
+    en: 'Popular',
+    ar: 'الأكثر طلبًا',
+    he: 'פופולרי'
+  },
+  plans_inactive: {
+    en: 'Inactive',
+    ar: 'غير نشطة',
+    he: 'לא פעילה'
+  },
+  plans_active: {
+    en: 'Active',
+    ar: 'نشطة',
+    he: 'פעילה'
+  },
+  plans_key: {
+    en: 'Plan key',
+    ar: 'مفتاح الباقة',
+    he: 'מפתח חבילה'
+  },
+  plans_name_en: {
+    en: 'Name (English)',
+    ar: 'الاسم (الإنجليزية)',
+    he: 'שם (אנגלית)'
+  },
+  plans_name_ar: {
+    en: 'Name (Arabic)',
+    ar: 'الاسم (العربية)',
+    he: 'שם (ערבית)'
+  },
+  plans_duration: {
+    en: 'Duration (months)',
+    ar: 'المدة (بالأشهر)',
+    he: 'משך (חודשים)'
+  },
+  plans_price: {
+    en: 'Price (₪)',
+    ar: 'السعر (₪)',
+    he: 'מחיר (₪)'
+  },
+  plans_features_en: {
+    en: 'Features (English, one per line)',
+    ar: 'المميزات (الإنجليزية، واحدة في كل سطر)',
+    he: 'תכונות (אנגלית, אחת לשורה)'
+  },
+  plans_features_ar: {
+    en: 'Features (Arabic, one per line)',
+    ar: 'المميزات (العربية، واحدة في كل سطر)',
+    he: 'תכונות (ערבית, אחת לשורה)'
+  },
+  billing_delete: {
+    en: 'Delete',
+    ar: 'حذف',
+    he: 'מחק'
+  },
+  billing_plan_subscribers: {
+    en: 'subscribers',
+    ar: 'مشتركون',
+    he: 'מנויים'
+  },
+  billing_plan_pending: {
+    en: 'pending',
+    ar: 'معلقة',
+    he: 'ממתין'
+  },
+  empty_plans: {
+    en: 'No subscription plans yet',
+    ar: 'لا توجد باقات اشتراك بعد',
+    he: 'אין עדיין חבילות מנוי'
+  },
+  err_plan_in_use: {
+    en: 'This plan cannot be deleted because subscriptions use it. Deactivate it instead.',
+    ar: 'لا يمكن حذف هذه الباقة لأن اشتراكات تستخدمها. عطّلها بدلًا من ذلك.',
+    he: 'לא ניתן למחוק חבילה זו כי מנויים משתמשים בה. בטל את ההפעלה במקום.'
+  },
+  toast_plan_saved: {
+    en: 'Plan saved.',
+    ar: 'تم حفظ الباقة.',
+    he: 'החבילה נשמרה.'
+  },
+  toast_plan_deleted: {
+    en: 'Plan deleted.',
+    ar: 'تم حذف الباقة.',
+    he: 'החבילה נמחקה.'
+  },
   billing_ledger_filter_due: {
     en: 'Due',
     ar: 'مستحقة',

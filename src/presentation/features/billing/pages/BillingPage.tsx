@@ -8,6 +8,7 @@ import { BillingKpis } from '../components/BillingKpis';
 import { ReceiptsTab } from '../components/ReceiptsTab';
 import { CommissionTab } from '../components/CommissionTab';
 import { SubscribersTab } from '../components/SubscribersTab';
+import { PlansTab } from '../components/PlansTab';
 import { RefreshCw } from 'lucide-react';
 import '../billing.css';
 
@@ -84,6 +85,8 @@ export const BillingPage: React.FC = () => {
         <CommissionTab />
       ) : tab === 'subscribers' ? (
         <SubscribersTab />
+      ) : tab === 'plans' ? (
+        <PlansTab />
       ) : (
         <EmptyState title={t('coming_soon')} />
       )}
