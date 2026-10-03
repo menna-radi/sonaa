@@ -5176,7 +5176,13 @@ export const translations: TranslationDict = {
   nav_sidebar_aria: { en: 'Sidebar navigation', ar: 'التنقل في الشريط الجانبي', he: 'ניווט סרגל צד' },
   brand_operations: { en: 'Operations', ar: 'العمليات', he: 'תפעול' },
   nav_main_aria: { en: 'Main Navigation', ar: 'التنقل الرئيسي', he: 'ניווט ראשי' },
-  badge_live: { en: 'Live', ar: 'مباشر', he: 'חי' }
+  badge_live: { en: 'Live', ar: 'مباشر', he: 'חי' },
+  confirm_reason_label: { en: 'Reason for audit log (required)', ar: 'سبب العملية لسجل التدقيق (مطلوب)', he: 'סיבה ליומן ביקורת (חובה)' },
+  confirm_reason_ph: { en: 'Explain the rationale for this action...', ar: 'اشرح سبب اتخاذ هذا الإجراء...', he: 'הסבר את הרציונל לפעולה זו...' },
+  confirm_reason_error: { en: 'Please provide a reason before proceeding.', ar: 'يرجى تقديم سبب قبل المتابعة.', he: 'אנא ספק סיבה לפני שתמשיך.' }
+,
+  btn_confirm: { en: 'Confirm', ar: 'تأكيد', he: 'אישור' },
+  btn_back: { en: 'Back', ar: 'رجوع', he: 'חזרה' }
 };
 
 

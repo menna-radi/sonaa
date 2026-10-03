@@ -27,3 +27,5 @@ export * from './PageHeader';
 export * from './FormModal';
 export * from './KeyValueList';
 export * from './ProofViewer';
+export * from './useFocusTrap';
+

@@ -1,8 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useRef } from 'react';
+import React, { createContext, useContext, useState, useRef, useId } from 'react';
 import { Modal } from './Modal';
 import { Button, ButtonVariant } from './Button';
 import { TextArea, TextField } from './FormFields';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface ConfirmOptions {
   title: string;
@@ -30,6 +31,8 @@ interface ConfirmContextType {
 const ConfirmContext = createContext<ConfirmContextType | undefined>(undefined);
 
 export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { t } = useLanguage();
+  const reasonErrorId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [options, setOptions] = useState<ConfirmOptions>({ title: '', body: '' });
   const [reason, setReason] = useState('');
@@ -59,7 +62,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const handleConfirm = () => {
     if (options.requireReason && !reason.trim()) {
-      setReasonError('Please provide a reason before proceeding.');
+      setReasonError(t('confirm_reason_error') || 'Please provide a reason before proceeding.');
       return;
     }
     if (confirmBlocked) return;
@@ -89,10 +92,10 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
         footer={
           <>
             <Button variant="outline" onClick={handleCancel}>
-              {options.cancelLabel || 'Cancel'}
+              {options.cancelLabel || t('btn_cancel') || 'Cancel'}
             </Button>
             <Button variant={getConfirmButtonVariant()} onClick={handleConfirm} disabled={confirmBlocked}>
-              {options.confirmLabel || 'Confirm'}
+              {options.confirmLabel || t('btn_confirm') || 'Confirm'}
             </Button>
           </>
         }
@@ -113,14 +116,16 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
           {options.requireReason && (
             <TextArea
-              label="Reason for audit log (required)"
-              placeholder={options.reasonPlaceholder || 'Explain the rationale for this action...'}
+              label={t('confirm_reason_label') || 'Reason for audit log (required)'}
+              placeholder={options.reasonPlaceholder || t('confirm_reason_ph') || 'Explain the rationale for this action...'}
               value={reason}
               onChange={(e) => {
                 setReason(e.target.value);
                 if (reasonError) setReasonError('');
               }}
               error={reasonError}
+              aria-invalid={reasonError ? true : undefined}
+              aria-describedby={reasonError ? reasonErrorId : undefined}
               sunken
             />
           )}

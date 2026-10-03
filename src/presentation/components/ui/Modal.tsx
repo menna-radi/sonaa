@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { IconButton } from './Button';
 import { useLanguage } from '../../context/LanguageContext';
+import { useFocusTrap } from './useFocusTrap';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -26,10 +27,16 @@ export const Modal: React.FC<ModalProps> = ({
   className = '',
 }) => {
   const { t } = useLanguage();
+  const titleId = useId();
   const modalRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(modalRef, isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !preventClose) {
@@ -38,7 +45,10 @@ export const Modal: React.FC<ModalProps> = ({
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, onClose, preventClose]);
 
   if (!isOpen) return null;
@@ -62,13 +72,14 @@ export const Modal: React.FC<ModalProps> = ({
         ref={modalRef}
         role="dialog"
         aria-modal="true"
-        aria-label={typeof title === 'string' ? title : 'Dialog'}
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={!title ? 'Dialog' : undefined}
         className={`ui-modal ${className}`}
         style={{ maxWidth: maxWidthMap[size] }}
       >
         {title && (
           <div className="ui-modal__header">
-            <div className="ui-modal__title">{title}</div>
+            <div className="ui-modal__title" id={titleId}>{title}</div>
             {!preventClose && (
               <IconButton
                 aria-label={t('btn_close')}

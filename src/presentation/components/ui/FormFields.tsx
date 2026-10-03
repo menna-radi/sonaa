@@ -72,7 +72,7 @@ export const TextArea: React.FC<TextAreaProps> = ({
         style={error ? { borderColor: 'var(--danger)' } : undefined}
         {...props}
       />
-      {error && <span className="ui-input-error">{error}</span>}
+      {error && <span className="ui-input-error" id={props['aria-describedby']}>{error}</span>}
     </div>
   );
 };

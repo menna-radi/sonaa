@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ArrowLeft } from 'lucide-react';
 import { IconButton, Button } from './Button';
 import { useLanguage } from '../../context/LanguageContext';
+import { useFocusTrap } from './useFocusTrap';
 
 export interface DrawerProps {
   isOpen: boolean;
@@ -31,16 +32,27 @@ export const Drawer: React.FC<DrawerProps> = ({
   className = '',
 }) => {
   const { t } = useLanguage();
+  const titleId = useId();
+  const drawerRef = useRef<HTMLDivElement>(null);
   const resolvedWidth = width ?? (size === 'sm' ? 320 : size === 'lg' ? 600 : 440);
+
+  useFocusTrap(drawerRef, isOpen);
+
   useEffect(() => {
     if (!isOpen) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -49,9 +61,11 @@ export const Drawer: React.FC<DrawerProps> = ({
     <>
       <div className="ui-drawer-backdrop" onClick={onClose} />
       <div
+        ref={drawerRef}
         role="dialog"
         aria-modal="true"
-        aria-label={typeof title === 'string' ? title : 'Drawer'}
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={!title ? 'Drawer' : undefined}
         className={`ui-drawer ${className}`}
         style={{ width: resolvedWidth }}
       >
@@ -68,7 +82,7 @@ export const Drawer: React.FC<DrawerProps> = ({
               </Button>
             )}
             <div>
-              {title && <div className="ui-modal__title">{title}</div>}
+              {title && <div className="ui-modal__title" id={titleId}>{title}</div>}
               {subtitle && (
                 <div style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)' }}>
                   {subtitle}

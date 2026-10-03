@@ -1162,3 +1162,88 @@
 .ui-clamp-1         { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ui-scroll-x        { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .ui-center          { display: flex; align-items: center; justify-content: center; }
+
+/* --------------------------------------------------------------------------
+   Dropdown Menu
+   -------------------------------------------------------------------------- */
+.ui-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.ui-dropdown__trigger {
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.ui-dropdown__menu {
+  position: absolute;
+  top: 100%;
+  margin-top: 4px;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-pop);
+  min-width: 160px;
+  padding: 4px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ui-dropdown__menu--end {
+  inset-inline-end: 0;
+  inset-inline-start: auto;
+}
+
+.ui-dropdown__menu--start {
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+}
+
+.ui-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: none;
+  color: var(--text-strong);
+  font-size: var(--fs-small);
+  font-weight: 500;
+  text-align: start;
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.ui-dropdown__item:hover:not(:disabled),
+.ui-dropdown__item:focus-visible:not(:disabled),
+.ui-dropdown__item.is-focused:not(:disabled) {
+  background-color: var(--surface-hover);
+}
+
+.ui-dropdown__item--danger {
+  color: var(--danger);
+}
+
+.ui-dropdown__item--danger:hover:not(:disabled),
+.ui-dropdown__item--danger:focus-visible:not(:disabled),
+.ui-dropdown__item--danger.is-focused:not(:disabled) {
+  background-color: var(--surface-hover);
+  color: var(--danger);
+}
+
+.ui-dropdown__item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-dropdown__item-icon {
+  display: flex;
+  align-items: center;
+}
+
