@@ -200,14 +200,14 @@ export const translations: TranslationDict = {
     he: 'ניהול שירותים'
   },
   payments_title: {
-    en: 'Payments & Subscriptions',
-    ar: 'المدفوعات والاشتراكات',
-    he: 'תשלומים ומנויים'
+    en: 'Payouts & Revenue',
+    ar: 'العوائد والإيرادات',
+    he: 'תשלומים והכנסות'
   },
   payments_subtitle: {
-    en: 'Revenue · commission · payouts · subscriptions',
-    ar: 'الإيرادات · العمولة · المدفوعات · الاشتراكات',
-    he: 'הכנסות · עמלות · תשלומים · מנויים'
+    en: 'Platform revenue and craftsman withdrawals',
+    ar: 'إيرادات المنصة وسحوبات الحرفيين',
+    he: 'הכנסות הפלטפורמה ומשיכות בעלי מקצוע'
   },
   payments_gmv_mtd: {
     en: 'GMV (MTD)',
@@ -2246,6 +2246,11 @@ export const translations: TranslationDict = {
     ar: 'مدفوع',
     he: 'שולם'
   },
+  status_pending: {
+    en: 'Pending',
+    ar: 'معلق',
+    he: 'ממתין'
+  },
   status_error_title: {
     en: 'Could not load data',
     ar: 'تعذر تحميل البيانات',
@@ -2805,6 +2810,106 @@ export const translations: TranslationDict = {
     en: 'Free tasks updated.',
     ar: 'تم تحديث المهام المجانية.',
     he: 'משימות חינם עודכנו.'
+  },
+  payments_revenue_title: {
+    en: 'Revenue',
+    ar: 'الإيرادات',
+    he: 'הכנסות'
+  },
+  payments_kpi_gmv: {
+    en: 'GMV (MTD)',
+    ar: 'إجمالي القيمة (شهريًا)',
+    he: 'GMV (חודשי)'
+  },
+  payments_kpi_net: {
+    en: 'Net revenue (MTD)',
+    ar: 'صافي الإيرادات (شهريًا)',
+    he: 'הכנסות נטו (חודשי)'
+  },
+  payments_kpi_take_rate: {
+    en: 'Take rate',
+    ar: 'معدل العمولة',
+    he: 'שיעור עמלה'
+  },
+  payments_kpi_mrr: {
+    en: 'MRR',
+    ar: 'الإيراد الشهري المتكرر',
+    he: 'הכנסות חודשיות'
+  },
+  payments_kpi_pending_payouts: {
+    en: 'Pending payouts',
+    ar: 'مدفوعات معلقة',
+    he: 'תשלומים ממתינים'
+  },
+  withdrawals_tab_pending: {
+    en: 'Pending',
+    ar: 'معلقة',
+    he: 'ממתין'
+  },
+  withdrawals_tab_completed: {
+    en: 'Completed',
+    ar: 'مكتملة',
+    he: 'הושלם'
+  },
+  withdrawals_tab_failed: {
+    en: 'Failed',
+    ar: 'فاشلة',
+    he: 'נכשל'
+  },
+  withdrawals_col_method: {
+    en: 'Method',
+    ar: 'الطريقة',
+    he: 'אמצעי'
+  },
+  withdrawals_approve_body: {
+    en: 'Confirm you transferred {amount} to {method}.',
+    ar: 'أكد أنك حوّلت {amount} إلى {method}.',
+    he: 'אשר שהעברת {amount} אל {method}.'
+  },
+  withdrawals_reject_body: {
+    en: 'The amount returns to the craftsman balance.',
+    ar: 'يعود المبلغ إلى رصيد الحرفي.',
+    he: 'הסכום חוזר ליתרת בעל המקצוע.'
+  },
+  withdrawals_retry_title: {
+    en: 'Retry this withdrawal?',
+    ar: 'إعادة محاولة هذا السحب؟',
+    he: 'לנסות שוב משיכה זו?'
+  },
+  withdrawals_retry_body: {
+    en: 'Retrying re-opens the request. Check that the amount was not already returned to the balance.',
+    ar: 'إعادة المحاولة تفتح الطلب من جديد. تحقق من عدم إعادة المبلغ إلى الرصيد مسبقًا.',
+    he: 'ניסיון חוזר פותח את הבקשה מחדש. ודא שהסכום לא הוחזר כבר ליתרה.'
+  },
+  withdrawals_retry: {
+    en: 'Retry',
+    ar: 'إعادة المحاولة',
+    he: 'נסה שוב'
+  },
+  empty_withdrawals: {
+    en: 'No withdrawal requests',
+    ar: 'لا توجد طلبات سحب',
+    he: 'אין בקשות משיכה'
+  },
+  btn_export_csv: {
+    en: 'Export CSV',
+    ar: 'تصدير CSV',
+    he: 'ייצוא CSV'
+  },
+  toast_withdrawal_approved: {
+    en: 'Withdrawal approved.',
+    ar: 'تمت الموافقة على السحب.',
+    he: 'המשיכה אושרה.'
+  },
+  toast_withdrawal_rejected: {
+    en: 'Withdrawal rejected.',
+    ar: 'تم رفض السحب.',
+    he: 'המשיכה נדחתה.'
+  },
+  toast_withdrawal_retried: {
+    en: 'Withdrawal re-queued.',
+    ar: 'أُعيد السحب إلى القائمة.',
+    he: 'המשיכה הוחזרה לתור.'
   },
   plans_new: {
     en: 'New plan',

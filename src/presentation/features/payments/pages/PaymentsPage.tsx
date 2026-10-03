@@ -1,134 +1,91 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Download, RefreshCw } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { usePayments } from '../hooks/usePayments';
+import { usePaymentSummary, useWithdrawals } from '../hooks/usePayments';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
-import { Segmented } from '../../../components/ui/Segmented';
-import { EmptyState } from '../../../components/ui/EmptyState';
+import { ErrorState } from '../../../components/ui/EmptyState';
+import { Skeleton } from '../../../components/ui/Skeleton';
 import { PaymentsKpis } from '../components/PaymentsKpis';
-import { RevenueChart } from '../../dashboard/components/RevenueChart';
-import { BitSubscriptionManager } from '../components/BitSubscriptionManager';
 import { PayoutsTable } from '../components/PayoutsTable';
+import { RevenueChart } from '../../dashboard/components/RevenueChart';
+import { formatRelativeTime } from '../../../../core/utils/format';
+import { toCsv, downloadCsv } from '../../../../core/utils/csv';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../../../core/query/queryKeys';
+import '../payments.css';
+import '../payments.css';
 
 export const PaymentsPage: React.FC = () => {
-  const { t, isRtl } = useLanguage();
-  const {
-    summary,
-    failedTransactions,
-    withdrawalRequests,
-    loading,
-    error,
-    retryingId,
-    refresh,
-    onRetry,
-    onApprove,
-    onReject,
-  } = usePayments();
+  const { t, language } = useLanguage();
+  const qc = useQueryClient();
+  const summaryQ = usePaymentSummary();
+  // CSV export covers the current withdrawals view (first page, pending).
+  const exportQ = useWithdrawals({ status: 'PENDING', page: 1, limit: 100 });
 
-  const [timeFilter, setTimeFilter] = useState<'7d' | '30d' | '90d' | 'ytd'>('30d');
+  const summary = summaryQ.data ?? null;
+  const loading = summaryQ.isLoading;
+  const error = summaryQ.error ? summaryQ.error.message : null;
+
+  const refresh = () => {
+    void qc.invalidateQueries({ queryKey: queryKeys.payments.all });
+  };
 
   const handleExportCSV = () => {
-    const csvRows = [
-      ['ID', 'User', 'Type', 'Amount (ILS)', 'Status', 'Date'],
-      ...withdrawalRequests.map((p: any) => [
-        p.id,
-        p.craftsmanName || p.recipient,
-        p.type || 'Payout',
-        String(p.amount),
-        p.status,
-        p.requestedDate || 'Recent',
-      ]),
+    const rows: (string | number | null)[][] = [
+      ['ID', 'Craftsman', 'Method', 'Amount (ILS)', 'Status', 'Requested'],
+      ...(exportQ.data?.items ?? []).map((w) => [w.id, w.craftsmanName, w.method, w.amount, w.status, w.createdAt]),
     ];
-    const csvContent = 'data:text/csv;charset=utf-8,' + csvRows.map((e) => e.join(',')).join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `sonaa_payments_${timeFilter}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsv('sonaa_payouts.csv', toCsv(rows));
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--sp-4)',
-        direction: isRtl ? 'rtl' : 'ltr',
-      }}
-    >
+    <div className="ui-page">
       <PageHeader
-        title={t('payments_title') || 'Payments & Subscriptions'}
-        subtitle={
-          t('payments_subtitle') ||
-          'Revenue telemetry, Bit subscription verifications, commission ledger, and craftsman payouts'
+        title={t('payments_title')}
+        subtitle={t('payments_subtitle')}
+        meta={
+          summaryQ.dataUpdatedAt
+            ? `${t('updated')} ${formatRelativeTime(summaryQ.dataUpdatedAt, language)}`
+            : undefined
         }
         actions={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-            <Segmented
-              value={timeFilter}
-              onChange={(v) => setTimeFilter(v as any)}
-              items={[
-                { value: '7d', label: '7D' },
-                { value: '30d', label: '30D' },
-                { value: '90d', label: '90D' },
-                { value: 'ytd', label: 'YTD' },
-              ]}
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              icon={<Download size={14} />}
-              onClick={handleExportCSV}
-            >
-              {t('btn_export') || 'Export CSV'}
+          <>
+            <Button variant="outline" size="sm" icon={<Download size={14} />} onClick={handleExportCSV}>
+              {t('btn_export_csv')}
             </Button>
-          </div>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<RefreshCw size={14} />}
+              loading={summaryQ.isFetching}
+              onClick={refresh}
+            >
+              {t('btn_refresh')}
+            </Button>
+          </>
         }
       />
-
-      {loading ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 300,
-            flexDirection: 'column',
-            gap: 'var(--sp-3)',
-          }}
-        >
-          <RefreshCw className="animate-spin" size={32} style={{ color: 'var(--primary)' }} />
-          <span style={{ fontSize: 'var(--text-sm)', color: 'var(--on-surface-subtle)' }}>
-            {t('status_loading') || 'Loading telemetry data...'}
-          </span>
+      {error ? (
+        <ErrorState title={t('status_error_title')} message={error} onRetry={refresh} retryLabel={t('btn_retry')} />
+      ) : loading ? (
+        <div className="ui-stack">
+          <div className="ui-kpi-grid ui-kpi-grid--4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} variant="card" height={120} />
+            ))}
+          </div>
+          <Skeleton variant="card" height={320} />
         </div>
-      ) : error ? (
-        <EmptyState
-          title="Telemetry Data Unavailable"
-          description={error}
-          action={<Button variant="outline" onClick={refresh}>Retry</Button>}
-        />
       ) : (
         <>
-          <PaymentsKpis summary={summary} loading={loading} />
-
-          <RevenueChart />
-
-          <BitSubscriptionManager onRefreshNeeded={refresh} />
-
-          <PayoutsTable
-            failedTransactions={failedTransactions}
-            withdrawalRequests={withdrawalRequests}
-            retryingId={retryingId}
-            onRetry={onRetry}
-            onApprove={onApprove}
-            onReject={onReject}
-          />
+          <PaymentsKpis summary={summary} />
+          <RevenueChart summary={summary ?? undefined} />
+          <PayoutsTable />
         </>
       )}
     </div>
   );
 };
+
+export default PaymentsPage;

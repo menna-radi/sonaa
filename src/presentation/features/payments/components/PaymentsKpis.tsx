@@ -1,8 +1,8 @@
 import React from 'react';
-import { DollarSign, TrendingUp, Percent, Clock } from 'lucide-react';
+import { DollarSign, TrendingUp, Percent, Clock, Wallet } from 'lucide-react';
 import { KpiCard } from '../../../components/ui/KpiCard';
 import { formatMoney } from '../../../../core/utils/format';
-import { PaymentSummary } from '../../../../domain/entities/Payment';
+import type { PaymentSummary } from '../../../../domain/entities/Payment';
 import { useLanguage } from '../../../context/LanguageContext';
 
 interface PaymentsKpisProps {
@@ -13,52 +13,46 @@ interface PaymentsKpisProps {
 export const PaymentsKpis: React.FC<PaymentsKpisProps> = ({ summary, loading = false }) => {
   const { t, language } = useLanguage();
 
-  const gmv = summary ? formatMoney(summary.gmvMtd, 'ILS', language) : '—';
-  const net = summary ? formatMoney(summary.netRevenue, 'ILS', language) : '—';
-  const takeRate = summary ? `${summary.takeRate}%` : '—';
-  const pending = summary ? formatMoney(summary.pendingPayouts, 'ILS', language) : '—';
-
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: 'var(--sp-4)',
-        width: '100%',
-      }}
-    >
+    <div className="ui-kpi-grid ui-kpi-grid--4">
       <KpiCard
         icon={<DollarSign size={16} />}
-        label={t('payments_gmv_mtd') || 'GMV (MTD)'}
-        value={gmv}
-        delta={summary?.gmvChangePct}
+        label={t('payments_kpi_gmv')}
+        value={summary ? formatMoney(summary.gmvMtd, 'ILS', language) : '—'}
+        delta={summary?.gmvChangePct ?? null}
         loading={loading}
       />
       <KpiCard
         icon={<TrendingUp size={16} />}
-        label={t('payments_net_revenue') || 'Net Revenue'}
-        value={net}
-        delta={summary?.revenueChangePct}
+        label={t('payments_kpi_net')}
+        value={summary ? formatMoney(summary.netRevenue, 'ILS', language) : '—'}
+        delta={summary?.revenueChangePct ?? null}
         loading={loading}
       />
       <KpiCard
         icon={<Percent size={16} />}
-        label={t('payments_take_rate') || 'Take Rate'}
-        value={takeRate}
-        delta={summary?.takeRateChangePct}
+        label={t('payments_kpi_take_rate')}
+        value={summary ? `${summary.takeRate}%` : '—'}
+        delta={summary?.takeRateChangePct ?? null}
         loading={loading}
       />
       <KpiCard
-        icon={<Clock size={16} />}
-        label={t('payments_pending_payouts') || 'Pending Payouts'}
-        value={pending}
-        caption={
-          summary
-            ? `${summary.pendingCraftsmenCount} ${t('payments_craftsmen_count') || 'craftsmen'}`
-            : undefined
-        }
+        icon={<Wallet size={16} />}
+        label={t('payments_kpi_mrr')}
+        value={summary ? formatMoney(summary.mrr, 'ILS', language) : '—'}
         loading={loading}
       />
+      {summary && summary.pendingPayouts > 0 && (
+        <KpiCard
+          icon={<Clock size={16} />}
+          label={t('payments_kpi_pending_payouts')}
+          value={formatMoney(summary.pendingPayouts, 'ILS', language)}
+          caption={`${summary.pendingCraftsmenCount} ${t('payments_craftsmen_count')}`}
+          loading={loading}
+        />
+      )}
     </div>
   );
 };
+
+export default PaymentsKpis;

@@ -1,104 +1,58 @@
-/* eslint-disable react-hooks/set-state-in-effect -- pre-existing fetch loop, replaced by TanStack Query in T-F039 */
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useDependencies } from '../../../../core/di/DependencyProvider';
-import type {
-  PaymentSummary,
-  SubscriptionPlan,
-  FailedTransaction,
-  LegacyWithdrawalRequest as WithdrawalRequest,
-} from '../../../../domain/repositories/PaymentRepository';
+import { queryKeys } from '../../../../core/query/queryKeys';
+import { unwrap } from '../../../../core/query/unwrap';
+import { useAdminMutation } from '../../../../core/query/useAdminMutation';
+import type { WithdrawalQuery } from '../../../../domain/entities/Payment';
 
-export const usePayments = () => {
-  const { dependencies } = useDependencies();
-  const { paymentRepository } = dependencies;
-
-  const [summary, setSummary] = useState<PaymentSummary | null>(null);
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [failedTransactions, setFailedTransactions] = useState<FailedTransaction[]>([]);
-  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryingId, setRetryingId] = useState<string | null>(null);
-
-  const loadPaymentsData = useCallback(async (showLoader = false) => {
-    if (showLoader && !summary) {
-      setLoading(true);
-    }
-    try {
-      const [summaryRes, plansRes, failedRes, withdrawalRes] = await Promise.all([
-        paymentRepository.getPaymentSummary(),
-        paymentRepository.getSubscriptionPlans(),
-        paymentRepository.getFailedTransactions(),
-        paymentRepository.getWithdrawalRequests()
-      ]);
-
-      if (summaryRes.success && plansRes.success && failedRes.success && withdrawalRes.success) {
-        setSummary(summaryRes.data);
-        setPlans(plansRes.data);
-        setFailedTransactions(failedRes.data);
-        setWithdrawalRequests(withdrawalRes.data);
-        setError(null);
-      }
-    } catch (err: unknown) {
-      console.error('Failed to load payments data:', err);
-    } finally {
-      if (showLoader) {
-        setLoading(false);
-      }
-    }
-  }, [paymentRepository, summary]);
-
-  const handleRetry = useCallback(async (id: string) => {
-    setRetryingId(id);
-    try {
-      const result = await paymentRepository.retryTransaction(id);
-      if (result.success && result.data) {
-        const failedRes = await paymentRepository.getFailedTransactions();
-        if (failedRes.success) {
-          setFailedTransactions(failedRes.data);
-        }
-      }
-    } catch (err: unknown) {
-      console.error(`Failed to retry transaction ${id}:`, err);
-    } finally {
-      setRetryingId(null);
-    }
-  }, [paymentRepository]);
-
-  const handleUpdateWithdrawalStatus = useCallback(async (id: string, status: 'approved' | 'rejected') => {
-    try {
-      const result = await paymentRepository.updateWithdrawalStatus(id, status);
-      if (result.success) {
-        setWithdrawalRequests(prev => prev.map(w => w.id === id ? result.data : w));
-      }
-    } catch (err: unknown) {
-      console.error(`Failed to update withdrawal status for request ${id}:`, err);
-    }
-  }, [paymentRepository]);
-
-  // Pre-existing fetch loop: fully replaced by TanStack Query in T-F039.
-  useEffect(() => {
-    loadPaymentsData(true);
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.hidden) return;
-      loadPaymentsData(false);
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [loadPaymentsData]);
-
-  return {
-    summary,
-    plans,
-    failedTransactions,
-    withdrawalRequests,
-    loading,
-    error,
-    retryingId,
-    refresh: () => loadPaymentsData(false),
-    onRetry: handleRetry,
-    onApprove: (id: string) => handleUpdateWithdrawalStatus(id, 'approved'),
-    onReject: (id: string) => handleUpdateWithdrawalStatus(id, 'rejected')
-  };
+export const usePaymentSummary = () => {
+  const { repositories } = useDependencies();
+  return useQuery({
+    queryKey: queryKeys.payments.summary,
+    queryFn: () => repositories.paymentRepository.getPaymentSummary().then(unwrap),
+    staleTime: 30000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+  });
 };
 
-export default usePayments;
+export const useWithdrawals = (q: WithdrawalQuery, opts?: { enabled?: boolean }) => {
+  const { repositories } = useDependencies();
+  return useQuery({
+    queryKey: queryKeys.payments.withdrawals(q),
+    queryFn: () => repositories.paymentRepository.getWithdrawals(q).then(unwrap),
+    staleTime: 30000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    enabled: opts?.enabled ?? true,
+  });
+};
+
+const INVALIDATE = [queryKeys.payments.all, queryKeys.counts] as const;
+
+export const useApproveWithdrawal = () => {
+  const { repositories } = useDependencies();
+  return useAdminMutation({
+    mutationFn: (id: string) => repositories.paymentRepository.approveWithdrawal(id).then(unwrap),
+    invalidate: [...INVALIDATE],
+    successKey: 'toast_withdrawal_approved',
+  });
+};
+
+export const useRejectWithdrawal = () => {
+  const { repositories } = useDependencies();
+  return useAdminMutation({
+    mutationFn: (id: string) => repositories.paymentRepository.rejectWithdrawal(id).then(unwrap),
+    invalidate: [...INVALIDATE],
+    successKey: 'toast_withdrawal_rejected',
+  });
+};
+
+export const useRetryWithdrawal = () => {
+  const { repositories } = useDependencies();
+  return useAdminMutation({
+    mutationFn: (id: string) => repositories.paymentRepository.retryWithdrawal(id).then(unwrap),
+    invalidate: [...INVALIDATE],
+    successKey: 'toast_withdrawal_retried',
+  });
+};
